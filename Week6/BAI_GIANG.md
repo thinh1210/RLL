@@ -3,7 +3,7 @@
 > Mục tiêu: hiểu ES như một **bộ ước lượng gradient không cần đạo hàm**, chứng minh toán học công thức gradient qua 2 phương pháp (Log-Derivative Trick & Bổ đề Stein), chứng minh giải tích tại sao Mirrored Sampling triệt tiêu phương sai bậc chẵn, và đọc hiểu [`ES.py`](ES.py) (LunarLanderContinuous).  
 > 📖 **Quy ước ký hiệu toàn khoá**: Đối chiếu toàn bộ ký hiệu giải tích, không gian và toán tử tại [BẢNG KÝ HIỆU TOÁN HỌC CHUẨN TẮC](../BANG_KY_HIEU_TOAN_HOC.md).
 
-Tài liệu đi kèm: [`README.md`](README.md).
+Mã nguồn thực hành đi kèm: [`ES.py`](ES.py) và minh họa kết quả trong [`imgs/`](imgs/).
 
 **Lộ trình**: §1 Tối ưu hộp đen → §2 Làm trơn Gaussian & 2 Cách chứng minh gradient ES → §3 Giảm phương sai & Chứng minh Mirrored Sampling → §4 Rank shaping → §5 Mở rộng song song → §6 Genetic Algorithm → §7 So sánh với RL → §8 Đọc code & Phân tích tham số → §9 Lỗi và lưu ý → §10 Ví dụ số → §11 Bài tập.
 

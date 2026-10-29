@@ -119,9 +119,9 @@ def train_dyna_model(random_dataset, rl_dataset, env_model, rew_model, batch_siz
         d_concat = np.concatenate([np.array(random_dataset)[rand], rl_dataset], axis=0)'''
 
         # Concatenate the random dataset with the RL dataset. Used only in the aggregation iterations
-        d_concat = np.concatenate([random_dataset, rl_dataset], axis=0)
+        d_concat = np.concatenate([np.array(random_dataset, dtype=object), np.array(rl_dataset, dtype=object)], axis=0)
     else:
-        d_concat = np.array(random_dataset)
+        d_concat = np.array(random_dataset, dtype=object)
 
     # Split the dataset into train(80%) and test(20%)
     D_train = d_concat[:int(-num_examples_added*1/5)]
@@ -315,7 +315,7 @@ STEPS_PER_AGGR = 20000
 NUM_RAND_TRAJECTORIES = 1000
 
 # 'cuda' or 'cpu'
-device = 'cuda'
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Supervised Model Hyperp
 ENV_LEARNING_RATE = 1e-3
@@ -386,7 +386,7 @@ if __name__ == '__main__':
                 rew_model.eval()
                 p_rew = rew_model(torch.tensor(models_input).to(device))
                 rew_model.train(True)
-                unnorm_rew = rew_output_scaler.inverse_transform([float(p_rew.cpu().data[0])]).squeeze()
+                unnorm_rew = rew_output_scaler.inverse_transform([[float(p_rew.cpu().detach().view(-1)[0])]]).squeeze()
                 print('  >> ',len(game_pred_rews), 'gt:',np.round(reward,3), 'pred:',np.round(unnorm_rew, 3),
                       'sum:', np.round(pred_rew,3), '|', game_reward, np.round(time.time()-tt, 4), HORIZION_LENGTH)
 

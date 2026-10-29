@@ -1,0 +1,2794 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cẩm Nang Simulation &amp; Cấu Hình Vật Lý Robot — Deep RL & Sim-to-Real Robotics</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- MathJax 3 for full LaTeX support (\boxed, \cancel, \underbrace, aligned) -->
+  <script>
+    window.MathJax = {
+      loader: { load: ['[tex]/cancel', '[tex]/ams', '[tex]/boldsymbol'] },
+      tex: {
+        packages: { '[+]': ['cancel', 'ams', 'boldsymbol'] },
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    :root[data-theme="dark"] {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --bg-card: #131921;
+      --text-primary: #e6edf3;
+      --text-secondary: #9198a1;
+      --text-muted: #6e7681;
+      --border-color: #30363d;
+      --accent-primary: #58a6ff;
+      --accent-secondary: #3fb950;
+      --accent-purple: #d2a8ff;
+      --accent-amber: #f0883e;
+      --callout-sub-bg: rgba(210, 168, 255, 0.08);
+      --callout-sub-border: #a371f7;
+      --callout-logic-bg: rgba(88, 166, 255, 0.08);
+      --callout-logic-border: #58a6ff;
+      --callout-sample-bg: rgba(63, 185, 80, 0.08);
+      --callout-sample-border: #3fb950;
+      --table-row-alt: rgba(255, 255, 255, 0.025);
+      --code-bg: #090d13;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    :root[data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --bg-tertiary: #eaeef2;
+      --bg-card: #f8fafc;
+      --text-primary: #1f2328;
+      --text-secondary: #57606a;
+      --text-muted: #6e7781;
+      --border-color: #d0d7de;
+      --accent-primary: #0969da;
+      --accent-secondary: #1a7f37;
+      --accent-purple: #8250df;
+      --accent-amber: #bc4c00;
+      --callout-sub-bg: #fbefff;
+      --callout-sub-border: #8250df;
+      --callout-logic-bg: #ddf4ff;
+      --callout-logic-border: #0969da;
+      --callout-sample-bg: #dafbe1;
+      --callout-sample-border: #1a7f37;
+      --table-row-alt: #f6f8fa;
+      --code-bg: #1e242c;
+      --shadow: 0 6px 18px rgba(31, 35, 40, 0.08);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.72;
+      font-size: 16px;
+    }
+    /* Top Navbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 60px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .brand-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .brand-pill {
+      background: linear-gradient(135deg, #238636, #1f6feb);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .btn-action {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    /* 3-Column Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr) 260px;
+      max-width: 1720px;
+      margin: 0 auto;
+    }
+    /* Left Sidebar */
+    .sidebar-left {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      padding: 1rem 0.85rem 2rem;
+    }
+    .search-box {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 0.86rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    .search-box:focus {
+      border-color: var(--accent-primary);
+    }
+    .nav-group {
+      margin-bottom: 1.15rem;
+    }
+    .nav-group-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      padding: 0.35rem 0.5rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      padding: 0.46rem 0.6rem;
+      margin: 2px 0;
+      border-radius: 7px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+    }
+    .nav-item.active {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-primary);
+      font-weight: 700;
+      border-left: 3px solid var(--accent-primary);
+    }
+    .nav-badge {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.42rem;
+      border-radius: 99px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* Main Content Area */
+    .main-content {
+      min-width: 0;
+      padding: 2.2rem 3rem 4rem;
+      max-width: 1020px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .doc-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+    .doc-meta-bar code {
+      background: var(--bg-tertiary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 5px;
+      color: var(--accent-primary);
+    }
+    /* Typography */
+    .markdown-body h1 {
+      font-size: 2.05rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-top: 0.5rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .markdown-body h2 {
+      font-size: 1.48rem;
+      font-weight: 700;
+      margin-top: 2.4rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--accent-primary);
+    }
+    .markdown-body h3 {
+      font-size: 1.18rem;
+      font-weight: 700;
+      margin-top: 1.75rem;
+      margin-bottom: 0.65rem;
+    }
+    .markdown-body h4 {
+      font-size: 1.02rem;
+      font-weight: 600;
+      margin-top: 1.35rem;
+      margin-bottom: 0.45rem;
+      color: var(--accent-purple);
+    }
+    .markdown-body .headerlink {
+      opacity: 0;
+      margin-left: 0.4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85em;
+      transition: opacity 0.15s;
+    }
+    .markdown-body h1:hover .headerlink,
+    .markdown-body h2:hover .headerlink,
+    .markdown-body h3:hover .headerlink,
+    .markdown-body h4:hover .headerlink {
+      opacity: 1;
+    }
+    .markdown-body a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .markdown-body a:hover {
+      text-decoration: underline;
+    }
+    .markdown-body hr {
+      border: 0;
+      border-top: 1px solid var(--border-color);
+      margin: 2rem 0;
+    }
+    .markdown-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin: 0.75rem 0;
+    }
+    /* Code & Pre */
+    .markdown-body code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.87em;
+      background: var(--bg-tertiary);
+      padding: 0.16em 0.42em;
+      border-radius: 5px;
+    }
+    .markdown-body pre {
+      background: var(--code-bg);
+      color: #e6edf3;
+      padding: 1.1rem 1.25rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+      margin: 1.15rem 0;
+    }
+    .markdown-body pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    /* Tables */
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.35rem 0;
+      font-size: 0.92rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      display: block;
+      overflow-x: auto;
+    }
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid var(--border-color);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .markdown-body th {
+      background: var(--bg-secondary);
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    .markdown-body tr:nth-child(even) {
+      background: var(--table-row-alt);
+    }
+    /* Math Blocks */
+    .math-block {
+      overflow-x: auto;
+      padding: 0.65rem 0.9rem;
+      margin: 0.9rem 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    /* Callout Blockquotes */
+    .callout {
+      margin: 1.35rem 0;
+      padding: 1rem 1.25rem;
+      border-left: 4px solid var(--accent-primary);
+      background: var(--bg-secondary);
+      border-radius: 0 10px 10px 0;
+    }
+    .callout > :first-child {
+      margin-top: 0;
+    }
+    .callout > :last-child {
+      margin-bottom: 0;
+    }
+    .callout-substitution {
+      background: var(--callout-sub-bg);
+      border-left: 4px solid var(--callout-sub-border);
+      box-shadow: 0 4px 14px rgba(163, 113, 247, 0.08);
+    }
+    .callout-logic {
+      background: var(--callout-logic-bg);
+      border-left: 4px solid var(--callout-logic-border);
+    }
+    .callout-sample {
+      background: var(--callout-sample-bg);
+      border-left: 4px solid var(--callout-sample-border);
+    }
+    .callout-warning {
+      background: rgba(240, 136, 62, 0.1);
+      border-left: 4px solid var(--accent-amber);
+    }
+    /* Right TOC Sidebar */
+    .sidebar-right {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 1.25rem 1rem 2rem;
+      border-left: 1px solid var(--border-color);
+      font-size: 0.82rem;
+    }
+    .toc-header {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+      font-size: 0.75rem;
+    }
+    .toc-link {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 0.28rem 0.45rem;
+      border-radius: 5px;
+      line-height: 1.4;
+      margin-bottom: 2px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .toc-link:hover {
+      color: var(--accent-primary);
+      background: var(--bg-secondary);
+    }
+    .toc-l3 {
+      padding-left: 1.15rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    /* Pager */
+    .doc-pager {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .pager-card {
+      display: flex;
+      flex-direction: column;
+      padding: 0.9rem 1.1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-secondary);
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .pager-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+    .pager-next {
+      text-align: right;
+    }
+    .pager-label {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .pager-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    /* Responsive */
+    @media (max-width: 1240px) {
+      .layout {
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+      .sidebar-right {
+        display: none;
+      }
+    }
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar-left {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .main-content {
+        padding: 1.5rem 1.15rem 3rem;
+      }
+      .doc-pager {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand-link" href="index.html">
+        <span>🚀 Deep RL & Sim-to-Real Portal</span>
+        <span class="brand-pill">LOCAL DOCS</span>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn-action" href="#interactive-simulator-lab" title="Mở phòng thí nghiệm mô phỏng tương tác">🎛️ Mô phỏng &amp; Tham số</a>
+      <a class="btn-action" href="HUONG_DAN_SIMULATION_VA_VAT_LY_ROBOT.md" title="Xem file Markdown gốc">📄 File .md gốc</a>
+      <button class="btn-action" id="theme-toggle" onclick="toggleTheme()">🌗 Đổi giao diện Sáng/Tối</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar-left">
+      <input
+        type="text"
+        id="doc-search"
+        class="search-box"
+        placeholder="🔍 Tìm nhanh bài giảng, chủ đề..."
+        oninput="filterSidebar(this.value)"
+      />
+      <nav id="sidebar-nav">
+        <div class="nav-group"><div class="nav-group-title">🏠 Tổng Quan Hệ Thống</div>
+<a class="nav-item" href="index.html" data-title="trang chủ &amp; bản đồ toàn khóa"><span class="nav-item-text">Trang Chủ &amp; Bản Đồ Toàn Khóa</span><span class="nav-badge">Portal</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">📐 Toán Học &amp; Cẩm Nang Tham Số</div>
+<a class="nav-item" href="BANG_KY_HIEU_TOAN_HOC.html" data-title="1. bảng ký hiệu toán học chuẩn tắc"><span class="nav-item-text">1. Bảng Ký Hiệu Toán Học Chuẩn Tắc</span><span class="nav-badge">Ký hiệu</span></a>
+<a class="nav-item" href="TONG_HOP_TOAN_HOC_XSTK_DSTT_RL.html" data-title="2. tổng hợp xstk, đstt &amp; các bước thế hàm"><span class="nav-item-text">2. Tổng Hợp XSTK, ĐSTT &amp; Các Bước Thế Hàm</span><span class="nav-badge">Toán cốt lõi</span></a>
+<a class="nav-item" href="CAM_NANG_THAM_SO_RL.html" data-title="3. cẩm nang toàn diện về tham số rl"><span class="nav-item-text">3. Cẩm Nang Toàn Diện Về Tham Số RL</span><span class="nav-badge">Tham số</span></a>
+<a class="nav-item" href="KIEN_THUC_CAN_HOC.html" data-title="4. lộ trình kiến thức cần học"><span class="nav-item-text">4. Lộ Trình Kiến Thức Cần Học</span><span class="nav-badge">Lộ trình</span></a>
+<a class="nav-item" href="KIEN_THUC_CHI_TIET_TUNG_TUAN.html" data-title="5. tổng hợp kiến thức &amp; đối chiếu code 8 tuần"><span class="nav-item-text">5. Tổng Hợp Kiến Thức &amp; Đối Chiếu Code 8 Tuần</span><span class="nav-badge">Tổng hợp</span></a>
+<a class="nav-item" href="HUONG_DAN_MOI_TRUONG_VA_CHAY_CODE.html" data-title="6. hướng dẫn môi trường (.venv), chạy code &amp; ros 2"><span class="nav-item-text">6. Hướng Dẫn Môi Trường (.venv), Chạy Code &amp; ROS 2</span><span class="nav-badge">Môi trường</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🎓 Bài Giảng Chuyên Sâu 8 Tuần</div>
+<a class="nav-item" href="Week1/BAI_GIANG.html" data-title="week 1: giới thiệu rl, bandit (ucb1) &amp; pong"><span class="nav-item-text">Week 1: Giới Thiệu RL, Bandit (UCB1) &amp; Pong</span><span class="nav-badge">Tuần 1</span></a>
+<a class="nav-item" href="Week2/BAI_GIANG.html" data-title="week 2: mdp, bellman, co banach &amp; q-learning"><span class="nav-item-text">Week 2: MDP, Bellman, Co Banach &amp; Q-Learning</span><span class="nav-badge">Tuần 2</span></a>
+<a class="nav-item" href="Week3/BAI_GIANG.html" data-title="week 3: deep q-networks (dqn, double, dueling)"><span class="nav-item-text">Week 3: Deep Q-Networks (DQN, Double, Dueling)</span><span class="nav-badge">Tuần 3</span></a>
+<a class="nav-item" href="Week4/BAI_GIANG.html" data-title="week 4: policy gradient, reinforce &amp; a2c"><span class="nav-item-text">Week 4: Policy Gradient, REINFORCE &amp; A2C</span><span class="nav-badge">Tuần 4</span></a>
+<a class="nav-item" href="Week5/BAI_GIANG.html" data-title="week 5: trpo, ppo-clip &amp; chuỗi gae"><span class="nav-item-text">Week 5: TRPO, PPO-Clip &amp; Chuỗi GAE</span><span class="nav-badge">Tuần 5</span></a>
+<a class="nav-item" href="Week6/BAI_GIANG.html" data-title="week 6: evolution strategies (es) &amp; ga"><span class="nav-item-text">Week 6: Evolution Strategies (ES) &amp; GA</span><span class="nav-badge">Tuần 6</span></a>
+<a class="nav-item" href="Week7/BAI_GIANG.html" data-title="week 7: model-based rl, tikhonov &amp; mpc"><span class="nav-item-text">Week 7: Model-Based RL, Tikhonov &amp; MPC</span><span class="nav-badge">Tuần 7</span></a>
+<a class="nav-item" href="Week8/BAI_GIANG.html" data-title="week 8: sac, irl, rnd, alphazero, rlhf &amp; dpo"><span class="nav-item-text">Week 8: SAC, IRL, RND, AlphaZero, RLHF &amp; DPO</span><span class="nav-badge">Tuần 8</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🤖 Simulation &amp; Sim-to-Real Robotics</div>
+<a class="nav-item active" href="HUONG_DAN_SIMULATION_VA_VAT_LY_ROBOT.html" data-title="cẩm nang simulation &amp; cấu hình vật lý robot"><span class="nav-item-text">Cẩm Nang Simulation &amp; Cấu Hình Vật Lý Robot</span><span class="nav-badge">Simulation</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/README.html" data-title="tổng quan kiến trúc 7 tầng sim-to-real"><span class="nav-item-text">Tổng Quan Kiến Trúc 7 Tầng Sim-to-Real</span><span class="nav-badge">7 Tầng</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part1_Physical_Modeling_URDF_MJCF.html" data-title="phần 1 (tầng 1): mô tả cơ học urdf/mjcf"><span class="nav-item-text">Phần 1 (Tầng 1): Mô Tả Cơ Học URDF/MJCF</span><span class="nav-badge">Tầng 1</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part2_Physics_Engine_And_Sensors.html" data-title="phần 2 (tầng 2): bộ giải động lực học &amp; cảm biến"><span class="nav-item-text">Phần 2 (Tầng 2): Bộ Giải Động Lực Học &amp; Cảm Biến</span><span class="nav-badge">Tầng 2</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part3_RL_Training_Environment_And_Rewards.html" data-title="phần 3 (tầng 3): môi trường rl &amp; domain randomization"><span class="nav-item-text">Phần 3 (Tầng 3): Môi Trường RL &amp; Domain Randomization</span><span class="nav-badge">Tầng 3</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part4_Code_Only_Physical_Verification.html" data-title="phần 4 (tầng 4): 7 bài kiểm định vật lý bằng code"><span class="nav-item-text">Phần 4 (Tầng 4): 7 Bài Kiểm Định Vật Lý Bằng Code</span><span class="nav-badge">Tầng 4</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part5_ROS2_Gazebo_And_Real_Robot_Bridge.html" data-title="phần 5 (tầng 5–7): cầu nối ros 2 &amp; robot thật"><span class="nav-item-text">Phần 5 (Tầng 5–7): Cầu Nối ROS 2 &amp; Robot Thật</span><span class="nav-badge">Tầng 5-7</span></a>
+</div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="doc-meta-bar">
+        <div>📚 <strong>Tài liệu:</strong> Cẩm Nang Simulation &amp; Cấu Hình Vật Lý Robot</div>
+        <div>📂 Đường dẫn gốc: <code>HUONG_DAN_SIMULATION_VA_VAT_LY_ROBOT.md</code></div>
+      </div>
+      
+<section class="sim-lab-wrapper" id="interactive-simulator-lab">
+  <div class="sim-lab-header">
+    <div class="sim-lab-title-row">
+      <div>
+        <span class="sim-lab-badge">🎛️ INTERACTIVE SIMULATION LAB</span>
+        <h2 class="sim-lab-heading">Phòng Thí Nghiệm Mô Phỏng &amp; Tinh Chỉnh Tham Số Trực Quan</h2>
+        <p class="sim-lab-subtitle">
+          Kéo các thanh trượt (Sliders) bên dưới để thay đổi tham số toán học — đồ thị, quỹ đạo và phương trình sẽ phản hồi ngay lập tức theo thời gian thực.
+        </p>
+      </div>
+      <button class="btn-action" onclick="toggleSimLabCollapse()" id="sim-collapse-btn">Thu gọn / Mở rộng Lab</button>
+    </div>
+
+    <div class="sim-tabs" role="tablist">
+      <button class="sim-tab" data-tab="math_eigen" onclick="switchSimTab('math_eigen')">📐 Toán: Σ &amp; Trị riêng</button>
+      <button class="sim-tab" data-tab="bandit_ucb" onclick="switchSimTab('bandit_ucb')">🎰 W1: Bandit &amp; UCB1</button>
+      <button class="sim-tab" data-tab="mdp_bellman" onclick="switchSimTab('mdp_bellman')">🧭 W2: Bellman &amp; Q-Grid</button>
+      <button class="sim-tab" data-tab="dqn_bias" onclick="switchSimTab('dqn_bias')">🎯 W3: Double DQN Bias</button>
+      <button class="sim-tab" data-tab="pg_variance" onclick="switchSimTab('pg_variance')">📉 W4: PG Baseline &amp; Entropy</button>
+      <button class="sim-tab" data-tab="ppo_gae" onclick="switchSimTab('ppo_gae')">🛡️ W5: PPO Clip &amp; GAE</button>
+      <button class="sim-tab" data-tab="es_mirror" onclick="switchSimTab('es_mirror')">🧬 W6: ES Mirrored ±ε</button>
+      <button class="sim-tab" data-tab="mbrl_mpc" onclick="switchSimTab('mbrl_mpc')">🔮 W7: Model Error &amp; MPC</button>
+      <button class="sim-tab" data-tab="sac_dpo" onclick="switchSimTab('sac_dpo')">🔥 W8: SAC α &amp; DPO β</button>
+      <button class="sim-tab" data-tab="sim2real_physics" onclick="switchSimTab('sim2real_physics')">🤖 Sim2Real: Euler vs RK4</button>
+    </div>
+  </div>
+
+  <div class="sim-lab-body" id="sim-lab-body">
+    <!-- ==================== 1. MATH: COVARIANCE & EIGEN ==================== -->
+    <div class="sim-panel" id="panel-math_eigen">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📐 Đám Mây Mẫu 2D, Ma trận Σ &amp; Trị Riêng (λ₁, λ₂)</h3>
+          <p class="sim-desc">Quan sát cách độ lệch chuẩn $\sigma_x, \sigma_y$ và góc xoay tương quan $\theta$ biến đổi đám mây mẫu và 2 trục Vector riêng trực giao $\mathbf{v}_1, \mathbf{v}_2$.</p>
+          <label class="sim-ctrl">
+            <span>Độ trải trục chính $\sigma_1$: <strong id="val-math-s1">1.80</strong></span>
+            <input type="range" id="sl-math-s1" min="0.3" max="2.5" step="0.05" value="1.80" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ trải trục phụ $\sigma_2$: <strong id="val-math-s2">0.55</strong></span>
+            <input type="range" id="sl-math-s2" min="0.15" max="2.0" step="0.05" value="0.55" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Góc xoay tương quan $\theta$: <strong id="val-math-ang">35°</strong></span>
+            <input type="range" id="sl-math-ang" min="-85" max="85" step="1" value="35" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Biên độ mẫu nhiễu dị biệt (Outlier $e_N$): <strong id="val-math-out">0.0</strong></span>
+            <input type="range" id="sl-math-out" min="0" max="15" step="0.5" value="0" oninput="updateMathLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-math"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-math" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. WEEK 1: BANDIT & UCB1 ==================== -->
+    <div class="sim-panel" id="panel-bandit_ucb">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎰 Multi-Armed Bandit: UCB1 vs. ε-Greedy</h3>
+          <p class="sim-desc">Công thức UCB1: $a_t = \arg\max_a \big[Q_t(a) + c\sqrt{\ln t / N_t(a)}\big]$. Kéo $c$ để xem bán kính tin cậy màu cam thúc đẩy khám phá có định hướng.</p>
+          <label class="sim-ctrl">
+            <span>Hệ số tự tin UCB $c$: <strong id="val-w1-c">1.41</strong></span>
+            <input type="range" id="sl-w1-c" min="0.0" max="4.0" step="0.05" value="1.41" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Tỉ lệ khám phá $\epsilon$ (cho $\epsilon$-greedy): <strong id="val-w1-eps">0.15</strong></span>
+            <input type="range" id="sl-w1-eps" min="0.0" max="0.6" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Bước học cập nhật $\alpha$: <strong id="val-w1-alpha">0.15</strong></span>
+            <input type="range" id="sl-w1-alpha" min="0.02" max="0.8" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW1Bandit(1)">+1 Bước kéo</button>
+            <button class="btn-sim" onclick="stepW1Bandit(25)">+25 Bước</button>
+            <button class="btn-sim" onclick="stepW1Bandit(200)">+200 Bước</button>
+            <button class="btn-sim-sec" onclick="resetW1Bandit()">🔄 Reset</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w1"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w1" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. WEEK 2: MDP BELLMAN & Q-LEARNING ==================== -->
+    <div class="sim-panel" id="panel-mdp_bellman">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧭 FrozenLake 4×4: Toán tử Co Bellman &amp; Hệ số $\gamma$</h3>
+          <p class="sim-desc">Phương trình Bellman tối ưu: $V^*(s) = \max_a \sum_{s'} P(s'|s,a)[r + \gamma V^*(s')]$. Kéo $\gamma$ và xác suất trượt băng để xem giá trị lan truyền từ Đích (ô 15, +1) và né Hố băng (H, -1)!</p>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w2-gamma">0.92</strong></span>
+            <input type="range" id="sl-w2-gamma" min="0.10" max="0.99" step="0.01" value="0.92" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Xác suất trượt chân sang bên (`slip_prob`): <strong id="val-w2-slip">0.20</strong></span>
+            <input type="range" id="sl-w2-slip" min="0.0" max="0.60" step="0.05" value="0.20" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số vòng lặp Value Iteration $k$: <strong id="val-w2-iter">15</strong></span>
+            <input type="range" id="sl-w2-iter" min="1" max="40" step="1" value="15" oninput="updateW2Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w2"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w2" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. WEEK 3: DOUBLE DQN BIAS ==================== -->
+    <div class="sim-panel" id="panel-dqn_bias">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎯 Thiên Lệch Cực Đại Hóa (Maximization Bias) &amp; Double DQN</h3>
+          <p class="sim-desc">Mọi hành động đều có giá trị thật $Q^*(s,a) = 0$, nhưng ước lượng mạng bị nhiễu $\mathcal{N}(0, \sigma^2)$. DQN thường lấy $\max_a Q(s,a;\theta^-)$ nên bị thổi phồng dương, trong khi Double DQN tách chọn &amp; định giá nên khử sạch bias!</p>
+          <label class="sim-ctrl">
+            <span>Độ lệch chuẩn nhiễu ước lượng $\sigma$: <strong id="val-w3-sigma">1.20</strong></span>
+            <input type="range" id="sl-w3-sigma" min="0.1" max="3.0" step="0.1" value="1.20" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số lượng hành động $|\mathcal{A}|$: <strong id="val-w3-nact">8</strong></span>
+            <input type="range" id="sl-w3-nact" min="2" max="30" step="1" value="8" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$ (tích lũy qua $1/(1-\gamma)$): <strong id="val-w3-gamma">0.90</strong></span>
+            <input type="range" id="sl-w3-gamma" min="0.50" max="0.98" step="0.02" value="0.90" oninput="updateW3Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="updateW3Lab()">🎲 Lấy mẫu Monte Carlo mới (500 lần)</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w3"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w3" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ==================== -->
+    <div class="sim-panel" id="panel-pg_variance">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📉 Policy Gradient: Baseline $b(s)$ &amp; Entropy Bonus $\beta\mathcal{H}(\pi)$</h3>
+          <p class="sim-desc">Quan sát cách trừ Baseline $b(s) = V(s)$ cắt giảm phương sai mẫu của đạo hàm $\nabla_\theta J$, và cách hệ số Entropy $\beta$ chống sụp đổ chính sách sớm (Premature Collapse).</p>
+          <label class="sim-ctrl">
+            <span>Mức thưởng nền trung bình (Reward Offset): <strong id="val-w4-roff">50</strong></span>
+            <input type="range" id="sl-w4-roff" min="0" max="100" step="5" value="50" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chuẩn hóa Baseline ($0 = \text{Tắt}, 1 = V(s)$): <strong id="val-w4-base">1.00</strong></span>
+            <input type="range" id="sl-w4-base" min="0.0" max="1.0" step="0.05" value="1.00" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Trọng số Entropy Bonus $\beta$: <strong id="val-w4-ent">0.15</strong></span>
+            <input type="range" id="sl-w4-ent" min="0.01" max="1.50" step="0.02" value="0.15" oninput="updateW4Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w4"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w4" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 6. WEEK 5: PPO CLIP & GAE ==================== -->
+    <div class="sim-panel" id="panel-ppo_gae">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🛡️ PPO-Clip Objective &amp; Trọng Số Suy Giảm GAE($\gamma, \lambda$)</h3>
+          <p class="sim-desc">Trái: Hàm mục tiêu $L^{\text{CLIP}}(r_t) = \min\big(r_t \hat{A}_t, \text{clip}(r_t, 1-\epsilon, 1+\epsilon)\hat{A}_t\big)$. Phải: Trọng số $(\gamma\lambda)^l$ của sai số TD $\delta_{t+l}^V$ theo bước tương lai $l$.</p>
+          <label class="sim-ctrl">
+            <span>Ngưỡng kẹp PPO $\epsilon$ (`CLIP_EPS`): <strong id="val-w5-eps">0.20</strong></span>
+            <input type="range" id="sl-w5-eps" min="0.05" max="0.50" step="0.01" value="0.20" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Giá trị Lợi thế $\hat{A}_t$ (Dương = Tốt, Âm = Xấu): <strong id="val-w5-adv">+1.50</strong></span>
+            <input type="range" id="sl-w5-adv" min="-2.5" max="2.5" step="0.1" value="1.5" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số GAE $\lambda$ (`GAE_LAMBDA`): <strong id="val-w5-lam">0.95</strong></span>
+            <input type="range" id="sl-w5-lam" min="0.0" max="1.0" step="0.01" value="0.95" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w5-gam">0.99</strong></span>
+            <input type="range" id="sl-w5-gam" min="0.80" max="0.999" step="0.005" value="0.99" oninput="updateW5Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w5"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w5" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 7. WEEK 6: EVOLUTION STRATEGIES ==================== -->
+    <div class="sim-panel" id="panel-es_mirror">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧬 Evolution Strategies: Làm Trơn Gaussian &amp; Mirrored Sampling $\pm\varepsilon$</h3>
+          <p class="sim-desc">Mũi tên xanh lá là Gradient thật $\nabla F(\theta)$, mũi tên cam là ước lượng ES $\hat{g}$. Bật/tắt lấy mẫu đối xứng $\pm\varepsilon$ để thấy cách nó khử sạch sai số bậc chẵn!</p>
+          <label class="sim-ctrl">
+            <span>Bán kính nhiễu thăm dò $\sigma$ (`STD_NOISE`): <strong id="val-w6-sigma">0.35</strong></span>
+            <input type="range" id="sl-w6-sigma" min="0.05" max="1.00" step="0.05" value="0.35" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số cặp cá thể quần thể $n$ (`BATCH_SIZE`): <strong id="val-w6-npop">12</strong></span>
+            <input type="range" id="sl-w6-npop" min="2" max="50" step="1" value="12" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Chế độ lấy mẫu (0 = 1 phía $+\varepsilon$, 1 = Đối xứng $\pm\varepsilon$): <strong id="val-w6-mirror">Đối xứng ±ε</strong></span>
+            <input type="range" id="sl-w6-mirror" min="0" max="1" step="1" value="1" oninput="updateW6Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW6ES()">🚀 Bước nhảy cập nhật θ ← θ + α·ĝ</button>
+            <button class="btn-sim-sec" onclick="resetW6ES()">🔄 Đặt lại vị trí θ</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w6"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w6" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 8. WEEK 7: MODEL-BASED RL & MPC ==================== -->
+    <div class="sim-panel" id="panel-mbrl_mpc">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔮 Model-Based RL: Sai Số Tích Lũy $\mathcal{O}(L_f^H \varepsilon)$ &amp; Làm Trơn Tikhonov</h3>
+          <p class="sim-desc">Đường xanh là quỹ đạo thật $s_{t+k}$, đường đứt nét đỏ là quỹ đạo tưởng tượng $\hat{s}_{t+k}$ khi cuộn mô hình $H$ bước. Khi hằng số Lipschitz $L_f &gt; 1$, sai số phình to theo cấp số nhân!</p>
+          <label class="sim-ctrl">
+            <span>Tầm nhìn quy hoạch $H$ (`HORIZON_LENGTH`): <strong id="val-w7-h">12</strong></span>
+            <input type="range" id="sl-w7-h" min="2" max="25" step="1" value="12" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ dốc Jacobian mô hình $L_f = \|\nabla_s \hat{f}\|$: <strong id="val-w7-lip">1.14</strong></span>
+            <input type="range" id="sl-w7-lip" min="0.85" max="1.30" step="0.01" value="1.14" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Nhiễu đầu vào Tikhonov $\sigma_\xi$ (phạt $\|J_f\|_F^2$): <strong id="val-w7-tik">0.00</strong></span>
+            <input type="range" id="sl-w7-tik" min="0.00" max="0.25" step="0.01" value="0.00" oninput="updateW7Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w7"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w7" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 9. WEEK 8: SAC MAXENT & RLHF/DPO ==================== -->
+    <div class="sim-panel" id="panel-sac_dpo">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔥 SAC Soft-Bellman Temperature $\alpha$ &amp; RLHF/DPO $\beta_{KL}$</h3>
+          <p class="sim-desc">Trái: Địa hình $Q(s,a)$ có 2 đỉnh cực đại và phân phối Boltzmann $\pi^*(a|s) \propto \exp(Q(s,a)/\alpha)$. Phải: Đường cong xác suất thắng Bradley-Terry / DPO theo $\beta_{KL}$.</p>
+          <label class="sim-ctrl">
+            <span>Nhiệt độ Entropy SAC $\alpha$: <strong id="val-w8-alpha">0.25</strong></span>
+            <input type="range" id="sl-w8-alpha" min="0.03" max="1.50" step="0.02" value="0.25" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ chênh lệch đỉnh phụ $\Delta Q_{\text{sub}}$: <strong id="val-w8-dq">0.85</strong></span>
+            <input type="range" id="sl-w8-dq" min="0.20" max="1.00" step="0.05" value="0.85" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số phạt KL trong RLHF/DPO $\beta_{KL}$: <strong id="val-w8-beta">0.50</strong></span>
+            <input type="range" id="sl-w8-beta" min="0.05" max="2.00" step="0.05" value="0.50" oninput="updateW8Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w8"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w8" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 10. SIM-TO-REAL ROBOTICS PHYSICS ==================== -->
+    <div class="sim-panel" id="panel-sim2real_physics">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🤖 Sim-to-Real: Tích Phân Euler vs. RK4, Độ Cứng $K_p$ &amp; Ma Sát $\mu$</h3>
+          <p class="sim-desc">Kiểm chứng tại sao chọn sai bước thời gian $\Delta t$ lớn kết hợp với bộ điều khiển khớp cứng $K_p$ làm Explicit Euler nổ tung (Numerical Explosion), trong khi RK4 giữ vững ổn định vật lý!</p>
+          <label class="sim-ctrl">
+            <span>Bước thời gian mô phỏng $\Delta t$ (`max_step_size`): <strong id="val-sim-dt">0.025 s</strong></span>
+            <input type="range" id="sl-sim-dt" min="0.005" max="0.065" step="0.002" value="0.025" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ cứng lò xo ảo PD $K_p$ (`stiffness`): <strong id="val-sim-kp">65</strong></span>
+            <input type="range" id="sl-sim-kp" min="15" max="140" step="5" value="65" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số cản nhớt $K_d$ (`damping`): <strong id="val-sim-kd">8.0</strong></span>
+            <input type="range" id="sl-sim-kd" min="1.0" max="25.0" step="0.5" value="8.0" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số ma sát mặt sàn $\mu$ (giới hạn lực bám $\mu mg$): <strong id="val-sim-mu">0.60</strong></span>
+            <input type="range" id="sl-sim-mu" min="0.10" max="1.20" step="0.05" value="0.60" oninput="updateSim2RealLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-sim2real"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-sim2real" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sim-lab-wrapper {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 14px;
+    margin: 1.2rem 0 2.2rem;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .sim-lab-header {
+    padding: 1.15rem 1.35rem 0.75rem;
+    background: linear-gradient(180deg, rgba(88, 166, 255, 0.10), transparent);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sim-lab-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .sim-lab-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    background: var(--accent-primary);
+    color: #fff;
+    margin-bottom: 0.35rem;
+  }
+  .sim-lab-heading {
+    margin: 0 0 0.25rem 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 1.28rem !important;
+    color: var(--text-primary) !important;
+  }
+  .sim-lab-subtitle {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+  }
+  .sim-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.95rem;
+  }
+  .sim-tab {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.38rem 0.68rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .sim-tab:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+  }
+  .sim-tab.active {
+    background: var(--accent-primary);
+    color: #ffffff;
+    border-color: var(--accent-primary);
+  }
+  .sim-lab-body {
+    padding: 1.25rem 1.35rem;
+  }
+  .sim-panel {
+    display: none;
+  }
+  .sim-panel.active {
+    display: block;
+  }
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+  }
+  .sim-controls h3 {
+    margin: 0 0 0.4rem 0 !important;
+    font-size: 1.02rem !important;
+    color: var(--accent-primary);
+  }
+  .sim-desc {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.85rem 0;
+    line-height: 1.5;
+  }
+  .sim-ctrl {
+    display: block;
+    margin-bottom: 0.65rem;
+    font-size: 0.82rem;
+  }
+  .sim-ctrl span {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+  }
+  .sim-ctrl input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+  }
+  .sim-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.65rem 0;
+  }
+  .btn-sim {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-sim:hover {
+    opacity: 0.9;
+  }
+  .btn-sim-sec {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-metrics {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.8rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.77rem;
+    line-height: 1.55;
+  }
+  .sim-canvas-box {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .sim-canvas-box canvas {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 6px;
+  }
+  @media (max-width: 980px) {
+    .sim-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  function getColors() {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      bg: isLight ? '#ffffff' : '#0d1117',
+      grid: isLight ? '#e5e7eb' : '#21262d',
+      text: isLight ? '#1f2328' : '#e6edf3',
+      muted: isLight ? '#57606a' : '#8b949e',
+      blue: isLight ? '#0969da' : '#58a6ff',
+      green: isLight ? '#1a7f37' : '#3fb950',
+      purple: isLight ? '#8250df' : '#d2a8ff',
+      orange: isLight ? '#bc4c00' : '#f0883e',
+      red: isLight ? '#cf222e' : '#ff7b72'
+    };
+  }
+
+  window.toggleSimLabCollapse = function() {
+    const body = document.getElementById('sim-lab-body');
+    body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+  };
+
+  window.switchSimTab = function(tabId) {
+    document.querySelectorAll('.sim-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.sim-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + tabId);
+    });
+    renderActiveTab(tabId);
+  };
+
+  function renderActiveTab(tabId) {
+    if (tabId === 'math_eigen') updateMathLab();
+    else if (tabId === 'bandit_ucb') updateW1Lab();
+    else if (tabId === 'mdp_bellman') updateW2Lab();
+    else if (tabId === 'dqn_bias') updateW3Lab();
+    else if (tabId === 'pg_variance') updateW4Lab();
+    else if (tabId === 'ppo_gae') updateW5Lab();
+    else if (tabId === 'es_mirror') updateW6Lab();
+    else if (tabId === 'mbrl_mpc') updateW7Lab();
+    else if (tabId === 'sac_dpo') updateW8Lab();
+    else if (tabId === 'sim2real_physics') updateSim2RealLab();
+  }
+
+  // ==================== 1. MATH LAB: 2D CLOUD & EIGEN ====================
+  const basePts = [];
+  for (let i = 0; i < 120; i++) {
+    // Box-Muller
+    const u1 = (i + 1) / 121.0;
+    const u2 = ((i * 73) % 119 + 1) / 120.0;
+    const r = Math.sqrt(-2.0 * Math.log(u1));
+    const th = 2.0 * Math.PI * u2;
+    basePts.push([r * Math.cos(th), r * Math.sin(th)]);
+  }
+
+  window.updateMathLab = function() {
+    const s1 = parseFloat(document.getElementById('sl-math-s1').value);
+    const s2 = parseFloat(document.getElementById('sl-math-s2').value);
+    const angDeg = parseFloat(document.getElementById('sl-math-ang').value);
+    const outVal = parseFloat(document.getElementById('sl-math-out').value);
+    document.getElementById('val-math-s1').textContent = s1.toFixed(2);
+    document.getElementById('val-math-s2').textContent = s2.toFixed(2);
+    document.getElementById('val-math-ang').textContent = angDeg + '°';
+    document.getElementById('val-math-out').textContent = outVal.toFixed(1);
+
+    const rad = angDeg * Math.PI / 180.0;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    const l1 = s1 * s1, l2 = s2 * s2;
+    const sigXX = l1 * c * c + l2 * s * s;
+    const sigYY = l1 * s * s + l2 * c * c;
+    const sigXY = (l1 - l2) * c * s;
+
+    // Norms with outlier
+    const baseErrs = [0.2, -0.3, 0.4, -0.1, 0.25];
+    const errs = baseErrs.concat([outVal]);
+    const l1Norm = errs.reduce((a, b) => a + Math.abs(b), 0) / errs.length;
+    const l2Norm = Math.sqrt(errs.reduce((a, b) => a + b * b, 0) / errs.length);
+    const lInfNorm = Math.max(...errs.map(Math.abs));
+
+    document.getElementById('metrics-math').innerHTML =
+      `Ma trận Hiệp phương sai Σ = [[${sigXX.toFixed(2)}, ${sigXY.toFixed(2)}], [${sigXY.toFixed(2)}, ${sigYY.toFixed(2)}]]<br>` +
+      `Trị riêng: <strong>λ₁ = ${l1.toFixed(2)}</strong>, <strong>λ₂ = ${l2.toFixed(2)}</strong> | Số điều kiện κ = ${(Math.max(l1,l2)/Math.min(l1,l2)).toFixed(1)}<br>` +
+      `Chuẩn sai số khi Outlier=${outVal.toFixed(1)}: L₁=${l1Norm.toFixed(2)} | L₂=${l2Norm.toFixed(2)} | L∞=${lInfNorm.toFixed(2)}`;
+
+    const cv = document.getElementById('cv-math');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 210, cy = 180, scale = 48;
+    // Grid
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, cy); ctx.lineTo(400, cy);
+    ctx.moveTo(cx, 20); ctx.lineTo(cx, 340);
+    ctx.stroke();
+
+    // Cloud points
+    ctx.fillStyle = col.blue;
+    ctx.globalAlpha = 0.65;
+    basePts.forEach(([z1, z2]) => {
+      const x0 = z1 * s1, y0 = z2 * s2;
+      const x = x0 * c - y0 * s;
+      const y = x0 * s + y0 * c;
+      ctx.beginPath();
+      ctx.arc(cx + x * scale, cy - y * scale, 3, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+
+    // Eigenvector 1 & 2 arrows
+    function drawArrow(x1, y1, x2, y2, color, label) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 9 * Math.cos(ang - 0.4), y2 - 9 * Math.sin(ang - 0.4));
+      ctx.lineTo(x2 - 9 * Math.cos(ang + 0.4), y2 - 9 * Math.sin(ang + 0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.fillText(label, x2 + 6, y2 - 4);
+    }
+    drawArrow(cx, cy, cx + c * s1 * 1.6 * scale, cy - s * s1 * 1.6 * scale, col.orange, `v₁ (√λ₁=${s1.toFixed(2)})`);
+    drawArrow(cx, cy, cx - s * s2 * 1.6 * scale, cy - c * s2 * 1.6 * scale, col.green, `v₂ (√λ₂=${s2.toFixed(2)})`);
+
+    // Right side: Norm comparison bar chart
+    const bx = 435, bw = 36, baseB = 315;
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Độ nhạy Chuẩn vs Outlier', 425, 38);
+    const norms = [
+      { name: 'L₁ (Bền)', val: l1Norm, color: col.green },
+      { name: 'L₂ (MSE)', val: l2Norm, color: col.blue },
+      { name: 'L∞ (Max)', val: lInfNorm, color: col.red }
+    ];
+    norms.forEach((n, idx) => {
+      const x = bx + idx * 52;
+      const h = Math.min(240, n.val * 16);
+      ctx.fillStyle = n.color;
+      ctx.fillRect(x, baseB - h, bw, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(n.val.toFixed(1), x + 4, baseB - h - 6);
+      ctx.fillText(n.name, x - 2, baseB + 16);
+    });
+  };
+
+  // ==================== 2. WEEK 1: BANDIT & UCB1 ====================
+  const trueMeans = [0.2, 0.55, 0.85, 0.40, 0.65];
+  let w1State = {
+    t: 5,
+    N: [1, 1, 1, 1, 1],
+    Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+    regretUCB: [0],
+    regretEps: [0],
+    cumUCB: 0,
+    cumEps: 0
+  };
+
+  window.resetW1Bandit = function() {
+    w1State = {
+      t: 5,
+      N: [1, 1, 1, 1, 1],
+      Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+      regretUCB: [0],
+      regretEps: [0],
+      cumUCB: 0,
+      cumEps: 0
+    };
+    updateW1Lab();
+  };
+
+  window.stepW1Bandit = function(steps) {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    const bestMean = 0.85;
+
+    for (let s = 0; s < steps; s++) {
+      w1State.t += 1;
+      // UCB selection
+      let bestArm = 0, bestScore = -1e9;
+      for (let a = 0; a < 5; a++) {
+        const ucb = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+        if (ucb > bestScore) { bestScore = ucb; bestArm = a; }
+      }
+      const reward = trueMeans[bestArm] + (Math.random() - 0.5) * 0.4;
+      w1State.N[bestArm] += 1;
+      w1State.Q[bestArm] += alpha * (reward - w1State.Q[bestArm]);
+      w1State.cumUCB += (bestMean - trueMeans[bestArm]);
+      w1State.regretUCB.push(w1State.cumUCB);
+
+      // Eps-greedy regret simulation
+      let epsArm = 2;
+      if (Math.random() < eps) epsArm = Math.floor(Math.random() * 5);
+      w1State.cumEps += (bestMean - trueMeans[epsArm]);
+      w1State.regretEps.push(w1State.cumEps);
+    }
+    updateW1Lab();
+  };
+
+  window.updateW1Lab = function() {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    document.getElementById('val-w1-c').textContent = c.toFixed(2);
+    document.getElementById('val-w1-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w1-alpha').textContent = alpha.toFixed(2);
+
+    let nextArm = 0, maxU = -1e9;
+    for (let a = 0; a < 5; a++) {
+      const score = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      if (score > maxU) { maxU = score; nextArm = a; }
+    }
+
+    document.getElementById('metrics-w1').innerHTML =
+      `Tổng số bước t = <strong>${w1State.t}</strong> | Cánh tay tối ưu thật: <strong>Arm #3 (q*=0.85)</strong><br>` +
+      `Hành động UCB chọn kế tiếp: <strong>Arm #${nextArm + 1}</strong> (Điểm UCB = ${maxU.toFixed(2)})<br>` +
+      `Hối tiếc tích lũy (Regret): UCB1 = <strong>${w1State.cumUCB.toFixed(2)}</strong> vs ε-Greedy = <strong>${w1State.cumEps.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w1');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: 5 Arms Q_t(a) + Bonus U_t(a)
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Ước lượng Q_t(a) (Xanh) + Bán kính UCB (Cam)', 20, 26);
+
+    const baseY = 310, scaleH = 110;
+    for (let a = 0; a < 5; a++) {
+      const x = 30 + a * 58;
+      const qH = Math.max(5, w1State.Q[a] * scaleH);
+      const bonus = c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      const bH = Math.min(160, bonus * scaleH);
+
+      ctx.fillStyle = col.blue;
+      ctx.fillRect(x, baseY - qH, 38, qH);
+      ctx.fillStyle = col.orange;
+      ctx.fillRect(x, baseY - qH - bH, 38, bH);
+
+      // True mean marker
+      const trueY = baseY - trueMeans[a] * scaleH;
+      ctx.strokeStyle = col.green;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x - 4, trueY); ctx.lineTo(x + 42, trueY);
+      ctx.stroke();
+
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(`Arm ${a + 1}`, x + 3, baseY + 16);
+      ctx.fillStyle = col.muted;
+      ctx.fillText(`N=${w1State.N[a]}`, x + 4, baseY + 30);
+    }
+
+    // Right: Regret curves
+    const rx = 345, ry = 45, rw = 235, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Hối tiếc tích lũy L_T (Thấp = Tốt)', rx + 10, 26);
+
+    function drawCurve(arr, color) {
+      if (arr.length < 2) return;
+      const maxVal = Math.max(5, w1State.cumEps, w1State.cumUCB);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      arr.forEach((v, i) => {
+        const px = rx + (i / (arr.length - 1)) * rw;
+        const py = ry + rh - (v / maxVal) * (rh - 15);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+    drawCurve(w1State.regretEps, col.red);
+    drawCurve(w1State.regretUCB, col.green);
+    ctx.fillStyle = col.green; ctx.fillText('▬ UCB1 O(ln T)', rx + 12, ry + 22);
+    ctx.fillStyle = col.red; ctx.fillText('▬ ε-Greedy O(T)', rx + 12, ry + 40);
+  };
+
+  // ==================== 3. WEEK 2: MDP BELLMAN GRID ====================
+  const holes = new Set([5, 7, 11, 12]);
+  const goalCell = 15;
+
+  window.updateW2Lab = function() {
+    const gamma = parseFloat(document.getElementById('sl-w2-gamma').value);
+    const slip = parseFloat(document.getElementById('sl-w2-slip').value);
+    const iters = parseInt(document.getElementById('sl-w2-iter').value, 10);
+    document.getElementById('val-w2-gamma').textContent = gamma.toFixed(2);
+    document.getElementById('val-w2-slip').textContent = slip.toFixed(2);
+    document.getElementById('val-w2-iter').textContent = iters;
+
+    let V = new Array(16).fill(0);
+    let policy = new Array(16).fill(0);
+    const dirs = [
+      [0, -1], // Left
+      [1, 0],  // Down
+      [0, 1],  // Right
+      [-1, 0]  // Up
+    ];
+    const arrows = ['←', '↓', '→', '↑'];
+
+    function stepState(s, a) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const nr = Math.min(3, Math.max(0, r + dirs[a][0]));
+      const nc = Math.min(3, Math.max(0, c + dirs[a][1]));
+      return nr * 4 + nc;
+    }
+
+    for (let k = 0; k < iters; k++) {
+      const nextV = V.slice();
+      for (let s = 0; s < 16; s++) {
+        if (s === goalCell) { nextV[s] = 1.0; continue; }
+        if (holes.has(s)) { nextV[s] = -1.0; continue; }
+        let bestQ = -1e9, bestA = 0;
+        for (let a = 0; a < 4; a++) {
+          const pMain = 1.0 - slip;
+          const pSide = slip / 2.0;
+          const aLeft = (a + 3) % 4;
+          const aRight = (a + 1) % 4;
+          const transitions = [
+            [pMain, stepState(s, a)],
+            [pSide, stepState(s, aLeft)],
+            [pSide, stepState(s, aRight)]
+          ];
+          let q = 0;
+          transitions.forEach(([prob, sNext]) => {
+            const rew = (sNext === goalCell) ? 1.0 : (holes.has(sNext) ? -0.5 : -0.01);
+            const vNext = (sNext === goalCell || holes.has(sNext)) ? 0.0 : V[sNext];
+            q += prob * (rew + gamma * vNext);
+          });
+          if (q > bestQ) { bestQ = q; bestA = a; }
+        }
+        nextV[s] = bestQ;
+        policy[s] = bestA;
+      }
+      V = nextV;
+    }
+
+    document.getElementById('metrics-w2').innerHTML =
+      `Giá trị tại Ô xuất phát V*(0) = <strong>${V[0].toFixed(3)}</strong> | Hệ số co Banach γ^k = <strong>${Math.pow(gamma, iters).toFixed(4)}</strong><br>` +
+      `Hướng đi tối ưu tại Ô 0: <strong>${arrows[policy[0]]}</strong> | Tại Ô 14 (sát đích): <strong>V*(14) = ${V[14].toFixed(3)} (${arrows[policy[14]]})</strong>`;
+
+    const cv = document.getElementById('cv-w2');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cellS = 76, ox = 145, oy = 28;
+    for (let s = 0; s < 16; s++) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const x = ox + c * cellS, y = oy + r * cellS;
+      if (s === goalCell) {
+        ctx.fillStyle = 'rgba(63, 185, 80, 0.35)';
+      } else if (holes.has(s)) {
+        ctx.fillStyle = 'rgba(255, 123, 114, 0.32)';
+      } else {
+        const norm = Math.max(0, Math.min(1, (V[s] + 0.3) / 1.3));
+        ctx.fillStyle = `rgba(88, 166, 255, ${(0.08 + norm * 0.45).toFixed(2)})`;
+      }
+      ctx.fillRect(x, y, cellS - 4, cellS - 4);
+      ctx.strokeStyle = col.grid;
+      ctx.strokeRect(x, y, cellS - 4, cellS - 4);
+
+      ctx.fillStyle = col.text;
+      ctx.font = 'bold 12px Inter, sans-serif';
+      if (s === goalCell) {
+        ctx.fillText('🏆 GOAL', x + 10, y + 32);
+        ctx.fillText('+1.00', x + 18, y + 52);
+      } else if (holes.has(s)) {
+        ctx.fillText('🕳️ HOLE', x + 10, y + 32);
+        ctx.fillText('-0.50', x + 18, y + 52);
+      } else {
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.fillStyle = col.orange;
+        ctx.fillText(arrows[policy[s]], x + 28, y + 34);
+        ctx.font = '11px JetBrains Mono, monospace';
+        ctx.fillStyle = col.text;
+        ctx.fillText(V[s].toFixed(2), x + 18, y + 58);
+      }
+    }
+  };
+
+  // ==================== 4. WEEK 3: DOUBLE DQN BIAS ====================
+  window.updateW3Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w3-sigma').value);
+    const nAct = parseInt(document.getElementById('sl-w3-nact').value, 10);
+    const gamma = parseFloat(document.getElementById('sl-w3-gamma').value);
+    document.getElementById('val-w3-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w3-nact').textContent = nAct;
+    document.getElementById('val-w3-gamma').textContent = gamma.toFixed(2);
+
+    const trials = 400;
+    let sumDQN = 0, sumDDQN = 0;
+    const actionSampleQ1 = new Array(nAct).fill(0);
+    const actionSampleQ2 = new Array(nAct).fill(0);
+
+    function randn() {
+      const u1 = Math.max(1e-7, Math.random());
+      const u2 = Math.random();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    for (let t = 0; t < trials; t++) {
+      let maxQ1 = -1e9, argMax1 = 0;
+      const q1 = [], q2 = [];
+      for (let a = 0; a < nAct; a++) {
+        const v1 = randn() * sigma;
+        const v2 = randn() * sigma;
+        q1.push(v1); q2.push(v2);
+        if (v1 > maxQ1) { maxQ1 = v1; argMax1 = a; }
+        if (t === 0) { actionSampleQ1[a] = v1; actionSampleQ2[a] = v2; }
+      }
+      sumDQN += maxQ1;
+      sumDDQN += q2[argMax1];
+    }
+
+    const avgDQN = sumDQN / trials;
+    const avgDDQN = sumDDQN / trials;
+    const asympDQN = avgDQN / (1.0 - gamma);
+
+    document.getElementById('metrics-w3').innerHTML =
+      `Giá trị thật Q*(s,a) = <strong>0.00</strong> | Kỳ vọng DQN thường E[max Q] = <strong style="color:#ff7b72">+${avgDQN.toFixed(3)}</strong> (Bị thổi phồng!)<br>` +
+      `Kỳ vọng Double DQN E[Q₂(argmax Q₁)] = <strong style="color:#3fb950">${avgDDQN.toFixed(3)}</strong> (Không chệch ≈ 0)<br>` +
+      `Sai số tích lũy qua chuỗi Bellman 1/(1-γ): DQN nổ lên tới <strong>+${asympDQN.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w3');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Draw comparison bars & single sample action noises
+    const midY = 195;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath();
+    ctx.moveTo(25, midY); ctx.lineTo(360, midY);
+    ctx.stroke();
+
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Mẫu nhiễu Q(s, a; θ) trên ${nAct} hành động (1 lượt)`, 25, 28);
+
+    const wBar = Math.max(6, Math.floor(310 / nAct) - 4);
+    let maxIdx = 0;
+    for (let a = 1; a < nAct; a++) if (actionSampleQ1[a] > actionSampleQ1[maxIdx]) maxIdx = a;
+
+    for (let a = 0; a < nAct; a++) {
+      const x = 30 + a * (wBar + 4);
+      const h = actionSampleQ1[a] * 38;
+      ctx.fillStyle = (a === maxIdx) ? col.red : col.blue;
+      if (h >= 0) ctx.fillRect(x, midY - h, wBar, h);
+      else ctx.fillRect(x, midY, wBar, -h);
+    }
+
+    // Right: Summary bias bars
+    ctx.fillStyle = col.text;
+    ctx.fillText('Độ chệch trung bình (400 mẫu)', 390, 28);
+    const b1H = Math.min(140, avgDQN * 55);
+    ctx.fillStyle = col.red;
+    ctx.fillRect(415, midY - b1H, 60, b1H);
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DQN: +${avgDQN.toFixed(2)}`, 405, midY - b1H - 8);
+
+    const b2H = avgDDQN * 55;
+    ctx.fillStyle = col.green;
+    ctx.fillRect(505, midY - Math.max(3, Math.abs(b2H)), 60, Math.max(4, Math.abs(b2H)));
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DDQN: ${avgDDQN.toFixed(2)}`, 498, midY - 12);
+  };
+
+  // ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ====================
+  window.updateW4Lab = function() {
+    const roff = parseFloat(document.getElementById('sl-w4-roff').value);
+    const baseFrac = parseFloat(document.getElementById('sl-w4-base').value);
+    const beta = parseFloat(document.getElementById('sl-w4-ent').value);
+    document.getElementById('val-w4-roff').textContent = roff.toFixed(0);
+    document.getElementById('val-w4-base').textContent = baseFrac.toFixed(2);
+    document.getElementById('val-w4-ent').textContent = beta.toFixed(2);
+
+    // Raw returns around roff + [-4, +2, -1, +5]
+    const advs = [-4.0, 2.0, -1.5, 5.0];
+    const baseline = baseFrac * roff;
+    const signals = advs.map(a => (roff + a) - baseline);
+    const meanSig = signals.reduce((a, b) => a + b, 0) / signals.length;
+    const variance = signals.reduce((a, b) => a + Math.pow(b, 2), 0) / signals.length;
+
+    // Softmax policy with temperature / entropy weight beta
+    const logits = [1.8, 0.9, 0.2, -0.4].map(l => l / Math.max(0.08, beta * 3.5));
+    const maxL = Math.max(...logits);
+    const exps = logits.map(l => Math.exp(l - maxL));
+    const sumE = exps.reduce((a, b) => a + b, 0);
+    const probs = exps.map(e => e / sumE);
+    const entropy = -probs.reduce((acc, p) => acc + (p > 1e-9 ? p * Math.log(p) : 0), 0);
+
+    document.getElementById('metrics-w4').innerHTML =
+      `Bình phương độ lớn Gradient E[(G_t - b)²]: <strong>${variance.toFixed(1)}</strong> (Khi b=V(s), giảm từ ${(roff*roff + 11.5).toFixed(0)} về 11.6!)<br>` +
+      `Shannon Entropy H(π) = <strong>${entropy.toFixed(3)} nats</strong> (Max = ln(4) ≈ 1.386)<br>` +
+      `Phân phối π(a|s): [${probs.map(p => (p*100).toFixed(1)+'%').join(', ')}]`;
+
+    const cv = document.getElementById('cv-w4');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Signals G_t - b(s) for 4 sampled actions
+    const midY = 190;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath(); ctx.moveTo(20, midY); ctx.lineTo(300, midY); ctx.stroke();
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Tín hiệu đẩy Gradient (G_t - b) trên 4 mẫu', 20, 28);
+
+    signals.forEach((sig, i) => {
+      const x = 35 + i * 64;
+      const h = Math.max(-135, Math.min(135, sig * 2.2));
+      ctx.fillStyle = sig >= 0 ? col.green : col.red;
+      if (h >= 0) ctx.fillRect(x, midY - h, 42, h);
+      else ctx.fillRect(x, midY, 42, -h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((sig >= 0 ? '+' : '') + sig.toFixed(1), x + 4, h >= 0 ? midY - h - 6 : midY - h + 14);
+      ctx.fillText(`Mẫu ${i+1}`, x + 4, 340);
+    });
+
+    // Right: Policy distribution pi(a|s) under Entropy Bonus
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Phân phối π(a|s) (Entropy H = ${entropy.toFixed(2)})`, 335, 28);
+    const baseB = 315;
+    probs.forEach((p, i) => {
+      const x = 350 + i * 58;
+      const h = p * 230;
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(x, baseB - h, 40, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((p * 100).toFixed(0) + '%', x + 6, baseB - h - 6);
+      ctx.fillText(`a_${i+1}`, x + 12, baseB + 18);
+    });
+  };
+
+  // ==================== 6. WEEK 5: PPO CLIP & GAE ====================
+  window.updateW5Lab = function() {
+    const eps = parseFloat(document.getElementById('sl-w5-eps').value);
+    const adv = parseFloat(document.getElementById('sl-w5-adv').value);
+    const lam = parseFloat(document.getElementById('sl-w5-lam').value);
+    const gam = parseFloat(document.getElementById('sl-w5-gam').value);
+
+    document.getElementById('val-w5-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w5-adv').textContent = (adv >= 0 ? '+' : '') + adv.toFixed(2);
+    document.getElementById('val-w5-lam').textContent = lam.toFixed(2);
+    document.getElementById('val-w5-gam').textContent = gam.toFixed(3);
+
+    const gaeFactor = gam * lam;
+    const effHorizon = 1.0 / Math.max(1e-4, 1.0 - gaeFactor);
+
+    document.getElementById('metrics-w5').innerHTML =
+      `Vùng tin cậy tỷ số r_t(θ): <strong>[${(1 - eps).toFixed(2)}, ${(1 + eps).toFixed(2)}]</strong> | Khi vượt ngưỡng: <strong>∇_θ L^CLIP = 0</strong><br>` +
+      `Hệ số suy giảm GAE (γλ) = <strong>${gaeFactor.toFixed(4)}</strong> | Tầm nhìn hiệu dụng H_adv ≈ <strong>${effHorizon.toFixed(1)} bước</strong>`;
+
+    const cv = document.getElementById('cv-w5');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left Plot: PPO Clip Objective vs r_t in [0.2, 2.0]
+    const lx = 35, ly = 42, lw = 250, lh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Đồ thị L^CLIP(r_t) theo tỷ số r_t', lx, 26);
+
+    const midY = ly + lh / 2;
+    ctx.beginPath(); ctx.moveTo(lx, midY); ctx.lineTo(lx + lw, midY); ctx.stroke();
+
+    // Vertical lines at 1-eps, 1, 1+eps
+    function rToX(r) { return lx + ((r - 0.2) / 1.8) * lw; }
+    function valToY(v) { return midY - v * 28; }
+
+    [1 - eps, 1.0, 1 + eps].forEach((rVal, idx) => {
+      const px = rToX(rVal);
+      ctx.strokeStyle = idx === 1 ? col.muted : col.orange;
+      ctx.setLineDash(idx === 1 ? [3, 3] : [4, 4]);
+      ctx.beginPath(); ctx.moveTo(px, ly); ctx.lineTo(px, ly + lh); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = col.muted;
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(rVal.toFixed(2), px - 12, ly + lh + 14);
+    });
+
+    // Unclipped r*A (dashed blue)
+    ctx.strokeStyle = col.blue;
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.03) {
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(r * adv)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Clipped min(r*A, clip(r)*A) (solid green)
+    ctx.strokeStyle = col.green;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.02) {
+      const rClip = Math.max(1 - eps, Math.min(1 + eps, r));
+      const obj = Math.min(r * adv, rClip * adv);
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(obj)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Right Plot: GAE weights (gamma*lambda)^l for l=0..24
+    const rx = 325, ry = 42, rw = 250, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Trọng số (γλ)^l của sai số TD δ_{t+l}', rx, 26);
+
+    for (let l = 0; l < 20; l++) {
+      const w = Math.pow(gaeFactor, l);
+      const bx = rx + 8 + l * 12;
+      const bh = w * (rh - 25);
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(bx, ry + rh - bh, 8, bh);
+    }
+    ctx.fillStyle = col.muted;
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Bước tương lai l = 0 → 20', rx + 55, ry + rh + 16);
+  };
+
+  // ==================== 7. WEEK 6: EVOLUTION STRATEGIES ====================
+  let esTheta = [-1.4, -1.1];
+  window.resetW6ES = function() {
+    esTheta = [-1.4, -1.1];
+    updateW6Lab();
+  };
+
+  window.stepW6ES = function() {
+    const gEst = window._lastESGrad || [0, 0];
+    esTheta[0] += 0.22 * gEst[0];
+    esTheta[1] += 0.22 * gEst[1];
+    updateW6Lab();
+  };
+
+  window.updateW6Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w6-sigma').value);
+    const nPop = parseInt(document.getElementById('sl-w6-npop').value, 10);
+    const mirrored = parseInt(document.getElementById('sl-w6-mirror').value, 10) === 1;
+    document.getElementById('val-w6-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w6-npop').textContent = nPop;
+    document.getElementById('val-w6-mirror').textContent = mirrored ? 'Đối xứng ±ε' : '1 phía +ε';
+
+    // Objective F(x,y) = - (x^2 + 2*y^2) - 0.3*(x^3 + y^2*x) (has curvature so 1-sided has bias/noise)
+    function F(x, y) {
+      return -(x * x + 1.8 * y * y) + 0.25 * (x * x * x + x * y * y);
+    }
+    const trueGrad = [
+      -2 * esTheta[0] + 0.75 * esTheta[0] * esTheta[0] + 0.25 * esTheta[1] * esTheta[1],
+      -3.6 * esTheta[1] + 0.5 * esTheta[0] * esTheta[1]
+    ];
+
+    let gx = 0, gy = 0;
+    const samples = [];
+    for (let i = 0; i < nPop; i++) {
+      const ang = (2 * Math.PI * i) / nPop + 0.3;
+      const ex = Math.cos(ang) * 1.15, ey = Math.sin(ang) * 0.9;
+      const fPos = F(esTheta[0] + sigma * ex, esTheta[1] + sigma * ey);
+      samples.push([esTheta[0] + sigma * ex, esTheta[1] + sigma * ey, true]);
+      if (mirrored) {
+        const fNeg = F(esTheta[0] - sigma * ex, esTheta[1] - sigma * ey);
+        samples.push([esTheta[0] - sigma * ex, esTheta[1] - sigma * ey, false]);
+        gx += ((fPos - fNeg) / (2 * sigma)) * ex;
+        gy += ((fPos - fNeg) / (2 * sigma)) * ey;
+      } else {
+        // Without baseline, F(theta) term adds huge noise
+        gx += (fPos / sigma) * ex;
+        gy += (fPos / sigma) * ey;
+      }
+    }
+    gx /= nPop; gy /= nPop;
+    window._lastESGrad = [gx, gy];
+
+    const normTrue = Math.hypot(trueGrad[0], trueGrad[1]) + 1e-8;
+    const normEst = Math.hypot(gx, gy) + 1e-8;
+    const cosSim = (trueGrad[0] * gx + trueGrad[1] * gy) / (normTrue * normEst);
+
+    document.getElementById('metrics-w6').innerHTML =
+      `Tâm tham số hiện tại θ = [${esTheta[0].toFixed(2)}, ${esTheta[1].toFixed(2)}] | Đích tối ưu: [0.00, 0.00]<br>` +
+      `Độ tương đồng Cosine(∇F thật, ĝ ES) = <strong>${cosSim.toFixed(4)}</strong> (Mirrored ±ε khử sạch số hạng bậc chẵn F(θ) và Hessian!)`;
+
+    const cv = document.getElementById('cv-w6');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 300, cy = 180, scale = 95;
+    // Draw contour ellipses around (0,0)
+    for (let r = 0.35; r <= 2.2; r += 0.35) {
+      ctx.strokeStyle = col.grid;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * scale, (r / Math.sqrt(1.8)) * scale, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    // Optimum star
+    ctx.fillStyle = col.green;
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText('★ Đích θ*=(0,0)', cx + 6, cy - 6);
+
+    // Samples
+    samples.forEach(([sx, sy, isPos]) => {
+      ctx.fillStyle = isPos ? col.blue : col.purple;
+      ctx.beginPath();
+      ctx.arc(cx + sx * scale, cy - sy * scale, 3.5, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    // Current theta
+    const tx = cx + esTheta[0] * scale, ty = cy - esTheta[1] * scale;
+    ctx.fillStyle = col.orange;
+    ctx.beginPath(); ctx.arc(tx, ty, 6, 0, 2 * Math.PI); ctx.fill();
+
+    // True gradient vs ES gradient arrows
+    function drawVec(vx, vy, color, label) {
+      const len = Math.hypot(vx, vy);
+      if (len < 1e-4) return;
+      const ux = (vx / len) * 55, uy = (vy / len) * 55;
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + ux, ty - uy); ctx.stroke();
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.fillText(label, tx + ux + 5, ty - uy);
+    }
+    drawVec(trueGrad[0], trueGrad[1], col.green, '∇F thật');
+    drawVec(gx, gy, col.orange, 'ĝ ES');
+  };
+
+  // ==================== 8. WEEK 7: MODEL-BASED RL & MPC ====================
+  window.updateW7Lab = function() {
+    const H = parseInt(document.getElementById('sl-w7-h').value, 10);
+    const rawLip = parseFloat(document.getElementById('sl-w7-lip').value);
+    const tik = parseFloat(document.getElementById('sl-w7-tik').value);
+    document.getElementById('val-w7-h').textContent = H;
+    document.getElementById('val-w7-lip').textContent = rawLip.toFixed(2);
+    document.getElementById('val-w7-tik').textContent = tik.toFixed(2);
+
+    // Tikhonov input noise regularizes the effective Lipschitz constant
+    const effLip = Math.max(0.85, rawLip - tik * 0.9);
+    const eps1 = 0.04;
+    const trueTraj = [], predTraj = [], errBars = [];
+
+    let errAcc = 0;
+    for (let k = 0; k <= H; k++) {
+      const sTrue = Math.sin(k * 0.32);
+      trueTraj.push(sTrue);
+      if (k > 0) errAcc = errAcc * effLip + eps1;
+      predTraj.push(sTrue + errAcc * (k % 2 === 0 ? 1 : 0.85));
+      errBars.push(errAcc);
+    }
+
+    document.getElementById('metrics-w7').innerHTML =
+      `Độ dốc hiệu dụng sau làm trơn Tikhonov: <strong>L_eff = ${effLip.toFixed(3)}</strong><br>` +
+      `Sai số dự đoán ở bước cuối H=${H}: <strong>||ŝ_{t+H} - s_{t+H}|| = ${errAcc.toFixed(3)}</strong> (Gấp ${(errAcc / eps1).toFixed(1)} lần sai số 1 bước!)`;
+
+    const cv = document.getElementById('cv-w7');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 30, w = 525, h = 290, midY = oy + h / 2;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function stepToX(k) { return ox + (k / H) * w; }
+    function sToY(val) { return midY - val * 65; }
+
+    // Error fan shaded area
+    ctx.fillStyle = 'rgba(255, 123, 114, 0.16)';
+    ctx.beginPath();
+    for (let k = 0; k <= H; k++) {
+      const x = stepToX(k), y = sToY(trueTraj[k] + errBars[k]);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    for (let k = H; k >= 0; k--) {
+      const x = stepToX(k), y = sToY(trueTraj[k] - errBars[k]);
+      ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // True trajectory (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    trueTraj.forEach((v, k) => {
+      const x = stepToX(k), y = sToY(v);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Hallucinated rollout (red dashed)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    predTraj.forEach((v, k) => {
+      const x = stepToX(k), y = Math.max(oy + 5, Math.min(oy + h - 5, sToY(v)));
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Quỹ đạo thật s_{t+k}', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('--- Mô hình tưởng tượng ŝ_{t+k} (Vùng đỏ = Bùng nổ sai số O(L^H ε))', ox + 175, oy + 22);
+  };
+
+  // ==================== 9. WEEK 8: SAC & DPO ====================
+  window.updateW8Lab = function() {
+    const alpha = parseFloat(document.getElementById('sl-w8-alpha').value);
+    const dq = parseFloat(document.getElementById('sl-w8-dq').value);
+    const beta = parseFloat(document.getElementById('sl-w8-beta').value);
+    document.getElementById('val-w8-alpha').textContent = alpha.toFixed(2);
+    document.getElementById('val-w8-dq').textContent = dq.toFixed(2);
+    document.getElementById('val-w8-beta').textContent = beta.toFixed(2);
+
+    const N = 80;
+    const actions = [], qVals = [], probs = [];
+    let maxScaled = -1e9;
+    for (let i = 0; i < N; i++) {
+      const a = -1.0 + (2.0 * i) / (N - 1);
+      actions.push(a);
+      // Bimodal Q landscape: peak 1 at a=-0.45 (height 1.0), peak 2 at a=+0.50 (height dq)
+      const q = Math.exp(-Math.pow((a + 0.45) / 0.25, 2)) + dq * Math.exp(-Math.pow((a - 0.50) / 0.25, 2));
+      qVals.push(q);
+      if (q / alpha > maxScaled) maxScaled = q / alpha;
+    }
+    let sumExp = 0;
+    const rawExps = qVals.map(q => {
+      const e = Math.exp(q / alpha - maxScaled);
+      sumExp += e;
+      return e;
+    });
+    rawExps.forEach(e => probs.push(e / sumExp));
+
+    document.getElementById('metrics-w8').innerHTML =
+      `Khi α = ${alpha.toFixed(2)}: Policy SAC ${alpha < 0.08 ? 'co cụm thành Greedy (chỉ chọn đỉnh 1)' : (alpha > 0.8 ? 'phẳng dần về Uniform' : 'khám phá Đa Mốt (giữ cả 2 đỉnh!)')}<br>` +
+      `Trong DPO (β_KL = ${beta.toFixed(2)}): Độ dốc Sigmoid σ(β·Δlog(π/π_ref)) tỉ lệ thuận với β_KL.`;
+
+    const cv = document.getElementById('cv-w8');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Bimodal Q(s,a) and Boltzmann pi*(a|s)
+    const lx = 30, ly = 40, lw = 255, lh = 270;
+    ctx.strokeStyle = col.grid; ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Q(s,a) 2 đỉnh (Xanh) & π*(a|s) (Cam)', lx, 26);
+
+    // Q curve
+    ctx.strokeStyle = col.blue; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    qVals.forEach((q, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (q / 1.3) * (lh - 20);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Policy density curve
+    const maxP = Math.max(...probs) + 1e-6;
+    ctx.strokeStyle = col.orange; ctx.lineWidth = 3;
+    ctx.beginPath();
+    probs.forEach((p, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (p / maxP) * (lh - 30);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Right: DPO Sigmoid Loss & Preference Probability
+    const rx = 320, ry = 40, rw = 255, rh = 270;
+    ctx.strokeStyle = col.grid; ctx.lineWidth = 1; ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.fillText('DPO: Xác suất P(y_w ≻ y_l) = σ(β·Δ)', rx, 26);
+
+    ctx.strokeStyle = col.purple; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let i = 0; i <= 80; i++) {
+      const delta = -4.0 + (8.0 * i) / 80;
+      const prob = 1.0 / (1.0 + Math.exp(-beta * delta));
+      const px = rx + (i / 80) * rw;
+      const py = ry + lh - prob * (lh - 20) - 10;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  };
+
+  // ==================== 10. SIM-TO-REAL PHYSICS LAB ====================
+  window.updateSim2RealLab = function() {
+    const dt = parseFloat(document.getElementById('sl-sim-dt').value);
+    const kp = parseFloat(document.getElementById('sl-sim-kp').value);
+    const kd = parseFloat(document.getElementById('sl-sim-kd').value);
+    const mu = parseFloat(document.getElementById('sl-sim-mu').value);
+    document.getElementById('val-sim-dt').textContent = dt.toFixed(3) + ' s';
+    document.getElementById('val-sim-kp').textContent = kp.toFixed(0);
+    document.getElementById('val-sim-kd').textContent = kd.toFixed(1);
+    document.getElementById('val-sim-mu').textContent = mu.toFixed(2);
+
+    const mass = 1.0, g = 9.81, targetX = 1.0;
+    const maxForce = mu * mass * g; // Friction traction limit
+
+    function accel(x, v) {
+      const rawF = kp * (targetX - x) - kd * v;
+      const clampedF = Math.max(-maxForce, Math.min(maxForce, rawF));
+      return clampedF / mass;
+    }
+
+    const totalTime = 1.6;
+    const steps = Math.max(8, Math.floor(totalTime / dt));
+    const eulerTraj = [[0, 0]], rk4Traj = [[0, 0]];
+    let xe = 0, ve = 0, xr = 0, vr = 0;
+    let eulerExploded = false;
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i * dt;
+      // Explicit Euler
+      const ae = accel(xe, ve);
+      xe = xe + dt * ve;
+      ve = ve + dt * ae;
+      if (Math.abs(xe) > 3.5) eulerExploded = true;
+      eulerTraj.push([t, Math.max(-2.5, Math.min(2.8, xe))]);
+
+      // RK4
+      const k1x = vr, k1v = accel(xr, vr);
+      const k2x = vr + 0.5 * dt * k1v, k2v = accel(xr + 0.5 * dt * k1x, vr + 0.5 * dt * k1v);
+      const k3x = vr + 0.5 * dt * k2v, k3v = accel(xr + 0.5 * dt * k2x, vr + 0.5 * dt * k2v);
+      const k4x = vr + dt * k3v, k4v = accel(xr + dt * k3x, vr + dt * k3v);
+      xr += (dt / 6.0) * (k1x + 2 * k2x + 2 * k3x + k4x);
+      vr += (dt / 6.0) * (k1v + 2 * k2v + 2 * k3v + k4v);
+      rk4Traj.push([t, Math.max(-2.5, Math.min(2.8, xr))]);
+    }
+
+    document.getElementById('metrics-sim2real').innerHTML =
+      `Giới hạn lực bám ma sát F_max = μ·m·g = <strong>${maxForce.toFixed(2)} N</strong> | Tích số ổn định Δt·K_p = <strong>${(dt * kp).toFixed(2)}</strong><br>` +
+      `Trạng thái Explicit Euler: <strong style="color:${eulerExploded ? '#ff7b72' : '#3fb950'}">${eulerExploded ? '💥 MẤT ỔN ĐỊNH SỐ (NỔ QUỸ ĐẠO!)' : '✅ Hội tụ ổn định'}</strong> | RK4: <strong style="color:#3fb950">✅ Luôn ổn định vật lý</strong>`;
+
+    const cv = document.getElementById('cv-sim2real');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 32, w = 525, h = 290;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function tToX(t) { return ox + (t / totalTime) * w; }
+    function xToY(xVal) { return oy + h * 0.68 - xVal * 85; }
+
+    // Target line x = 1.0
+    const ty = xToY(1.0);
+    ctx.strokeStyle = col.muted; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(ox, ty); ctx.lineTo(ox + w, ty); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col.muted; ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Đích x_target = 1.0 m', ox + w - 125, ty - 6);
+
+    // Draw Euler (red)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    eulerTraj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Draw RK4 (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    rk4Traj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Runge-Kutta bậc 4 (RK4 - Chuẩn xác)', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('▬ Explicit Euler (Dễ nổ khi Δt hoặc K_p lớn)', ox + 265, oy + 22);
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    switchSimTab('sim2real_physics');
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          const activeBtn = document.querySelector('.sim-tab.active');
+          if (activeBtn) renderActiveTab(activeBtn.getAttribute('data-tab'));
+        }, 20);
+      });
+    }
+  });
+})();
+</script>
+
+      <article class="markdown-body">
+        <h1 id="huong-dan-toan-dien-ve-simulation-cau-hinh-vat-ly-trong-robotics-va-reinforcement-learning">HƯỚNG DẪN TOÀN DIỆN VỀ SIMULATION &amp; CẤU HÌNH VẬT LÝ TRONG ROBOTICS VÀ REINFORCEMENT LEARNING<a class="headerlink" href="#huong-dan-toan-dien-ve-simulation-cau-hinh-vat-ly-trong-robotics-va-reinforcement-learning" title="Liên kết tới mục này">&para;</a></h1>
+<blockquote class="callout">
+<p><strong>Mục tiêu tài liệu:</strong> Tài liệu này cung cấp lộ trình học thực hành chi tiết cho phần <strong>Simulation (Mô phỏng Robot)</strong>, giải thích toàn bộ <strong>năng lực cốt lõi của một trình mô phỏng (Simulator)</strong>, hướng dẫn <strong>cấu hình chi tiết từ Docker, URDF/SDF, Gazebo, Nav2 đến RL Simulator (MuJoCo/Isaac Lab)</strong>, và đặc biệt là <strong>chứng minh các thông số cấu hình trong code ánh xạ với các định luật Vật lý &amp; Toán học ngoài đời thực như thế nào</strong>.</p>
+</blockquote>
+<hr />
+<h2 id="muc-luc">MỤC LỤC<a class="headerlink" href="#muc-luc" title="Liên kết tới mục này">&para;</a></h2>
+<ol start="0">
+<li><a href="#0-kiến-trúc-phân-tầng-7-lớp-sim-to-real--bộ-code-minh-họa-thực-thi-sim2real_robotics">Kiến trúc Phân tầng 7 Lớp Sim-to-Real &amp; Bộ Code Minh họa Thực thi (<code>Sim2Real_Robotics/</code>)</a></li>
+<li><a href="#1-trình-mô-phỏng-simulator-thực-chất-làm-được-những-gì">Trình mô phỏng (Simulator) thực chất làm được những gì?</a></li>
+<li><a href="#2-giải-mã-cấu-hình-vật-lý-từng-dòng-cấu-hình-khớp-với-định-luật-vật-lý-ra-sao">Giải mã Cấu hình Vật lý: Từng dòng Cấu hình khớp với Định luật Vật lý ra sao?</a>
+   - <a href="#21-khối-lượng--ma-trận-quán-tính-inertial-leftrightarrow-định-luật-newton--euler">2.1. Khối lượng &amp; Ma trận Quán tính (<code>&lt;inertial&gt;</code>) <span class="math-inline">$\leftrightarrow$</span> Định luật Newton – Euler</a>
+   - <a href="#22-khớp-nối--động-cơ-joint-dynamics-limit-leftrightarrow-động-lực-học-cơ-điện">2.2. Khớp nối &amp; Động cơ (<code>&lt;joint&gt;</code>, <code>&lt;dynamics&gt;</code>, <code>&lt;limit&gt;</code>) <span class="math-inline">$\leftrightarrow$</span> Động lực học Cơ điện</a>
+   - <a href="#23-va-chạm--ma-sát-bề-mặt-collision-surface-leftrightarrow-cơ-học-tiếp-xúc">2.3. Va chạm &amp; Ma sát bề mặt (<code>&lt;collision&gt;</code>, <code>&lt;surface&gt;</code>) <span class="math-inline">$\leftrightarrow$</span> Cơ học Tiếp xúc</a>
+   - <a href="#24-thời-gian-tích-phân-max_step_size-real_time_factor-leftrightarrow-giải-tích-số">2.4. Thời gian tích phân (<code>max_step_size</code>, <code>real_time_factor</code>) <span class="math-inline">$\leftrightarrow$</span> Giải tích Số</a></li>
+<li><a href="#3-lộ-trình-học--thực-hành-simulation-theo-khoá-robotics_essentials_ros2">Lộ trình Học &amp; Thực hành Simulation (Theo khoá <code>robotics_essentials_ros2</code>)</a>
+   - <a href="#giai-đoạn-0-cấu-hình-hạ-tầng-docker-x11-gui--gpu">Giai đoạn 0: Cấu hình Hạ tầng Docker, X11 GUI &amp; GPU</a>
+   - <a href="#giai-đoạn-1-khởi-chạy-gazebo-hệ-trục-tọa-độ-tf--ros-2-topics">Giai đoạn 1: Khởi chạy Gazebo, Hệ trục tọa độ TF &amp; ROS 2 Topics</a>
+   - <a href="#giai-đoạn-2-slam-lập-bản-đồ--điều-hướng-tự-hành-nav2">Giai đoạn 2: SLAM (Lập bản đồ) &amp; Điều hướng tự hành Nav2</a>
+   - <a href="#giai-đoạn-3--4-động-học-robot-vi-sai--tự-tính-odometry-từ-encoder">Giai đoạn 3 &amp; 4: Động học Robot Vi sai &amp; Tự tính Odometry từ Encoder</a>
+   - <a href="#giai-đoạn-5-cấu-hình-bản-đồ-chi-phí-costmap--thuật-toán-tìm-đường-path-planning">Giai đoạn 5: Cấu hình Bản đồ Chi phí (Costmap) &amp; Thuật toán Tìm đường (Path Planning)</a></li>
+<li><a href="#4-cấu-hình-mô-phỏng-chuyên-dụng-cho-huấn-luyện-rl-mujoco--isaac-lab">Cấu hình Mô phỏng Chuyên dụng cho Huấn luyện RL (MuJoCo &amp; Isaac Lab)</a></li>
+<li><a href="#5-bảng-chẩn-đoán-lỗi-vật-lý-thường-gặp-khi-cấu-hình-simulation">Bảng Chẩn đoán Lỗi Vật lý Thường gặp khi Cấu hình Simulation</a></li>
+</ol>
+<hr />
+<h2 id="0-kien-truc-phan-tang-7-lop-sim-to-real-bo-code-minh-hoa-thuc-thi-sim2real_robotics">0. Kiến trúc Phân tầng 7 Lớp Sim-to-Real &amp; Bộ Code Minh họa Thực thi (<code>Sim2Real_Robotics/</code>)<a class="headerlink" href="#0-kien-truc-phan-tang-7-lop-sim-to-real-bo-code-minh-hoa-thuc-thi-sim2real_robotics" title="Liên kết tới mục này">&para;</a></h2>
+<p>Để giải quyết triệt để câu hỏi <strong>"Làm sao kết nối từ Simulation Training ra Robot thực tế, và khi chỉ có code trên máy tính thì làm sao chứng minh được mô phỏng &amp; thuật toán RL thực sự sống sót ngoài đời thực?"</strong>, toàn bộ hệ thống đã được tách thành <strong>5 phần chuyên sâu (tương ứng 7 tầng kiến trúc)</strong> trong thư mục <a href="Sim2Real_Robotics/README.html">Sim2Real_Robotics/</a>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Tầng Kiến trúc</th>
+<th style="text-align: left;">Tài liệu Lý thuyết &amp; Toán-Lý (<code>.md</code>)</th>
+<th style="text-align: left;">Code Minh họa Thực thi (<code>.py</code>)</th>
+<th style="text-align: left;">Giải quyết Bài toán Cốt lõi nào?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Tổng quan 7 Tầng</strong></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/README.html">Sim2Real_Robotics/README.md</a></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;">Sơ đồ tổng thể kết nối từ Vật lý phần cứng <span class="math-inline">$\to$</span> Bộ giải số <span class="math-inline">$\to$</span> RL Training <span class="math-inline">$\to$</span> Kiểm định Vật lý <span class="math-inline">$\to$</span> ROS 2 &amp; Robot thật.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tầng 1: Mô tả Cơ học &amp; Phần cứng</strong></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/Part1_Physical_Modeling_URDF_MJCF.html">Part1_Physical_Modeling_URDF_MJCF.md</a></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/code/01_urdf_physics_inspector.py">01_urdf_physics_inspector.py</a></td>
+<td style="text-align: left;">Kiểm định cấu hình <code>&lt;inertial&gt;</code> (<span class="math-inline">$\mathbf{I} \succ 0$</span>, bất đẳng thức tam giác <span class="math-inline">$I_1+I_2\ge I_3$</span>), đa giác chân đế chống lật <span class="math-inline">$a_{\max}$</span>, điều kiện ổn định CFL <span class="math-inline">$\Delta t_{\max}$</span> và đường bao Torque-Speed động cơ DC.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tầng 2: Bộ giải Động lực học &amp; Cảm biến</strong></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/Part2_Physics_Engine_And_Sensors.html">Part2_Physics_Engine_And_Sensors.md</a></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/code/02_physics_engine_from_scratch.py">02_physics_engine_from_scratch.py</a></td>
+<td style="text-align: left;">Xây dựng Physics Engine từ gốc (Symplectic Euler vs. RK4), ma sát trượt bánh Coulomb-Stribeck (Wheel Slip), hàng đợi độ trễ phần cứng và cảm biến LiDAR Ray-casting, Encoder, IMU.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tầng 3: Môi trường RL, Hàm thưởng Vật lý &amp; DR</strong></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/Part3_RL_Training_Environment_And_Rewards.html">Part3_RL_Training_Environment_And_Rewards.md</a></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/code/03_train_rl_navigation_agent.py">03_train_rl_navigation_agent.py</a></td>
+<td style="text-align: left;">Thiết kế Observation hệ tọa độ thân xe <code>base_link</code>, bộ lọc thông thấp EMA, hàm thưởng phạt độ giật cơ khí (Jerk/Action Rate) + phạt nhiệt năng <span class="math-inline">$\tau^2$</span>, và huấn luyện với Domain Randomization.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tầng 4: Kiểm định Thực tế Vật lý Bằng Code</strong></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/Part4_Code_Only_Physical_Verification.html">Part4_Code_Only_Physical_Verification.md</a></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/code/04_physical_reality_verification_suite.py">04_physical_reality_verification_suite.py</a></td>
+<td style="text-align: left;"><strong>Bộ 7 Bài Kiểm Định Thực Tế Bằng Code:</strong> Kiểm tra bảo toàn năng lượng, tải nhiệt RMS động cơ, phân tích phổ tần số Fourier (FFT Chattering), biên độ trễ <span class="math-inline">$100\text{ ms}$</span>, kiểm định chéo <strong>Sim-to-Sim</strong> (Euler <span class="math-inline">$\to$</span> RK4) và suy giảm cảm biến.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tầng 5–6–7: Cầu nối ROS 2, Lá chắn An toàn &amp; Robot Thật</strong></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/Part5_ROS2_Gazebo_And_Real_Robot_Bridge.html">Part5_ROS2_Gazebo_And_Real_Robot_Bridge.md</a></td>
+<td style="text-align: left;"><a href="Sim2Real_Robotics/code/05_ros2_rl_deployment_node.py">05_ros2_rl_deployment_node.py</a></td>
+<td style="text-align: left;">Chuyển đổi <code>/scan</code> (Min-Pooling) + <code>/odom</code> (Quaternion <span class="math-inline">$\to$</span> Yaw) sang Policy, bọc qua <strong>Hardware Safety Shield</strong> (Slew-rate limiter + Emergency TTC Brake) và phát <code>/cmd_vel</code> điều khiển Gazebo hoặc Robot thật.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-trinh-mo-phong-simulator-thuc-chat-lam-uoc-nhung-gi">1. Trình mô phỏng (Simulator) thực chất làm được những gì?<a class="headerlink" href="#1-trinh-mo-phong-simulator-thuc-chat-lam-uoc-nhung-gi" title="Liên kết tới mục này">&para;</a></h2>
+<p>Nhiều người lầm tưởng trình mô phỏng (như <strong>Gazebo</strong>, <strong>MuJoCo</strong>, <strong>Isaac Sim</strong>) chỉ là phần mềm vẽ hình 3D chuyển động như phim hoạt hình. Thực chất, bên dưới giao diện đồ họa là một <strong>Hệ thống Giải Phương trình Vi phân Vật lý Thời gian thực</strong> gồm <strong>6 trụ cột cốt lõi</strong>:</p>
+<pre><code class="language-mermaid">flowchart TB
+    subgraph SIM[&quot;TRÌNH MÔ PHỎNG VẬT LÝ (PHYSICS SIMULATOR)&quot;]
+        direction TB
+        A[&quot;1. Bộ giải Động lực học Đa vật rắn&lt;br&gt;(Multi-body Dynamics Solver)&lt;br&gt;Giải M(q)q̈ + C(q,q̇) = τ_motor + τ_ext&quot;]
+        B[&quot;2. Bộ phát hiện Va chạm &amp; Giải tiếp xúc&lt;br&gt;(Collision Detection &amp; Contact Solver)&lt;br&gt;Tính lực phản lực pháp tuyến Fn &amp; ma sát Ft&quot;]
+        C[&quot;3. Bộ giả lập Động cơ &amp; Truyền động&lt;br&gt;(Actuator &amp; Controller Plugins)&lt;br&gt;Biến lệnh điều khiển thành mô-men xoắn τ&quot;]
+        D[&quot;4. Bộ giả lập Vật lý Cảm biến&lt;br&gt;(Sensor Physics Engine)&lt;br&gt;Ray-casting LiDAR, Quang học Camera, Nhiễu IMU&quot;]
+        E[&quot;5. Bộ Quản lý Thời gian &amp; Thế giới ảo&lt;br&gt;(World &amp; Sim-Time Manager)&lt;br&gt;Quản lý trọng trường, địa hình, đồng hồ /clock&quot;]
+        F[&quot;6. Cổng giao tiếp Ngoại vi&lt;br&gt;(Middleware &amp; RL API Bridge)&lt;br&gt;ROS 2 Topics/TF hoặc Gym step()/reset()&quot;]
+    end
+    C --&gt; A
+    B --&gt; A
+    A --&gt; D
+    E --&gt; A
+    D --&gt; F
+    F --&gt; C
+</code></pre>
+<h3 id="chi-tiet-6-kha-nang-cua-trinh-mo-phong">Chi tiết 6 khả năng của Trình mô phỏng:<a class="headerlink" href="#chi-tiet-6-kha-nang-cua-trinh-mo-phong" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li><strong>Giải bài toán Động lực học Thuận (Forward Dynamics):</strong>
+   - Tại mỗi bước thời gian <span class="math-inline">$\Delta t$</span> (thường là <span class="math-inline">$1\text{ ms} = 0.001\text{ s}$</span>), simulator nhận vào <strong>lực/mô-men xoắn</strong> <span class="math-inline">$\boldsymbol{\tau}$</span> của các động cơ và giải phương trình vi phân chuyển động tổng quát của hệ robot:
+     <div class="math-block">$$\mathbf{M}(\mathbf{q})\ddot{\mathbf{q}} + \mathbf{C}(\mathbf{q}, \dot{\mathbf{q}})\dot{\mathbf{q}} + \mathbf{g}(\mathbf{q}) = \boldsymbol{\tau}_{\text{motor}} - \mathbf{b}(\dot{\mathbf{q}}) + \mathbf{J}^T(\mathbf{q})\mathbf{f}_{\text{contact}}$$</div></li>
+</ol>
+<ul>
+<li>Từ đó tìm ra <strong>gia tốc góc</strong> <span class="math-inline">$\ddot{\mathbf{q}}$</span>, tích phân ra <strong>vận tốc</strong> <span class="math-inline">$\dot{\mathbf{q}}$</span> và <strong>vị trí mới</strong> <span class="math-inline">$\mathbf{q}$</span> của từng khớp, từng bánh xe.</li>
+</ul>
+<ol start="2">
+<li>
+<p><strong>Phát hiện Va chạm Hình học &amp; Giải lực Tiếp xúc (Collision &amp; Contact Mechanics):</strong>
+   - Kiểm tra hàng nghìn lưới hình học (mesh/box/cylinder) xem bánh xe có chạm đất không, thân robot có đâm vào tường không.
+   - Khi có va chạm, simulator tự động tính <strong>phản lực pháp tuyến</strong> <span class="math-inline">$F_n$</span> (ngăn robot xuyên qua sàn nhà) và <strong>lực ma sát tiếp tuyến</strong> <span class="math-inline">$F_t$</span> (giúp bánh xe bám đường để tiến về phía trước hoặc bị trượt nếu sàn trơn).</p>
+</li>
+<li>
+<p><strong>Mô phỏng Vật lý của các Cảm biến (Sensor Physics Simulation):</strong>
+   - <strong>LiDAR (Laser Scanner):</strong> Không phải lấy tọa độ gian lận, mà thực sự bắn hàng trăm tia ảo (<strong>Ray-casting</strong>) ra không gian 3D theo góc <span class="math-inline">$360^\circ$</span>, tìm giao điểm gần nhất với mặt tường để tính khoảng cách <span class="math-inline">$d$</span>, rồi cộng thêm nhiễu trắng Gaussian <span class="math-inline">$\epsilon \sim \mathcal{N}(0, \sigma^2)$</span> giống hệt mắt đọc quang học thật.
+   - <strong>Camera RGB &amp; Depth (RGB-D):</strong> Dùng thuật toán dựng hình quang học (Rasterization / Ray-tracing) qua mô hình máy ảnh lỗ kim (Pinhole Camera Model) với tiêu cự <span class="math-inline">$f_x, f_y$</span>, góc mở FOV để xuất ra ma trận điểm ảnh.
+   - <strong>IMU (Cảm biến quán tính):</strong> Đọc trực tiếp đạo hàm vận tốc góc <span class="math-inline">$\boldsymbol{\omega}$</span> và gia tốc tuyến tính <span class="math-inline">$\mathbf{a} - \mathbf{g}$</span> tại vị trí gắn chip IMU trên khung robot, cộng thêm độ trôi (bias drift).
+   - <strong>Wheel Encoders:</strong> Đếm góc quay tích lũy <span class="math-inline">$\phi(t)$</span> và tốc độ góc <span class="math-inline">$\dot{\phi}(t)$</span> của trục bánh xe.</p>
+</li>
+<li>
+<p><strong>Giả lập Cơ cấu Chấp hành (Actuators &amp; Low-level Controllers):</strong>
+   - Chuyển đổi các lệnh điều khiển cấp cao (như vận tốc mong muốn <span class="math-inline">$v, \omega$</span> trong gói tin <code>/cmd_vel</code>) thành mô-men xoắn áp vào trục bánh xe thông qua các bộ điều khiển nội tại (như <code>DiffDrive</code> plugin hoặc bộ điều khiển PID khớp).</p>
+</li>
+<li>
+<p><strong>Kiểm soát Thời gian Ảo (Virtual Time Control):</strong>
+   - Cho phép <strong>tạm dừng (Pause)</strong> thế giới để kiểm tra thông số, <strong>tua chậm (Slow-motion)</strong> để soi kỹ khoảnh khắc robot bị trượt ngã, hoặc <strong>tua nhanh gấp hàng nghìn lần (Fast-forward / Headless)</strong> khi huấn luyện AI/RL mà không bị ràng buộc bởi đồng hồ đời thực.</p>
+</li>
+<li>
+<p><strong>Kiểm thử An toàn Không giới hạn (Zero-Cost Destructive Testing):</strong>
+   - Tạo ra địa hình gồ ghề, dốc nghiêng, chướng ngại vật di động, tắt/bật cảm biến đột ngột hoặc đặt lực đẩy ngoại cảnh để kiểm tra giới hạn chịu đựng của thuật toán điều khiển.</p>
+</li>
+</ol>
+<hr />
+<h2 id="2-giai-ma-cau-hinh-vat-ly-tung-dong-cau-hinh-khop-voi-inh-luat-vat-ly-ra-sao">2. Giải mã Cấu hình Vật lý: Từng dòng Cấu hình khớp với Định luật Vật lý ra sao?<a class="headerlink" href="#2-giai-ma-cau-hinh-vat-ly-tung-dong-cau-hinh-khop-voi-inh-luat-vat-ly-ra-sao" title="Liên kết tới mục này">&para;</a></h2>
+<p>Trong cả <strong>Gazebo (URDF / Xacro / SDF)</strong> và <strong>RL Simulators (MuJoCo MJCF)</strong>, một con robot được định nghĩa bằng các khối cấu trúc <strong>Links</strong> (các khối vật rắn như khung xe, bánh xe) nối với nhau bởi <strong>Joints</strong> (các khớp xoay hoặc tịnh tiến).</p>
+<p>Dưới đây là giải thích chi tiết từng khối cấu hình và phương trình vật lý đứng đằng sau nó.</p>
+<hr />
+<h3 id="21-khoi-luong-ma-tran-quan-tinh-inertial-inlinemathplaceholder51end-inh-luat-newton-euler">2.1. Khối lượng &amp; Ma trận Quán tính (<code>&lt;inertial&gt;</code>) <span class="math-inline">$\leftrightarrow$</span> Định luật Newton – Euler<a class="headerlink" href="#21-khoi-luong-ma-tran-quan-tinh-inertial-inlinemathplaceholder51end-inh-luat-newton-euler" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="oan-cau-hinh-mau-trong-file-urdf-sdf">📄 Đoạn cấu hình mẫu trong file URDF / SDF:<a class="headerlink" href="#oan-cau-hinh-mau-trong-file-urdf-sdf" title="Liên kết tới mục này">&para;</a></h4>
+<pre><code class="language-xml">&lt;link name=&quot;base_link&quot;&gt;
+  &lt;inertial&gt;
+    &lt;!-- Trọng tâm (Center of Mass - CoM) so với gốc của base_link --&gt;
+    &lt;origin xyz=&quot;0.0 0.0 0.05&quot; rpy=&quot;0 0 0&quot;/&gt;
+    &lt;!-- Khối lượng vật rắn (Đơn vị: kg) --&gt;
+    &lt;mass value=&quot;2.5&quot;/&gt;
+    &lt;!-- Ma trận (Tensor) mô-men quán tính 3x3 đối xứng (Đơn vị: kg.m^2) --&gt;
+    &lt;inertia ixx=&quot;0.015&quot; ixy=&quot;0.0&quot; ixz=&quot;0.0&quot;
+                         iyy=&quot;0.025&quot; iyz=&quot;0.0&quot;
+                                     izz=&quot;0.035&quot;/&gt;
+  &lt;/inertial&gt;
+&lt;/link&gt;
+</code></pre>
+<h4 id="ban-chat-vat-ly-phuong-trinh-toan-hoc">🔬 Bản chất Vật lý &amp; Phương trình Toán học:<a class="headerlink" href="#ban-chat-vat-ly-phuong-trinh-toan-hoc" title="Liên kết tới mục này">&para;</a></h4>
+<ol>
+<li><strong>Khối lượng (<code>mass value="m"</code>):</strong>
+   - Quy định quán tính <strong>tịnh tiến</strong> của vật theo Định luật II Newton:
+     <div class="math-block">$$\mathbf{F} = m \cdot \mathbf{a} \implies \mathbf{a} = \frac{\mathbf{F}}{m}$$</div></li>
+</ol>
+<ul>
+<li><strong>Ý nghĩa thực tế:</strong> Nếu <code>mass</code> đặt quá nhỏ (<span class="math-inline">$0.01\text{ kg}$</span>), một lực đẩy nhẹ cũng làm robot bắn văng đi với gia tốc cực lớn. Nếu <code>mass</code> quá lớn (<span class="math-inline">$100\text{ kg}$</span>) mà <code>max_torque</code> của motor bánh xe giữ nguyên, robot sẽ không thể nhúc nhích khi lên dốc.</li>
+</ul>
+<ol start="2">
+<li>
+<p><strong>Tâm khối / Trọng tâm (<code>origin xyz="x_c y_c z_c"</code>):</strong>
+   - Là điểm đặt của vector trọng lực <span class="math-inline">$\mathbf{P} = m\mathbf{g}$</span>.
+   - <strong>Ý nghĩa thực tế:</strong> Trên robot 2 bánh ви sai (như robot <strong>Andino</strong>), nếu bạn cấu hình <code>z_c</code> quá cao (trọng tâm cao) hoặc lệch hẳn về phía không có bánh đỡ phụ (caster wheel), khi robot phanh gấp (gia tốc <span class="math-inline">$a &lt; 0$</span>), mô-men quán tính <span class="math-inline">$\tau_{\text{lật}} = m \cdot |a| \cdot z_c$</span> sẽ làm robot <strong>chổng bánh lật nhào về phía trước</strong> ngay trong mô phỏng!</p>
+</li>
+<li>
+<p><strong>Tensor Quán tính (<code>ixx, iyy, izz, ixy, ixz, iyz</code>):</strong>
+   - Quy định sức ỳ khi vật <strong>quay quanh các trục 3D</strong> theo phương trình Euler cho vật rắn:
+     <div class="math-block">$$\begin{bmatrix} \tau_x \\ \tau_y \\ \tau_z \end{bmatrix} = \underbrace{\begin{bmatrix} I_{xx} &amp; I_{xy} &amp; I_{xz} \\ I_{xy} &amp; I_{yy} &amp; I_{yz} \\ I_{xz} &amp; I_{yz} &amp; I_{zz} \end{bmatrix}}_{\mathbf{I} \text{ (Inertia Tensor)}} \begin{bmatrix} \alpha_x \\ \alpha_y \\ \alpha_z \end{bmatrix} + \boldsymbol{\omega} \times (\mathbf{I}\boldsymbol{\omega})$$</div></p>
+</li>
+</ol>
+<ul>
+<li><strong>Giải thích từng tham số:</strong><ul>
+<li><span class="math-inline">$I_{xx} = \int (y^2 + z^2)\,dm$</span>: Sức ỳ khi robot <strong>nghiêng trái/phải (Roll)</strong> quanh trục <span class="math-inline">$X$</span>.</li>
+<li><span class="math-inline">$I_{yy} = \int (x^2 + z^2)\,dm$</span>: Sức ỳ khi robot <strong>chúi đầu/ngửa cổ (Pitch)</strong> quanh trục <span class="math-inline">$Y$</span>.</li>
+<li><span class="math-inline">$I_{zz} = \int (x^2 + y^2)\,dm$</span>: Sức ỳ khi robot <strong>xoay hướng (Yaw)</strong> quanh trục thẳng đứng <span class="math-inline">$Z$</span> (Cực kỳ quan trọng khi robot xoay tại chỗ!).</li>
+<li><span class="math-inline">$I_{xy}, I_{xz}, I_{yz}$</span>: Các tích quán tính (Products of Inertia). Nếu vật thể đối xứng qua 3 mặt phẳng tọa độ thì <span class="math-inline">$I_{xy} = I_{xz} = I_{yz} = 0$</span>.</li>
+</ul>
+</li>
+</ul>
+<blockquote class="callout callout-logic">
+<p>💡 <strong>Công thức chuẩn để tính nhanh <code>&lt;inertia&gt;</code> khi tự cấu hình Robot:</strong></p>
+<ul>
+<li>
+<p><strong>Khối hộp chữ nhật (Thân robot)</strong> kích thước <span class="math-inline">$(w, d, h)$</span>, khối lượng <span class="math-inline">$m$</span>:
+  <div class="math-block">$$I_{xx} = \frac{1}{12}m(d^2 + h^2), \quad I_{yy} = \frac{1}{12}m(w^2 + h^2), \quad I_{zz} = \frac{1}{12}m(w^2 + d^2)$$</div></p>
+</li>
+<li>
+<p><strong>Hình trụ đặc (Bánh xe)</strong> bán kính <span class="math-inline">$r$</span>, bề dày <span class="math-inline">$t$</span>, khối lượng <span class="math-inline">$m$</span> (trục quay là trục <span class="math-inline">$Z$</span>):
+  <div class="math-block">$$I_{xx} = I_{yy} = \frac{1}{12}m(3r^2 + t^2), \quad I_{zz} = \frac{1}{2}mr^2$$</div></p>
+</li>
+<li>
+<p><strong>Hình cầu đặc (Bánh tự lựa - Caster wheel)</strong> bán kính <span class="math-inline">$r$</span>, khối lượng <span class="math-inline">$m$</span>:
+  <div class="math-block">$$I_{xx} = I_{yy} = I_{zz} = \frac{2}{5}mr^2$$</div></p>
+</li>
+</ul>
+<p>⚠️ <strong>Lưu ý sống còn:</strong> Không bao giờ được gán <code>ixx="0" iyy="0" izz="0"</code>! Khi giải phương trình <span class="math-inline">$\boldsymbol{\alpha} = \mathbf{I}^{-1}\boldsymbol{\tau}$</span>, việc chia cho <span class="math-inline">$0$</span> sẽ tạo ra gia tốc góc <span class="math-inline">$\infty$</span> (<code>NaN</code>), khiến robot biến mất hoặc nổ tung ngay khi vừa bấm Play.</p>
+</blockquote>
+<hr />
+<h3 id="22-khop-noi-ong-co-joint-dynamics-limit-inlinemathplaceholder76end-ong-luc-hoc-co-ien">2.2. Khớp nối &amp; Động cơ (<code>&lt;joint&gt;</code>, <code>&lt;dynamics&gt;</code>, <code>&lt;limit&gt;</code>) <span class="math-inline">$\leftrightarrow$</span> Động lực học Cơ điện<a class="headerlink" href="#22-khop-noi-ong-co-joint-dynamics-limit-inlinemathplaceholder76end-ong-luc-hoc-co-ien" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="oan-cau-hinh-mau">📄 Đoạn cấu hình mẫu:<a class="headerlink" href="#oan-cau-hinh-mau" title="Liên kết tới mục này">&para;</a></h4>
+<pre><code class="language-xml">&lt;joint name=&quot;left_wheel_joint&quot; type=&quot;continuous&quot;&gt;
+  &lt;parent link=&quot;base_link&quot;/&gt;
+  &lt;child link=&quot;left_wheel&quot;/&gt;
+  &lt;!-- Vị trí đặt trục bánh xe so với base_link (y = +0.0685m tức cách tâm 6.85cm) --&gt;
+  &lt;origin xyz=&quot;0.0 0.0685 0.0&quot; rpy=&quot;-1.5708 0 0&quot;/&gt;
+  &lt;!-- Vector đơn vị chỉ hướng trục quay --&gt;
+  &lt;axis xyz=&quot;0 0 1&quot;/&gt;
+  &lt;!-- Đặc tính ma sát nội tại của ổ bi và hộp số --&gt;
+  &lt;dynamics damping=&quot;0.05&quot; friction=&quot;0.02&quot;/&gt;
+  &lt;!-- Giới hạn vật lý của động cơ điện --&gt;
+  &lt;limit effort=&quot;2.0&quot; velocity=&quot;15.0&quot;/&gt;
+&lt;/joint&gt;
+</code></pre>
+<h4 id="ban-chat-vat-ly-phuong-trinh-toan-hoc_1">🔬 Bản chất Vật lý &amp; Phương trình Toán học:<a class="headerlink" href="#ban-chat-vat-ly-phuong-trinh-toan-hoc_1" title="Liên kết tới mục này">&para;</a></h4>
+<p>Phương trình mô-men xoắn thực tế truyền ra trục khớp là:
+<div class="math-block">$$\tau_{\text{net}} = \text{clip}\Big(\tau_{\text{cmd}}, -\tau_{\max}, +\tau_{\max}\Big) - \underbrace{b \cdot \dot{q}}_{\text{Damping}} - \underbrace{\tau_c \cdot \operatorname{sgn}(\dot{q})}_{\text{Coulomb Friction}}$$</div></p>
+<ol>
+<li>
+<p><strong><code>type="continuous"</code> vs <code>type="revolute"</code>:</strong>
+   - <code>continuous</code>: Khớp quay tròn không có điểm dừng <span class="math-inline">$\theta \in (-\infty, +\infty)$</span> (dùng cho bánh xe).
+   - <code>revolute</code>: Khớp bản lề bị chặn bởi góc tối thiểu và tối đa <span class="math-inline">$\theta \in [\text{lower}, \text{upper}]$</span> (dùng cho khớp khuỷu tay robot, khớp chân chó robot).
+   - <code>prismatic</code>: Khớp trượt tịnh tiến (dùng cho xi-lanh thủy lực, thang nâng).</p>
+</li>
+<li>
+<p><strong><code>dynamics damping="b"</code> (Đơn vị: <span class="math-inline">$\text{N}\cdot\text{m}\cdot\text{s/rad}$</span>):</strong>
+   - Là <strong>ma sát nhớt (Viscous Damping)</strong> sinh ra bởi dầu bôi trơn trong hộp số và lực cản điện từ trong động cơ, tỷ lệ thuận với vận tốc góc: <span class="math-inline">$\tau_{\text{damping}} = -b \cdot \dot{q}$</span>.
+   - <strong>Tác dụng vật lý:</strong> Tiêu tán năng lượng dư thừa, giúp bánh xe hoặc cánh tay robot <strong>tự giảm tốc và dừng lại êm ái</strong> khi ngắt điện, đồng thời chống dao động tự kích (oscillation).</p>
+</li>
+<li>
+<p><strong><code>dynamics friction="τ_c"</code> (Đơn vị: <span class="math-inline">$\text{N}\cdot\text{m}$</span>):</strong>
+   - Là <strong>ma sát khô tĩnh (Coulomb Static Friction)</strong> giữa các bánh răng cơ khí. Nếu mô-men động cơ <span class="math-inline">$\tau_{\text{cmd}} &lt; \tau_c$</span>, trục khớp sẽ đứng im không nhúc nhích (vùng chết / deadzone của motor thật).</p>
+</li>
+<li>
+<p><strong><code>limit effort="τ_max"</code> (Đơn vị: <span class="math-inline">$\text{N}\cdot\text{m}$</span>) và <code>velocity="ω_max"</code> (Đơn vị: <span class="math-inline">$\text{rad/s}$</span>):</strong>
+   - <code>effort</code>: Mô-men xoắn cực đại của động cơ (do giới hạn dòng điện định mức <span class="math-inline">$I_{\max}$</span> qua hằng số mô-men <span class="math-inline">$\tau = K_t \cdot I$</span>).
+   - <code>velocity</code>: Tốc độ quay tối đa không tải của động cơ (do giới hạn điện áp nguồn <span class="math-inline">$V_{\text{supply}}$</span> và sức phản điện động Back-EMF <span class="math-inline">$V_{\text{bemf}} = K_e \cdot \omega$</span>).</p>
+</li>
+</ol>
+<hr />
+<h3 id="23-va-cham-ma-sat-be-mat-collision-surface-inlinemathplaceholder89end-co-hoc-tiep-xuc">2.3. Va chạm &amp; Ma sát bề mặt (<code>&lt;collision&gt;</code>, <code>&lt;surface&gt;</code>) <span class="math-inline">$\leftrightarrow$</span> Cơ học Tiếp xúc<a class="headerlink" href="#23-va-cham-ma-sat-be-mat-collision-surface-inlinemathplaceholder89end-co-hoc-tiep-xuc" title="Liên kết tới mục này">&para;</a></h3>
+<p>Trong mô phỏng, mỗi bộ phận của robot có <strong>2 lớp vỏ độc lập</strong>:</p>
+<ul>
+<li><strong><code>&lt;visual&gt;</code>:</strong> Lớp vỏ đồ họa (chỉ để mắt người và Camera nhìn thấy, có màu sắc, vân bề mặt phức tạp, <strong>không có tính năng va chạm</strong>).</li>
+<li><strong><code>&lt;collision&gt;</code>:</strong> Lớp vỏ vật lý (thường được tối giản thành hình trụ, hình hộp đơn giản để CPU/GPU tính toán va chạm cực nhanh).</li>
+</ul>
+<h4 id="oan-cau-hinh-tiep-xuc-banh-xe-trong-gazebo">📄 Đoạn cấu hình tiếp xúc bánh xe trong Gazebo:<a class="headerlink" href="#oan-cau-hinh-tiep-xuc-banh-xe-trong-gazebo" title="Liên kết tới mục này">&para;</a></h4>
+<pre><code class="language-xml">&lt;gazebo reference=&quot;left_wheel&quot;&gt;
+  &lt;mu1&gt;1.0&lt;/mu1&gt;
+  &lt;mu2&gt;1.0&lt;/mu2&gt;
+  &lt;kp&gt;1000000.0&lt;/kp&gt;
+  &lt;kd&gt;100.0&lt;/kd&gt;
+  &lt;minDepth&gt;0.001&lt;/minDepth&gt;
+&lt;/gazebo&gt;
+</code></pre>
+<h4 id="ban-chat-vat-ly-phuong-trinh-toan-hoc_2">🔬 Bản chất Vật lý &amp; Phương trình Toán học:<a class="headerlink" href="#ban-chat-vat-ly-phuong-trinh-toan-hoc_2" title="Liên kết tới mục này">&para;</a></h4>
+<p>Khi bánh xe chạm mặt sàn, trình mô phỏng giải bài toán tiếp xúc qua 2 thành phần lực vuông góc nhau:</p>
+<pre><code>          ↑ Lực phản lực pháp tuyến Fn (Chống lún xuyên sàn - phụ thuộc kp, kd)
+          │
+     ┌────┴────┐
+     │ Bánh xe │ ───► Chiều lăn tới
+     └────┬────┘
+    ◄─────•═════► Lực ma sát bám đường Ft (Giúp xe tiến tới - phụ thuộc mu1, mu2)
+  Mặt sàn vật lý
+</code></pre>
+<ol>
+<li><strong>Độ cứng và Giảm chấn bề mặt (<code>kp</code> và <code>kd</code> — Mô hình Lò xo - Giảm chấn Kelvin-Voigt):</strong>
+   - Trong máy tính, các vật rắn tiếp xúc nhau bằng cách lún nhẹ vào nhau một khoảng cực nhỏ <span class="math-inline">$\delta$</span> (penetration depth). Phản lực pháp tuyến <span class="math-inline">$F_n$</span> đẩy hai vật ra được tính bằng:
+     <div class="math-block">$$F_n = k_p \cdot \delta - k_d \cdot \dot{\delta}$$</div></li>
+</ol>
+<ul>
+<li><strong><code>kp</code> (Contact Stiffness - Độ cứng tiếp xúc, <span class="math-inline">$\text{N/m}$</span>):</strong><ul>
+<li><code>kp</code> lớn (<span class="math-inline">$10^6 - 10^8$</span>): Bề mặt cứng như thép/bê tông.</li>
+<li><code>kp</code> nhỏ (<span class="math-inline">$10^3 - 10^4$</span>): Bề mặt mềm, lún như đệm mút hoặc lốp bơm non hơi.</li>
+</ul>
+</li>
+<li><strong><code>kd</code> (Contact Damping - Giảm chấn tiếp xúc, <span class="math-inline">$\text{N}\cdot\text{s/m}$</span>):</strong><ul>
+<li>Hấp thụ động năng khi va đập. Nếu <code>kd = 0</code>, bánh xe rơi xuống đất sẽ <strong>nảy tưng tưng mãi không dừng</strong> như quả bóng bàn!</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li><strong>Hệ số Ma sát Coulomb theo 2 phương (<code>mu1</code> <span class="math-inline">$\mu_1$</span> và <code>mu2</code> <span class="math-inline">$\mu_2$</span>):</strong>
+   - Theo định luật ma sát Coulomb, lực bám tối đa song song với mặt sàn bị giới hạn bởi áp lực pháp tuyến:
+     <div class="math-block">$$|F_{t, 1}| \le \mu_1 F_n, \quad |F_{t, 2}| \le \mu_2 F_n$$</div></li>
+</ol>
+<ul>
+<li><code>mu1</code>: Hệ số ma sát dọc theo chiều lăn của bánh xe.</li>
+<li><code>mu2</code>: Hệ số ma sát ngang (vuông góc với bánh xe, chống trượt ngang khi ôm cua).</li>
+<li><strong>Ứng dụng thực tế cực hay trong cấu hình Robot:</strong><ul>
+<li><strong>Bánh chủ động (Left/Right Drive Wheels):</strong> Đặt <code>mu1 = 1.0</code>, <code>mu2 = 1.0</code> (mô phỏng lốp cao su bám chặt mặt sàn để tạo lực đẩy).</li>
+<li><strong>Bánh tự lựa (Caster Wheel):</strong> Thay vì phải mô phỏng khớp xoay phức tạp của bánh xe phụ, kỹ sư thường gắn cố định một quả cầu và đặt <strong><code>mu1 = 0.001</code>, <code>mu2 = 0.001</code></strong> (trơn như nước đá) để nó trượt tự do trên sàn mà không gây lực cản làm lệch hướng xe!</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3 id="24-thoi-gian-tich-phan-max_step_size-real_time_factor-inlinemathplaceholder98end-giai-tich-so">2.4. Thời gian tích phân (<code>max_step_size</code>, <code>real_time_factor</code>) <span class="math-inline">$\leftrightarrow$</span> Giải tích Số<a class="headerlink" href="#24-thoi-gian-tich-phan-max_step_size-real_time_factor-inlinemathplaceholder98end-giai-tich-so" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="oan-cau-hinh-trong-file-the-gioi-worldsdf">📄 Đoạn cấu hình trong file Thế giới (<code>world.sdf</code>):<a class="headerlink" href="#oan-cau-hinh-trong-file-the-gioi-worldsdf" title="Liên kết tới mục này">&para;</a></h4>
+<pre><code class="language-xml">&lt;physics name=&quot;default_physics&quot; type=&quot;ode&quot;&gt;
+  &lt;!-- Bước nhảy thời gian tích phân vi phân Δt = 1ms (1000 Hz) --&gt;
+  &lt;max_step_size&gt;0.001&lt;/max_step_size&gt;
+  &lt;!-- Số bước tính toán vật lý mong muốn trong 1 giây đời thực --&gt;
+  &lt;real_time_update_rate&gt;1000.0&lt;/real_time_update_rate&gt;
+&lt;/physics&gt;
+</code></pre>
+<h4 id="ban-chat-vat-ly-phuong-trinh-toan-hoc_3">🔬 Bản chất Vật lý &amp; Phương trình Toán học:<a class="headerlink" href="#ban-chat-vat-ly-phuong-trinh-toan-hoc_3" title="Liên kết tới mục này">&para;</a></h4>
+<p>Máy tính không thể tính thời gian liên tục mà phải rời rạc hóa theo từng lát cắt <span class="math-inline">$\Delta t = \text{max\_step\_size}$</span> bằng phương pháp tích phân <strong>Semi-Implicit Euler</strong>:
+<div class="math-block">$$\begin{aligned}
+\mathbf{v}_{k+1} &amp;= \mathbf{v}_k + \mathbf{a}_k \cdot \Delta t \\
+\mathbf{x}_{k+1} &amp;= \mathbf{x}_k + \mathbf{v}_{k+1} \cdot \Delta t
+\end{aligned}$$</div></p>
+<ul>
+<li>
+<p><strong>Mối quan hệ giữa các tham số thời gian:</strong>
+  <div class="math-block">$$\text{Target Real-Time Factor (RTF)} = \text{max\_step\_size} \times \text{real\_time\_update\_rate}$$</div></p>
+</li>
+<li>
+<p>Với <span class="math-inline">$\Delta t = 0.001\text{ s}$</span> và <span class="math-inline">$\text{rate} = 1000\text{ Hz}$</span>: <span class="math-inline">$\text{RTF} = 0.001 \times 1000 = 1.0\times$</span> (1 giây mô phỏng = 1 giây đời thực).</p>
+</li>
+<li><strong>Nếu muốn chạy nhanh tối đa (dùng cho huấn luyện RL):</strong> Đặt <code>&lt;real_time_update_rate&gt;0&lt;/real_time_update_rate&gt;</code>. Khi đó CPU sẽ giải các bước <span class="math-inline">$\Delta t = 0.001\text{ s}$</span> nhanh hết mức có thể mà không ngủ chờ đồng hồ thực!</li>
+<li><strong>Tại sao không được tăng <code>max_step_size</code> lên quá lớn (ví dụ <span class="math-inline">$\Delta t = 0.1\text{ s}$</span>)?</strong>
+  1. <strong>Lỗi xuyên thấu hình học (Tunneling Effect):</strong> Nếu robot chạy với vận tốc <span class="math-inline">$2\text{ m/s}$</span>, trong <span class="math-inline">$\Delta t = 0.1\text{ s}$</span> nó nhảy một bước dài <span class="math-inline">$20\text{ cm}$</span> — nhảy xuyên qua bức tường dày <span class="math-inline">$10\text{ cm}$</span> mà bộ phát hiện va chạm chưa kịp thấy!
+  2. <strong>Mất ổn định số (Numerical Explosion):</strong> Theo điều kiện ổn định Courant–Friedrichs–Lewy (CFL) cho hệ lò xo va chạm có độ cứng <span class="math-inline">$k_p$</span>:
+     <div class="math-block">$$\Delta t &lt; \frac{2}{\sqrt{k_p / m}}$$</div>
+     Nếu <span class="math-inline">$\Delta t$</span> vượt ngưỡng này, lực đàn hồi <span class="math-inline">$F_n = k_p \delta$</span> ở bước sau lớn gấp bội bước trước, làm năng lượng hệ thống tăng theo cấp số nhân và <strong>bắn tung robot lên không trung</strong>.</li>
+</ul>
+<hr />
+<h2 id="3-lo-trinh-hoc-thuc-hanh-simulation-theo-khoa-robotics_essentials_ros2">3. Lộ trình Học &amp; Thực hành Simulation (Theo khoá <code>robotics_essentials_ros2</code>)<a class="headerlink" href="#3-lo-trinh-hoc-thuc-hanh-simulation-theo-khoa-robotics_essentials_ros2" title="Liên kết tới mục này">&para;</a></h2>
+<p>Dựa trên bộ mã nguồn thực hành bạn đang có tại <a href="file:///home/thinh/Data/robotics_essentials_ros2">robotics_essentials_ros2</a>, dưới đây là hướng dẫn học từng bước từ con số 0 đến làm chủ hệ thống.</p>
+<hr />
+<h3 id="giai-oan-0-cau-hinh-ha-tang-docker-x11-gui-gpu">Giai đoạn 0: Cấu hình Hạ tầng Docker, X11 GUI &amp; GPU<a class="headerlink" href="#giai-oan-0-cau-hinh-ha-tang-docker-x11-gui-gpu" title="Liên kết tới mục này">&para;</a></h3>
+<p>Các file cấu hình nằm tại:</p>
+<ul>
+<li><a href="file:///home/thinh/Data/robotics_essentials_ros2/docker/Dockerfile">Dockerfile</a></li>
+<li><a href="file:///home/thinh/Data/robotics_essentials_ros2/docker/docker-compose.yaml">docker-compose.yaml</a></li>
+</ul>
+<h4 id="giai-thich-cac-tham-so-cau-hinh-quan-trong-trong-docker-composeyaml">Giải thích các tham số cấu hình quan trọng trong <code>docker-compose.yaml</code>:<a class="headerlink" href="#giai-thich-cac-tham-so-cau-hinh-quan-trong-trong-docker-composeyaml" title="Liên kết tới mục này">&para;</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Dòng cấu hình</th>
+<th style="text-align: left;">Giải thích kỹ thuật (Tại sao phải có?)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>network_mode: host</code></td>
+<td style="text-align: left;">Cho phép mạng DDS của ROS 2 bên trong Docker chia sẻ chung card mạng với máy chủ Linux. Giúp truyền dữ liệu hình ảnh Camera/LiDAR băng thông lớn mà không bị nghẽn qua NAT bridge.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>volumes: - /tmp/.X11-unix:/tmp/.X11-unix</code> &amp; <code>environment: - DISPLAY</code></td>
+<td style="text-align: left;"><strong>Cầu nối đồ họa X11:</strong> Vì Docker container vốn không có màn hình, cấu hình này chuyển luồng vẽ cửa sổ 3D của Gazebo và RViz từ trong container ra thẳng màn hình Desktop của bạn.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>QT_X11_NO_MITSHM=1</code></td>
+<td style="text-align: left;">Tắt bộ nhớ chia sẻ MIT-SHM của thư viện giao diện Qt để tránh lỗi sập cửa sổ (crash đen màn hình) khi mở Gazebo/RViz qua Docker.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ROS_DOMAIN_ID=42</code></td>
+<td style="text-align: left;">Tần số kênh liên lạc DDS (từ 0 đến 101). Chỉ các Node có cùng <code>ROS_DOMAIN_ID</code> mới nhìn thấy topic của nhau (tránh nhiễu khi nhiều robot chạy chung 1 mạng Wi-Fi).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>volumes: - $HOME/exercises_ws/src:/home/user/exercises_ws/src</code></td>
+<td style="text-align: left;"><strong>Gắn kết thư mục (Bind Mount):</strong> Mọi code Python bạn viết ngoài máy thật tại <code>/home/thinh/exercises_ws/src</code> sẽ lập tức xuất hiện bên trong container mà không sợ mất code khi tắt Docker.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="lenh-khoi-chay-chuan">🚀 Lệnh khởi chạy chuẩn:<a class="headerlink" href="#lenh-khoi-chay-chuan" title="Liên kết tới mục này">&para;</a></h4>
+<pre><code class="language-bash"># 1. Cho phép Docker truy cập X11 server để hiển thị giao diện Gazebo/RViz
+xhost +local:docker
+
+# 2. Di chuyển vào thư mục docker và bật container chạy ngầm
+cd /home/thinh/Data/robotics_essentials_ros2/docker
+docker compose up -d
+
+# 3. Truy cập vào bên trong môi trường ảo của Robot
+docker exec -it robotics_essentials_ros2 bash
+</code></pre>
+<p><em>(Nếu máy bạn dùng GPU rời NVIDIA và thấy Gazebo bị giật khung hình, hãy mở file <a href="file:///home/thinh/Data/robotics_essentials_ros2/docker/docker-compose.yaml#L12-L22">docker-compose.yaml</a> và bỏ dấu <code>#</code> ở dòng <code>runtime: nvidia</code> cùng 4 dòng <code>NVIDIA_...</code>).</em></p>
+<hr />
+<h3 id="giai-oan-1-khoi-chay-gazebo-he-truc-toa-o-tf-ros-2-topics">Giai đoạn 1: Khởi chạy Gazebo, Hệ trục tọa độ TF &amp; ROS 2 Topics<a class="headerlink" href="#giai-oan-1-khoi-chay-gazebo-he-truc-toa-o-tf-ros-2-topics" title="Liên kết tới mục này">&para;</a></h3>
+<p>📖 <strong>Tài liệu gốc:</strong> <a href="file:///home/thinh/Data/robotics_essentials_ros2/1-ros_2_introduction/README.md">1-ros_2_introduction/README.md</a></p>
+<h4 id="1-khoi-chay-mo-phong-robot-andino">1. Khởi chạy mô phỏng Robot Andino:<a class="headerlink" href="#1-khoi-chay-mo-phong-robot-andino" title="Liên kết tới mục này">&para;</a></h4>
+<p>Bên trong terminal của Docker, chạy lệnh:</p>
+<pre><code class="language-bash">ros2 launch andino_gz andino_gz.launch.py
+</code></pre>
+<p>Lệnh này đồng thời kích hoạt <strong>4 tiến trình nền tảng</strong>:</p>
+<ol>
+<li><strong>Gazebo Server (<code>ign gazebo -s</code>):</strong> Tính toán vật lý cho robot Andino và căn phòng.</li>
+<li><strong>Gazebo GUI (<code>ign gazebo -g</code>):</strong> Giao diện 3D để nhìn thế giới thật (World View).</li>
+<li><strong><code>ros_gz_bridge</code>:</strong> Cầu nối dịch các tín hiệu nội bộ của Gazebo sang chuẩn gói tin ROS 2 (<code>/scan</code>, <code>/odom</code>, <code>/cmd_vel</code>, <code>/image_raw</code>, <code>/clock</code>).</li>
+<li><strong>RViz2:</strong> Giao diện hiển thị <strong>Thế giới qua con mắt của Robot</strong> (nơi chỉ hiển thị những gì cảm biến đo được).</li>
+</ol>
+<blockquote class="callout callout-logic">
+<p>💡 <strong>Phân biệt cực kỳ quan trọng: Gazebo vs. RViz</strong></p>
+<ul>
+<li><strong>Gazebo = Thế giới Vật lý Khách quan (Ground Truth):</strong> Chứa tường gạch, bàn ghế, trọng lực, ma sát. Nếu robot bị che mắt, Gazebo vẫn biết bức tường nằm ở đâu.</li>
+<li><strong>RViz = Não bộ的主quan của Robot (Perception View):</strong> Robot chỉ biết những gì cảm biến của nó gửi về. Nếu tắt LiDAR và Camera, màn hình RViz sẽ trống trơn dù trong Gazebo có 10 bức tường trước mặt!</li>
+</ul>
+</blockquote>
+<h4 id="2-lam-chu-cay-he-truc-toa-o-tf-tree-coordinate-transformations">2. Làm chủ Cây Hệ trục Tọa độ (TF Tree - Coordinate Transformations):<a class="headerlink" href="#2-lam-chu-cay-he-truc-toa-o-tf-tree-coordinate-transformations" title="Liên kết tới mục này">&para;</a></h4>
+<p>Trong một con robot, mỗi bộ phận đều gắn một hệ trục tọa độ <span class="math-inline">$(X, Y, Z)$</span> riêng (theo quy tắc bàn tay phải của ROS: <strong><span class="math-inline">$X$</span> hướng tới trước (Đỏ), <span class="math-inline">$Y$</span> hướng sang trái (Xanh lá), <span class="math-inline">$Z$</span> hướng thẳng lên trời (Xanh dương)</strong>):</p>
+<pre><code class="language-mermaid">flowchart TD
+    M[&quot;map&lt;br&gt;(Hệ tọa độ Bản đồ Toàn cục cố định)&lt;br&gt;Được sửa sai bởi SLAM / AMCL&quot;] --&gt;|&quot;Biến đổi bù sai số trôi (Drift correction)&quot;| O[&quot;odom&lt;br&gt;(Điểm xuất phát lúc vừa bật Robot)&lt;br&gt;Tính liên tục từ bánh xe + IMU&quot;]
+    O --&gt;|&quot;Quãng đường di chuyển (x, y, θ)&quot;| BF[&quot;base_footprint&lt;br&gt;(Hình chiếu tâm robot xuống mặt sàn z = 0)&quot;]
+    BF --&gt;|&quot;Độ cao gầm xe&quot;| BL[&quot;base_link&lt;br&gt;(Tâm hình học của khung thân Robot)&quot;]
+    BL --&gt;|&quot;Tọa độ lắp đặt cảm biến&quot;| LL[&quot;laser_link&lt;br&gt;(Tâm mắt đọc LiDAR 360°)&quot;]
+    BL --&gt;|&quot;Tọa độ lắp đặt camera&quot;| CL[&quot;camera_link&lt;br&gt;(Tâm thấu kính Camera RGB)&quot;]
+    BL --&gt;|&quot;Khớp quay liên tục&quot;| WL[&quot;left_wheel &amp; right_wheel&lt;br&gt;(Tâm 2 bánh xe chủ động)&quot;]
+</code></pre>
+<ul>
+<li><strong>Tại sao phải chia làm cả <code>map</code> lẫn <code>odom</code>?</strong></li>
+<li>Hệ <code>odom</code> được tính bằng cách cộng dồn vòng quay bánh xe: Rất mượt và không bao giờ bị nhảy cóc (liên tục theo thời gian), nhưng đi được 10 mét thì bánh xe bị trượt nhẹ làm lệch mất 20 cm (<strong>Odometry Drift</strong>).</li>
+<li>Hệ <code>map</code> dùng cảm biến LiDAR so khớp với tường nhà (SLAM/AMCL) để biết vị trí chính xác tuyệt đối, nhưng tính toán chậm và thỉnh thoảng bị "nhảy vị trí" khi phát hiện lại góc tường quen thuộc.</li>
+<li>Vì vậy: <strong>Bộ điều khiển bánh xe (Local Controller)</strong> nhìn vào <code>odom</code> để lái mượt, còn <strong>Bộ tìm đường dài hạn (Global Planner)</strong> nhìn vào <code>map</code> để đi đúng phòng!</li>
+</ul>
+<hr />
+<h3 id="giai-oan-2-slam-lap-ban-o-ieu-huong-tu-hanh-nav2">Giai đoạn 2: SLAM (Lập bản đồ) &amp; Điều hướng tự hành Nav2<a class="headerlink" href="#giai-oan-2-slam-lap-ban-o-ieu-huong-tu-hanh-nav2" title="Liên kết tới mục này">&para;</a></h3>
+<p>📖 <strong>Tài liệu gốc:</strong> <a href="file:///home/thinh/Data/robotics_essentials_ros2/2-slam_and_navigation_demo/README.md">2-slam_and_navigation_demo/README.md</a></p>
+<ol>
+<li><strong>Thực hành SLAM (<code>slam_toolbox</code>):</strong>
+   <code>bash
+   ros2 launch andino_gz andino_gz.launch.py slam:=True</code></li>
+</ol>
+<ul>
+<li>Khi bạn lái robot quanh phòng trong Gazebo, cảm biến LiDAR bắn tia laser vào tường và gửi mảng khoảng cách về topic <code>/scan</code>.</li>
+<li>Thuật toán SLAM kết hợp vị trí tương đối từ <code>/odom</code> và tia quét <code>/scan</code> để tô màu lên lưới ô vuông 2D (<strong>Occupancy Grid Map</strong>):<ul>
+<li>Ô giá trị <code>0</code> (Trắng): Không gian trống (Free space) — tia laser đi xuyên qua.</li>
+<li>Ô giá trị <code>100</code> (Đen): Vật cản/Tường (Occupied) — điểm tia laser bị phản xạ lại.</li>
+<li>Ô giá trị <code>-1</code> (Xám): Chưa từng quét tới (Unknown).</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li><strong>Thực hành Điều hướng Tự hành (<code>Nav2</code>):</strong>
+   <code>bash
+   ros2 launch andino_gz andino_gz.launch.py nav2:=True</code></li>
+</ol>
+<ul>
+<li><strong>Bước 1 (<code>2D Pose Estimate</code>):</strong> Chỉ cho thuật toán định vị hạt <strong>AMCL (Adaptive Monte Carlo Localization)</strong> biết robot đang đứng ở đâu trên bản đồ.</li>
+<li><strong>Bước 2 (<code>Nav2 Goal</code>):</strong> Chọn điểm đích, Nav2 sẽ tự động lập đường đi và xuất vận tốc <code>/cmd_vel</code> lái robot né mọi chướng ngại vật tới đích.</li>
+</ul>
+<hr />
+<h3 id="giai-oan-3-4-ong-hoc-robot-vi-sai-tu-tinh-odometry-tu-encoder">Giai đoạn 3 &amp; 4: Động học Robot Vi sai &amp; Tự tính Odometry từ Encoder<a class="headerlink" href="#giai-oan-3-4-ong-hoc-robot-vi-sai-tu-tinh-odometry-tu-encoder" title="Liên kết tới mục này">&para;</a></h3>
+<p>📖 <strong>Tài liệu gốc:</strong> <a href="file:///home/thinh/Data/robotics_essentials_ros2/3-create_ros_2_package/README.md">3-create_ros_2_package/README.md</a> &amp; <a href="file:///home/thinh/Data/robotics_essentials_ros2/4-robot_odometry/README.md">4-robot_odometry/README.md</a></p>
+<p>Đây là bài tập quan trọng nhất để hiểu <strong>sự kết nối giữa Kích thước Hình học trong Mô phỏng và Toán học Điều khiển</strong>.</p>
+<h4 id="chung-minh-toan-hoc-vat-ly-cua-robot-2-banh-vi-sai-differential-drive">📐 Chứng minh Toán học &amp; Vật lý của Robot 2 bánh Vi sai (Differential Drive):<a class="headerlink" href="#chung-minh-toan-hoc-vat-ly-cua-robot-2-banh-vi-sai-differential-drive" title="Liên kết tới mục này">&para;</a></h4>
+<pre><code>               ╭───────────╮
+               │ Bánh Trái │ ──► Vận tốc dài v_L = r * ω_L
+               ╰───────────╯
+                     ▲
+                     │ Khoảng cách 2 bánh: L (wheel_separation = 0.137 m)
+                     │         
+                     • ────────► Vận tốc tâm Robot: v = (v_R + v_L) / 2
+                     │         ↺ Vận tốc xoay:      ω = (v_R - v_L) / L
+                     ▼
+               ╭───────────╮
+               │ Bánh Phải │ ──► Vận tốc dài v_R = r * ω_R
+               ╰───────────╯
+         (Bán kính bánh xe: r = wheel_radius = 0.033 m)
+</code></pre>
+<ol>
+<li>
+<p><strong>Từ tốc độ góc trục bánh xe sang vận tốc dài từng bánh:</strong>
+   Trình mô phỏng Gazebo xuất tốc độ quay của khớp bánh trái <span class="math-inline">$\omega_L$</span> và bánh phải <span class="math-inline">$\omega_R$</span> (đơn vị: <span class="math-inline">$\text{rad/s}$</span>) qua topic <code>/joint_states</code>. Với bán kính bánh xe <span class="math-inline">$r = 0.033\text{ m}$</span> (<code>self.wheel_radius</code>), vận tốc dài tại điểm tiếp đất của mỗi bánh (giả sử lăn không trượt) là:
+   <div class="math-block">$$v_L = r \cdot \omega_L, \qquad v_R = r \cdot \omega_R$$</div></p>
+</li>
+<li>
+<p><strong>Tổng hợp vận tốc tại tâm Robot (<code>base_link</code>):</strong>
+   - Vận tốc tiến thẳng <span class="math-inline">$v$</span> (Linear velocity) là trung bình cộng của 2 bánh:
+     <div class="math-block">$$v = \frac{v_R + v_L}{2}$$</div></p>
+</li>
+</ol>
+<ul>
+<li>Vận tốc quay quanh trục <span class="math-inline">$Z$</span> là <span class="math-inline">$\omega$</span> (Angular velocity) sinh ra do sự chênh lệch tốc độ giữa bánh phải và bánh trái chia cho khoảng cách hai bánh <span class="math-inline">$L = 0.137\text{ m}$</span> (<code>self.wheel_separation</code>):
+     <div class="math-block">$$\omega = \frac{v_R - v_L}{L}$$</div>
+   <em>(Kiểm chứng trực giác: Nếu <span class="math-inline">$v_R = v_L \implies \omega = 0$</span>, xe đi thẳng. Nếu <span class="math-inline">$v_R = -v_L \implies v = 0$</span>, xe xoay tròn tại chỗ!)</em></li>
+</ul>
+<ol start="3">
+<li><strong>Tích phân Euler theo bước thời gian <span class="math-inline">$\Delta t$</span> để tìm tọa độ <span class="math-inline">$(x, y, \theta)$</span>:</strong>
+   <div class="math-block">$$\begin{aligned}
+   \Delta x &amp;= v \cdot \cos(\theta_t) \cdot \Delta t \\
+   \Delta y &amp;= v \cdot \sin(\theta_t) \cdot \Delta t \\
+   \Delta \theta &amp;= \omega \cdot \Delta t
+   \end{aligned}
+   \implies
+   \begin{cases}
+   x_{t+1} = x_t + \Delta x \\
+   y_{t+1} = y_t + \Delta y \\
+   \theta_{t+1} = \theta_t + \Delta \theta
+   \end{cases}$$</div></li>
+</ol>
+<blockquote class="callout">
+<p>⚠️ <strong>Tại sao khi chạy Node Odometry bắt buộc phải truyền <code>--ros-args -p use_sim_time:=True</code>?</strong>
+Trong dòng code <code>self.get_clock().now()</code>, nếu không bật <code>use_sim_time:=True</code>, code Python sẽ lấy <strong>giờ đồng hồ treo tường của máy tính (Wall Time)</strong>, trong khi vận tốc bánh xe lại chạy theo <strong>giờ vật lý của Gazebo (<code>/clock</code>)</strong>. Nếu máy tính của bạn hơi lag làm Gazebo chỉ chạy được ở tốc độ <span class="math-inline">$0.5\times$</span> (<span class="math-inline">$\text{RTF} = 0.5$</span>), thì <span class="math-inline">$\Delta t$</span> tính theo giờ máy tính sẽ bị <strong>gấp đôi</strong> thực tế, làm quãng đường Odometry tính ra bị phóng đại gấp 2 lần!</p>
+</blockquote>
+<hr />
+<h3 id="giai-oan-5-cau-hinh-ban-o-chi-phi-costmap-thuat-toan-tim-uong-path-planning">Giai đoạn 5: Cấu hình Bản đồ Chi phí (Costmap) &amp; Thuật toán Tìm đường (Path Planning)<a class="headerlink" href="#giai-oan-5-cau-hinh-ban-o-chi-phi-costmap-thuat-toan-tim-uong-path-planning" title="Liên kết tới mục này">&para;</a></h3>
+<p>📖 <strong>Tài liệu gốc:</strong> <a href="file:///home/thinh/Data/robotics_essentials_ros2/5-path_planning/README.md">5-path_planning/README.md</a></p>
+<p>Trong Nav2, robot không nhìn bản đồ dưới dạng trắng/đen đơn thuần, mà biến đổi thành <strong>Costmap (Bản đồ chi phí)</strong> thông qua file cấu hình <code>nav2_params.yaml</code>.</p>
+<h4 id="giai-ma-cau-hinh-vat-ly-trong-nav2_paramsyaml">Giải mã cấu hình Vật lý trong <code>nav2_params.yaml</code>:<a class="headerlink" href="#giai-ma-cau-hinh-vat-ly-trong-nav2_paramsyaml" title="Liên kết tới mục này">&para;</a></h4>
+<pre><code class="language-yaml">local_costmap:
+  local_costmap:
+    ros__parameters:
+      robot_radius: 0.12          # Bán kính đường tròn bao quanh thân robot (12 cm)
+      inflation_layer:
+        plugin: &quot;nav2_costmap_2d::InflationLayer&quot;
+        cost_scaling_factor: 3.0  # Độ dốc giảm dần của vùng nguy hiểm quanh vật cản
+        inflation_radius: 0.35    # Bán kính vùng đệm an toàn quanh tường (35 cm)
+</code></pre>
+<pre><code>Giá trị Chi phí (Cost: 0 -&gt; 254)
+  254 (Lethal - Đâm tường chắc chắn)  │█████
+  253 (Inscribed - Chạm mép vỏ robot) │█████▓▓▓▓▓
+  128 (Vùng đệm nguy hiểm giảm dần)   │█████▓▓▓▓▓▒▒▒▒▒░░░░░
+    0 (Không gian an toàn tuyệt đối)  │█████▓▓▓▓▓▒▒▒▒▒░░░░░________________
+                                      └─────┴────┴─────────┴──────────────► Khoảng cách tới tường d
+                                      0   r_robot (0.12m)  r_inflation (0.35m)
+</code></pre>
+<ul>
+<li><strong><code>robot_radius: 0.12</code> (m):</strong> Trên bản đồ số, robot được coi như 1 điểm chất điểm <span class="math-inline">$(x, y)$</span>. Để thân robot thật (rộng <span class="math-inline">$24\text{ cm}$</span>) không quệt vào tường, Nav2 "thổi phồng" mọi bức tường dày thêm một khoảng đúng bằng bán kính robot <span class="math-inline">$R_{\text{robot}} = 0.12\text{ m}$</span> (vùng <strong>Inscribed Obstacle</strong> có cost = 253). Nếu tâm robot đi vào vùng này, vỏ robot chắc chắn va chạm với tường!</li>
+<li>
+<p><strong><code>inflation_radius: 0.35</code> (m) &amp; <code>cost_scaling_factor</code> (<span class="math-inline">$k$</span>):</strong> Tạo một lớp đệm chi phí giảm theo hàm mũ quanh vật cản:
+  <div class="math-block">$$\text{Cost}(d) = \exp\Big(-k \cdot (d - R_{\text{robot}})\Big) \times 252$$</div></p>
+</li>
+<li>
+<p><code>cost_scaling_factor</code> càng nhỏ <span class="math-inline">$\to$</span> vùng đệm phình to, ép robot luôn đi chính giữa hành lang, cách xa hai bên tường.</p>
+</li>
+<li><code>cost_scaling_factor</code> càng lớn <span class="math-inline">$\to$</span> chi phí giảm dốc đứng sát tường, cho phép robot lách sát qua các khe cửa hẹp.</li>
+</ul>
+<hr />
+<h2 id="4-cau-hinh-mo-phong-chuyen-dung-cho-huan-luyen-rl-mujoco-isaac-lab">4. Cấu hình Mô phỏng Chuyên dụng cho Huấn luyện RL (MuJoCo &amp; Isaac Lab)<a class="headerlink" href="#4-cau-hinh-mo-phong-chuyen-dung-cho-huan-luyen-rl-mujoco-isaac-lab" title="Liên kết tới mục này">&para;</a></h2>
+<p>Khi bạn chuyển từ điều khiển cổ điển (ROS 2 / Gazebo) sang huấn luyện <strong>Reinforcement Learning</strong> (như <strong>PPO ở <a href="Week5/BAI_GIANG.html">Week 5</a></strong>, <strong>Model-Based MPC ở <a href="Week7/BAI_GIANG.html">Week 7</a></strong>, hay <strong>SAC ở <a href="Week8/BAI_GIANG.html">Week 8</a></strong>), cấu hình mô phỏng có thêm 3 khái niệm đặc thù:</p>
+<h3 id="41-tan-so-vat-ly-vs-tan-so-chinh-sach-sim_dt-decimation">4.1. Tần số Vật lý vs. Tần số Chính sách (<code>sim_dt</code> &amp; <code>decimation</code>)<a class="headerlink" href="#41-tan-so-vat-ly-vs-tan-so-chinh-sach-sim_dt-decimation" title="Liên kết tới mục này">&para;</a></h3>
+<p>Trong RL (như MuJoCo hoặc NVIDIA Isaac Lab), mạng nơ-ron Policy không ra quyết định ở mọi bước vật lý, mà dùng cơ chế <strong>Decimation (Frame-skip vật lý)</strong>:</p>
+<pre><code class="language-python"># Cấu hình chuẩn trong NVIDIA Isaac Lab / MuJoCo Env:
+sim_dt = 0.002        # Bước tích phân vật lý: 2 ms (500 Hz)
+decimation = 10       # Giữ nguyên lệnh của mạng RL trong 10 bước vật lý
+control_dt = sim_dt * decimation  # Tần số ra quyết định của RL Policy: 20 ms (50 Hz)
+</code></pre>
+<ul>
+<li><strong>Tại sao phải làm vậy?</strong></li>
+<li><strong>Vật lý (<code>500 Hz</code>):</strong> Giải va chạm và điều khiển dòng điện motor cần tần số rất cao (<span class="math-inline">$500 - 1000\text{ Hz}$</span>) để hệ cơ học ổn định.</li>
+<li><strong>Mạng nơ-ron RL (<code>50 Hz</code>):</strong> Nếu bắt Policy xuất hành động ở <span class="math-inline">$1000\text{ Hz}$</span>, sự thay đổi quá nhỏ giữa 2ms làm chân robot chỉ rung nhẹ tại chỗ (giống hệt lý do phải dùng <code>FrameSkip=4</code> trong Atari DQN ở <a href="Week3/BAI_GIANG.html">Week 3</a>). Chạy Policy ở <span class="math-inline">$50\text{ Hz}$</span> vừa tiết kiệm <span class="math-inline">$10\times$</span> thời gian tính toán GPU, vừa khớp với tốc độ truyền tin thực tế trên phần cứng robot.</li>
+</ul>
+<h3 id="42-bo-ieu-khien-khop-noi-tai-stiffness-inlinemathplaceholder141end-damping-inlinemathplaceholder142end">4.2. Bộ điều khiển Khớp Nội tại (<code>stiffness</code> <span class="math-inline">$K_p$</span> &amp; <code>damping</code> <span class="math-inline">$K_d$</span>)<a class="headerlink" href="#42-bo-ieu-khien-khop-noi-tai-stiffness-inlinemathplaceholder141end-damping-inlinemathplaceholder142end" title="Liên kết tới mục này">&para;</a></h3>
+<p>Hầu hết các thuật toán RL cho robot bốn chân/hình người hiện nay <strong>không xuất trực tiếp mô-men xoắn <span class="math-inline">$\tau$</span></strong>, mà mạng nơ-ron xuất ra <strong>Góc khớp mục tiêu <span class="math-inline">$q_{\text{target}}$</span></strong>, sau đó trình mô phỏng dùng bộ điều khiển <strong>PD (Proportional-Derivative)</strong> tốc độ cao để tính ra lực:
+<div class="math-block">$$\tau = K_p \cdot \big(q_{\text{target}} - q\big) - K_d \cdot \dot{q}$$</div></p>
+<ul>
+<li>Cấu hình <code>stiffness</code> (<span class="math-inline">$K_p$</span>): Giống như độ cứng của cơ bắp. <span class="math-inline">$K_p$</span> quá nhỏ làm chân robot mềm nhũn, khuỵu gối dưới sức nặng cơ thể; <span class="math-inline">$K_p$</span> quá lớn làm chân robot giật cục, cứng đờ.</li>
+<li>Cấu hình <code>damping</code> (<span class="math-inline">$K_d$</span>): Giảm chấn chống rung khớp.</li>
+</ul>
+<h3 id="43-cau-hinh-domain-randomization-chia-khoa-e-mang-tu-sim-ra-robot-that">4.3. Cấu hình Domain Randomization (Chìa khóa để mang từ Sim ra Robot thật)<a class="headerlink" href="#43-cau-hinh-domain-randomization-chia-khoa-e-mang-tu-sim-ra-robot-that" title="Liên kết tới mục này">&para;</a></h3>
+<p>Bảng cấu hình ngẫu nhiên hóa thông số vật lý chuẩn công nghiệp khi huấn luyện RL:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Tham số vật lý trong Simulator</th>
+<th style="text-align: left;">Dải ngẫu nhiên hóa (Randomization Range)</th>
+<th style="text-align: left;">Mục đích thực tế (Chống lỗi gì ngoài đời thực?)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Hệ số ma sát mặt sàn (<span class="math-inline">$\mu$</span>)</strong></td>
+<td style="text-align: left;"><span class="math-inline">$\mathcal{U}(0.3, 1.25)$</span></td>
+<td style="text-align: left;">Giúp robot đi được cả trên sàn gạch trơn bóng lẫn thảm nhám hay đường nhựa.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Khối lượng thân chính (<span class="math-inline">$m$</span>)</strong></td>
+<td style="text-align: left;"><span class="math-inline">$+ \mathcal{U}(-1.0, +3.0)\text{ kg}$</span></td>
+<td style="text-align: left;">Giúp robot vẫn đi vững khi cõng thêm pin dự phòng, gắn thêm cảm biến hoặc mang hàng.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Tâm trọng lực (<span class="math-inline">$\text{CoM}_{xyz}$</span>)</strong></td>
+<td style="text-align: left;"><span class="math-inline">$+ \mathcal{U}(-0.05, +0.05)\text{ m}$</span></td>
+<td style="text-align: left;">Bù trừ sai số lắp ráp cơ khí và vị trí đặt dây điện bên trong vỏ máy.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Độ mạnh động cơ (<span class="math-inline">$K_p, K_d, \tau$</span>)</strong></td>
+<td style="text-align: left;"><span class="math-inline">$\times \mathcal{U}(0.85, 1.15)$</span></td>
+<td style="text-align: left;">Bù trừ hiện tượng motor bị yếu đi khi nóng hoặc khi pin sắp cạn.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Độ trễ tín hiệu (Action Delay)</strong></td>
+<td style="text-align: left;"><span class="math-inline">$\mathcal{U}(0, 20)\text{ ms}$</span></td>
+<td style="text-align: left;">Bù trừ độ trễ truyền gói tin qua cáp USB/CAN/ROS 2 giữa máy tính và mạch motor.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Nhiễu cảm biến (Observation Noise)</strong></td>
+<td style="text-align: left;"><span class="math-inline">$+ \mathcal{N}(0, \sigma^2)$</span></td>
+<td style="text-align: left;">Giúp mạng nơ-ron không bị hoảng loạn trước nhiễu rung của cảm biến IMU và Encoder thật.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-bang-chan-oan-loi-vat-ly-thuong-gap-khi-cau-hinh-simulation">5. Bảng Chẩn đoán Lỗi Vật lý Thường gặp khi Cấu hình Simulation<a class="headerlink" href="#5-bang-chan-oan-loi-vat-ly-thuong-gap-khi-cau-hinh-simulation" title="Liên kết tới mục này">&para;</a></h2>
+<p>Khi làm việc với Gazebo, MuJoCo hoặc Isaac Gym, nếu thấy robot có biểu hiện kỳ lạ, hãy tra bảng chẩn đoán dưới đây:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Hiện tượng quan sát được trong Simulator</th>
+<th style="text-align: left;">Nguyên nhân Vật lý / Cấu hình sai</th>
+<th style="text-align: left;">Cách khắc phục triệt để</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Robot vừa xuất hiện đã bay vút lên trời hoặc biến mất ( lỗi <code>NaN</code> )</strong></td>
+<td style="text-align: left;">1. Đặt <code>&lt;mass&gt;</code> hoặc <code>&lt;inertia&gt;</code> bằng <span class="math-inline">$0$</span> (chia cho 0 khi tính <span class="math-inline">$\mathbf{I}^{-1}$</span>).<br>2. Hai khối <code>&lt;collision&gt;</code> bị đặt đè xuyên vào nhau ngay lúc khởi tạo, sinh ra lực đẩy đàn hồi <span class="math-inline">$F_n = k_p \delta$</span> khổng lồ.</td>
+<td style="text-align: left;">1. Kiểm tra mọi link đều có <code>mass &gt; 0</code> và <code>ixx, iyy, izz &gt; 0</code>.<br>2. Tách khoảng cách <code>&lt;origin&gt;</code> hoặc tắt va chạm giữa 2 link kề nhau (<code>disable_collisions</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Bánh xe quay tít nhưng Robot đứng yên tại chỗ hoặc lết đi rất chậm</strong></td>
+<td style="text-align: left;">1. Hệ số ma sát <code>mu1</code>, <code>mu2</code> của bánh xe quá nhỏ.<br>2. Bánh xe bị gắn hơi cao hơn mặt sàn (chưa chạm đất) do lệch <code>&lt;origin xyz&gt;</code> của bánh tự lựa (caster wheel).</td>
+<td style="text-align: left;">1. Tăng <code>mu1 = 1.0</code>, <code>mu2 = 1.0</code> cho 2 bánh chủ động.<br>2. Bật chế độ hiển thị <code>View -&gt; Collisions</code> và <code>View -&gt; Contacts</code> trong Gazebo để xem các điểm chấm xanh tiếp đất có nằm đều trên cả bánh chính và bánh phụ không.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Robot đứng yên nhưng thân xe cứ tự rung lắc (Jittering / Shaking) liên tục</strong></td>
+<td style="text-align: left;">1. Bước thời gian <code>max_step_size</code> quá lớn so với độ cứng tiếp xúc <code>kp</code>.<br>2. Hệ số <code>K_p</code> của bộ điều khiển PID khớp quá cao trong khi thiếu <code>damping</code> (<span class="math-inline">$K_d$</span>).</td>
+<td style="text-align: left;">1. Giảm <code>max_step_size</code> xuống <code>0.001</code> và tăng <code>kd</code> của mặt sàn.<br>2. Giảm <code>K_p</code> và tăng <code>&lt;dynamics damping="..."&gt;</code> trong thẻ <code>&lt;joint&gt;</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Robot đi thẳng trong Gazebo nhưng trên RViz lại thấy Robot bị trôi lệch góc hoặc đi xa gấp đôi</strong></td>
+<td style="text-align: left;">1. Sai thông số hình học <code>wheel_radius</code> hoặc <code>wheel_separation</code> trong code Odometry.<br>2. Quên bật <code>use_sim_time:=True</code> trên các Node ROS 2.</td>
+<td style="text-align: left;">1. Đối chiếu chính xác bán kính hình trụ <code>&lt;cylinder radius="..."&gt;</code> và khoảng cách trục <span class="math-inline">$Y$</span> giữa 2 bánh trong file URDF.<br>2. Luôn truyền <code>use_sim_time:=True</code> cho mọi node chạy cùng simulator.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Robot trong Nav2 không chịu đi qua khe cửa mặc dù khe cửa rộng hơn thân xe</strong></td>
+<td style="text-align: left;">Bán kính <code>robot_radius</code> hoặc <code>inflation_radius</code> trong <code>nav2_params.yaml</code> đặt quá lớn làm 2 vùng cấm hai bên cửa chập làm một.</td>
+<td style="text-align: left;">Giảm <code>robot_radius</code> về sát kích thước thật của xe và tăng <code>cost_scaling_factor</code> (ví dụ từ <code>3.0</code> lên <code>5.0</code> hoặc <code>8.0</code>) để thu hẹp vùng đệm.</td>
+</tr>
+</tbody>
+</table>
+      </article>
+      <nav class="doc-pager"><a class="pager-card pager-prev" href="Week8/BAI_GIANG.html"><span class="pager-label">← Bài trước</span><span class="pager-title">Week 8: SAC, IRL, RND, AlphaZero, RLHF &amp; DPO</span></a><a class="pager-card pager-next" href="Sim2Real_Robotics/README.html"><span class="pager-label">Bài tiếp theo →</span><span class="pager-title">Tổng Quan Kiến Trúc 7 Tầng Sim-to-Real</span></a></nav>
+    </main>
+
+    <aside class="sidebar-right">
+      <div class="toc-header">📑 Mục lục trên trang này</div>
+      <nav class="toc-nav">
+        <a class="toc-link toc-l2" href="#muc-luc">MỤC LỤC</a>
+<a class="toc-link toc-l2" href="#0-kien-truc-phan-tang-7-lop-sim-to-real-bo-code-minh-hoa-thuc-thi-sim2real_robotics">0. Kiến trúc Phân tầng 7 Lớp Sim-to-Real &amp; Bộ Code Minh họa Thực thi (Sim2Real_Robotics/)</a>
+<a class="toc-link toc-l2" href="#1-trinh-mo-phong-simulator-thuc-chat-lam-uoc-nhung-gi">1. Trình mô phỏng (Simulator) thực chất làm được những gì?</a>
+<a class="toc-link toc-l3" href="#chi-tiet-6-kha-nang-cua-trinh-mo-phong">Chi tiết 6 khả năng của Trình mô phỏng:</a>
+<a class="toc-link toc-l2" href="#2-giai-ma-cau-hinh-vat-ly-tung-dong-cau-hinh-khop-voi-inh-luat-vat-ly-ra-sao">2. Giải mã Cấu hình Vật lý: Từng dòng Cấu hình khớp với Định luật Vật lý ra sao?</a>
+<a class="toc-link toc-l3" href="#21-khoi-luong-ma-tran-quan-tinh-inertial-inlinemathplaceholder51end-inh-luat-newton-euler">2.1. Khối lượng &amp; Ma trận Quán tính (&lt;inertial&gt;) <span class="math-inline">$\leftrightarrow$</span> Định luật Newton – Euler</a>
+<a class="toc-link toc-l3" href="#22-khop-noi-ong-co-joint-dynamics-limit-inlinemathplaceholder76end-ong-luc-hoc-co-ien">2.2. Khớp nối &amp; Động cơ (&lt;joint&gt;, &lt;dynamics&gt;, &lt;limit&gt;) <span class="math-inline">$\leftrightarrow$</span> Động lực học Cơ điện</a>
+<a class="toc-link toc-l3" href="#23-va-cham-ma-sat-be-mat-collision-surface-inlinemathplaceholder89end-co-hoc-tiep-xuc">2.3. Va chạm &amp; Ma sát bề mặt (&lt;collision&gt;, &lt;surface&gt;) <span class="math-inline">$\leftrightarrow$</span> Cơ học Tiếp xúc</a>
+<a class="toc-link toc-l3" href="#24-thoi-gian-tich-phan-max_step_size-real_time_factor-inlinemathplaceholder98end-giai-tich-so">2.4. Thời gian tích phân (max_step_size, real_time_factor) <span class="math-inline">$\leftrightarrow$</span> Giải tích Số</a>
+<a class="toc-link toc-l2" href="#3-lo-trinh-hoc-thuc-hanh-simulation-theo-khoa-robotics_essentials_ros2">3. Lộ trình Học &amp; Thực hành Simulation (Theo khoá robotics_essentials_ros2)</a>
+<a class="toc-link toc-l3" href="#giai-oan-0-cau-hinh-ha-tang-docker-x11-gui-gpu">Giai đoạn 0: Cấu hình Hạ tầng Docker, X11 GUI &amp; GPU</a>
+<a class="toc-link toc-l3" href="#giai-oan-1-khoi-chay-gazebo-he-truc-toa-o-tf-ros-2-topics">Giai đoạn 1: Khởi chạy Gazebo, Hệ trục tọa độ TF &amp; ROS 2 Topics</a>
+<a class="toc-link toc-l3" href="#giai-oan-2-slam-lap-ban-o-ieu-huong-tu-hanh-nav2">Giai đoạn 2: SLAM (Lập bản đồ) &amp; Điều hướng tự hành Nav2</a>
+<a class="toc-link toc-l3" href="#giai-oan-3-4-ong-hoc-robot-vi-sai-tu-tinh-odometry-tu-encoder">Giai đoạn 3 &amp; 4: Động học Robot Vi sai &amp; Tự tính Odometry từ Encoder</a>
+<a class="toc-link toc-l3" href="#giai-oan-5-cau-hinh-ban-o-chi-phi-costmap-thuat-toan-tim-uong-path-planning">Giai đoạn 5: Cấu hình Bản đồ Chi phí (Costmap) &amp; Thuật toán Tìm đường (Path Planning)</a>
+<a class="toc-link toc-l2" href="#4-cau-hinh-mo-phong-chuyen-dung-cho-huan-luyen-rl-mujoco-isaac-lab">4. Cấu hình Mô phỏng Chuyên dụng cho Huấn luyện RL (MuJoCo &amp; Isaac Lab)</a>
+<a class="toc-link toc-l3" href="#41-tan-so-vat-ly-vs-tan-so-chinh-sach-sim_dt-decimation">4.1. Tần số Vật lý vs. Tần số Chính sách (sim_dt &amp; decimation)</a>
+<a class="toc-link toc-l3" href="#42-bo-ieu-khien-khop-noi-tai-stiffness-inlinemathplaceholder141end-damping-inlinemathplaceholder142end">4.2. Bộ điều khiển Khớp Nội tại (stiffness <span class="math-inline">$K_p$</span> &amp; damping <span class="math-inline">$K_d$</span>)</a>
+<a class="toc-link toc-l3" href="#43-cau-hinh-domain-randomization-chia-khoa-e-mang-tu-sim-ra-robot-that">4.3. Cấu hình Domain Randomization (Chìa khóa để mang từ Sim ra Robot thật)</a>
+<a class="toc-link toc-l2" href="#5-bang-chan-oan-loi-vat-ly-thuong-gap-khi-cau-hinh-simulation">5. Bảng Chẩn đoán Lỗi Vật lý Thường gặp khi Cấu hình Simulation</a>
+      </nav>
+    </aside>
+  </div>
+
+  <script>
+    // Khởi tạo giao diện Sáng/Tối từ localStorage
+    (function() {
+      const saved = localStorage.getItem('rl_docs_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('rl_docs_theme', next);
+    }
+
+    function filterSidebar(query) {
+      const q = query.trim().toLowerCase();
+      const items = document.querySelectorAll('#sidebar-nav .nav-item');
+      items.forEach(item => {
+        const title = item.getAttribute('data-title') || '';
+        item.style.display = (!q || title.includes(q)) ? 'flex' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.hljs) {
+        hljs.highlightAll();
+      }
+    });
+  </script>
+</body>
+</html>

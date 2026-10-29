@@ -3,7 +3,7 @@
 > Mục tiêu: hiểu **vì sao** policy gradient thô không ổn định, chứng minh toán học **Định lý chênh lệch hiệu năng (Performance Difference Lemma)**, cận dưới cải thiện đơn điệu của TRPO, cơ chế kẹp (clip) của PPO, chứng minh công thức chuỗi **GAE**, và đọc hiểu từng dòng [`PPO.py`](PPO.py) (BipedalWalker, hành động liên tục).  
 > 📖 **Quy ước ký hiệu toàn khoá**: Đối chiếu toàn bộ ký hiệu giải tích, không gian và toán tử tại [BẢNG KÝ HIỆU TOÁN HỌC CHUẨN TẮC](../BANG_KY_HIEU_TOAN_HOC.md).
 
-Tài liệu đi kèm: [`README.md`](README.md) (cách cài đặt, kết quả).
+Mã nguồn thực hành đi kèm: [`PPO.py`](PPO.py) và minh họa kết quả trong [`imgs/`](imgs/).
 
 **Lộ trình**: §1 Vì sao PG thô mất ổn định → §2 Bổ đề chênh lệch hiệu năng & Chứng minh → §3 Hàm thay thế (Surrogate) và Cận dưới TRPO → §4 TRPO & Natural Gradient → §5 PPO-Clip & Phân tích giải tích → §6 GAE & Chứng minh toán học → §7 Policy Gaussian → §8 Thuật toán PPO đầy đủ → §9 Đọc code & Phân tích tham số → §10 Lỗi và so sánh với chuẩn → §11 Ví dụ số → §12 Bài tập.
 

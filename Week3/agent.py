@@ -25,7 +25,7 @@ class DQNAgent():
 	ts_frame = 0
 	ts = time.time()
 
-	Memory = namedtuple('Memory', ['obs', 'action', 'new_obs', 'reward', 'done'], verbose=False, rename=False)
+	Memory = namedtuple('Memory', ['obs', 'action', 'new_obs', 'reward', 'done'], rename=False)
 
 	def __init__(self, env, device, hyperparameters, summary_writer=None):
 		'''
@@ -124,8 +124,9 @@ class DQNAgent():
 		'''
 		Print information about the agent
 		'''
-		fps = (self.n_iter-self.ts_frame)/(time.time()-self.ts)
-		print('%d %d rew:%d mean_rew:%.2f eps:%.2f, fps:%d, loss:%.4f' % (self.n_iter, self.n_games, self.total_reward, np.mean(self.rewards[-40:]), self.epsilon, fps, np.mean(self.accumulated_loss)))
+		fps = (self.n_iter-self.ts_frame)/max(1e-6, (time.time()-self.ts))
+		mean_loss = float(np.mean(self.accumulated_loss)) if len(self.accumulated_loss) > 0 else 0.0
+		print('%d %d rew:%d mean_rew:%.2f eps:%.2f, fps:%d, loss:%.4f' % (self.n_iter, self.n_games, self.total_reward, np.mean(self.rewards[-40:]), self.epsilon, fps, mean_loss))
 
 		self.ts_frame = self.n_iter
 		self.ts = time.time()
@@ -135,4 +136,4 @@ class DQNAgent():
 			self.summary_writer.add_scalar('mean_reward', np.mean(self.rewards[-40:]), self.n_games)
 			self.summary_writer.add_scalar('10_mean_reward', np.mean(self.rewards[-10:]), self.n_games)
 			self.summary_writer.add_scalar('esilon', self.epsilon, self.n_games)
-			self.summary_writer.add_scalar('loss', np.mean(self.accumulated_loss), self.n_games)
+			self.summary_writer.add_scalar('loss', mean_loss, self.n_games)

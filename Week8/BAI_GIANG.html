@@ -1,0 +1,2840 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Week 8: SAC, IRL, RND, AlphaZero, RLHF &amp; DPO — Deep RL & Sim-to-Real Robotics</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- MathJax 3 for full LaTeX support (\boxed, \cancel, \underbrace, aligned) -->
+  <script>
+    window.MathJax = {
+      loader: { load: ['[tex]/cancel', '[tex]/ams', '[tex]/boldsymbol'] },
+      tex: {
+        packages: { '[+]': ['cancel', 'ams', 'boldsymbol'] },
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    :root[data-theme="dark"] {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --bg-card: #131921;
+      --text-primary: #e6edf3;
+      --text-secondary: #9198a1;
+      --text-muted: #6e7681;
+      --border-color: #30363d;
+      --accent-primary: #58a6ff;
+      --accent-secondary: #3fb950;
+      --accent-purple: #d2a8ff;
+      --accent-amber: #f0883e;
+      --callout-sub-bg: rgba(210, 168, 255, 0.08);
+      --callout-sub-border: #a371f7;
+      --callout-logic-bg: rgba(88, 166, 255, 0.08);
+      --callout-logic-border: #58a6ff;
+      --callout-sample-bg: rgba(63, 185, 80, 0.08);
+      --callout-sample-border: #3fb950;
+      --table-row-alt: rgba(255, 255, 255, 0.025);
+      --code-bg: #090d13;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    :root[data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --bg-tertiary: #eaeef2;
+      --bg-card: #f8fafc;
+      --text-primary: #1f2328;
+      --text-secondary: #57606a;
+      --text-muted: #6e7781;
+      --border-color: #d0d7de;
+      --accent-primary: #0969da;
+      --accent-secondary: #1a7f37;
+      --accent-purple: #8250df;
+      --accent-amber: #bc4c00;
+      --callout-sub-bg: #fbefff;
+      --callout-sub-border: #8250df;
+      --callout-logic-bg: #ddf4ff;
+      --callout-logic-border: #0969da;
+      --callout-sample-bg: #dafbe1;
+      --callout-sample-border: #1a7f37;
+      --table-row-alt: #f6f8fa;
+      --code-bg: #1e242c;
+      --shadow: 0 6px 18px rgba(31, 35, 40, 0.08);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.72;
+      font-size: 16px;
+    }
+    /* Top Navbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 60px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .brand-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .brand-pill {
+      background: linear-gradient(135deg, #238636, #1f6feb);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .btn-action {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    /* 3-Column Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr) 260px;
+      max-width: 1720px;
+      margin: 0 auto;
+    }
+    /* Left Sidebar */
+    .sidebar-left {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      padding: 1rem 0.85rem 2rem;
+    }
+    .search-box {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 0.86rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    .search-box:focus {
+      border-color: var(--accent-primary);
+    }
+    .nav-group {
+      margin-bottom: 1.15rem;
+    }
+    .nav-group-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      padding: 0.35rem 0.5rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      padding: 0.46rem 0.6rem;
+      margin: 2px 0;
+      border-radius: 7px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+    }
+    .nav-item.active {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-primary);
+      font-weight: 700;
+      border-left: 3px solid var(--accent-primary);
+    }
+    .nav-badge {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.42rem;
+      border-radius: 99px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* Main Content Area */
+    .main-content {
+      min-width: 0;
+      padding: 2.2rem 3rem 4rem;
+      max-width: 1020px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .doc-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+    .doc-meta-bar code {
+      background: var(--bg-tertiary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 5px;
+      color: var(--accent-primary);
+    }
+    /* Typography */
+    .markdown-body h1 {
+      font-size: 2.05rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-top: 0.5rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .markdown-body h2 {
+      font-size: 1.48rem;
+      font-weight: 700;
+      margin-top: 2.4rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--accent-primary);
+    }
+    .markdown-body h3 {
+      font-size: 1.18rem;
+      font-weight: 700;
+      margin-top: 1.75rem;
+      margin-bottom: 0.65rem;
+    }
+    .markdown-body h4 {
+      font-size: 1.02rem;
+      font-weight: 600;
+      margin-top: 1.35rem;
+      margin-bottom: 0.45rem;
+      color: var(--accent-purple);
+    }
+    .markdown-body .headerlink {
+      opacity: 0;
+      margin-left: 0.4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85em;
+      transition: opacity 0.15s;
+    }
+    .markdown-body h1:hover .headerlink,
+    .markdown-body h2:hover .headerlink,
+    .markdown-body h3:hover .headerlink,
+    .markdown-body h4:hover .headerlink {
+      opacity: 1;
+    }
+    .markdown-body a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .markdown-body a:hover {
+      text-decoration: underline;
+    }
+    .markdown-body hr {
+      border: 0;
+      border-top: 1px solid var(--border-color);
+      margin: 2rem 0;
+    }
+    .markdown-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin: 0.75rem 0;
+    }
+    /* Code & Pre */
+    .markdown-body code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.87em;
+      background: var(--bg-tertiary);
+      padding: 0.16em 0.42em;
+      border-radius: 5px;
+    }
+    .markdown-body pre {
+      background: var(--code-bg);
+      color: #e6edf3;
+      padding: 1.1rem 1.25rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+      margin: 1.15rem 0;
+    }
+    .markdown-body pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    /* Tables */
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.35rem 0;
+      font-size: 0.92rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      display: block;
+      overflow-x: auto;
+    }
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid var(--border-color);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .markdown-body th {
+      background: var(--bg-secondary);
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    .markdown-body tr:nth-child(even) {
+      background: var(--table-row-alt);
+    }
+    /* Math Blocks */
+    .math-block {
+      overflow-x: auto;
+      padding: 0.65rem 0.9rem;
+      margin: 0.9rem 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    /* Callout Blockquotes */
+    .callout {
+      margin: 1.35rem 0;
+      padding: 1rem 1.25rem;
+      border-left: 4px solid var(--accent-primary);
+      background: var(--bg-secondary);
+      border-radius: 0 10px 10px 0;
+    }
+    .callout > :first-child {
+      margin-top: 0;
+    }
+    .callout > :last-child {
+      margin-bottom: 0;
+    }
+    .callout-substitution {
+      background: var(--callout-sub-bg);
+      border-left: 4px solid var(--callout-sub-border);
+      box-shadow: 0 4px 14px rgba(163, 113, 247, 0.08);
+    }
+    .callout-logic {
+      background: var(--callout-logic-bg);
+      border-left: 4px solid var(--callout-logic-border);
+    }
+    .callout-sample {
+      background: var(--callout-sample-bg);
+      border-left: 4px solid var(--callout-sample-border);
+    }
+    .callout-warning {
+      background: rgba(240, 136, 62, 0.1);
+      border-left: 4px solid var(--accent-amber);
+    }
+    /* Right TOC Sidebar */
+    .sidebar-right {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 1.25rem 1rem 2rem;
+      border-left: 1px solid var(--border-color);
+      font-size: 0.82rem;
+    }
+    .toc-header {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+      font-size: 0.75rem;
+    }
+    .toc-link {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 0.28rem 0.45rem;
+      border-radius: 5px;
+      line-height: 1.4;
+      margin-bottom: 2px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .toc-link:hover {
+      color: var(--accent-primary);
+      background: var(--bg-secondary);
+    }
+    .toc-l3 {
+      padding-left: 1.15rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    /* Pager */
+    .doc-pager {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .pager-card {
+      display: flex;
+      flex-direction: column;
+      padding: 0.9rem 1.1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-secondary);
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .pager-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+    .pager-next {
+      text-align: right;
+    }
+    .pager-label {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .pager-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    /* Responsive */
+    @media (max-width: 1240px) {
+      .layout {
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+      .sidebar-right {
+        display: none;
+      }
+    }
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar-left {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .main-content {
+        padding: 1.5rem 1.15rem 3rem;
+      }
+      .doc-pager {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand-link" href="../index.html">
+        <span>🚀 Deep RL & Sim-to-Real Portal</span>
+        <span class="brand-pill">LOCAL DOCS</span>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn-action" href="#interactive-simulator-lab" title="Mở phòng thí nghiệm mô phỏng tương tác">🎛️ Mô phỏng &amp; Tham số</a>
+      <a class="btn-action" href="BAI_GIANG.md" title="Xem file Markdown gốc">📄 File .md gốc</a>
+      <button class="btn-action" id="theme-toggle" onclick="toggleTheme()">🌗 Đổi giao diện Sáng/Tối</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar-left">
+      <input
+        type="text"
+        id="doc-search"
+        class="search-box"
+        placeholder="🔍 Tìm nhanh bài giảng, chủ đề..."
+        oninput="filterSidebar(this.value)"
+      />
+      <nav id="sidebar-nav">
+        <div class="nav-group"><div class="nav-group-title">🏠 Tổng Quan Hệ Thống</div>
+<a class="nav-item" href="../index.html" data-title="trang chủ &amp; bản đồ toàn khóa"><span class="nav-item-text">Trang Chủ &amp; Bản Đồ Toàn Khóa</span><span class="nav-badge">Portal</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">📐 Toán Học &amp; Cẩm Nang Tham Số</div>
+<a class="nav-item" href="../BANG_KY_HIEU_TOAN_HOC.html" data-title="1. bảng ký hiệu toán học chuẩn tắc"><span class="nav-item-text">1. Bảng Ký Hiệu Toán Học Chuẩn Tắc</span><span class="nav-badge">Ký hiệu</span></a>
+<a class="nav-item" href="../TONG_HOP_TOAN_HOC_XSTK_DSTT_RL.html" data-title="2. tổng hợp xstk, đstt &amp; các bước thế hàm"><span class="nav-item-text">2. Tổng Hợp XSTK, ĐSTT &amp; Các Bước Thế Hàm</span><span class="nav-badge">Toán cốt lõi</span></a>
+<a class="nav-item" href="../CAM_NANG_THAM_SO_RL.html" data-title="3. cẩm nang toàn diện về tham số rl"><span class="nav-item-text">3. Cẩm Nang Toàn Diện Về Tham Số RL</span><span class="nav-badge">Tham số</span></a>
+<a class="nav-item" href="../KIEN_THUC_CAN_HOC.html" data-title="4. lộ trình kiến thức cần học"><span class="nav-item-text">4. Lộ Trình Kiến Thức Cần Học</span><span class="nav-badge">Lộ trình</span></a>
+<a class="nav-item" href="../KIEN_THUC_CHI_TIET_TUNG_TUAN.html" data-title="5. tổng hợp kiến thức &amp; đối chiếu code 8 tuần"><span class="nav-item-text">5. Tổng Hợp Kiến Thức &amp; Đối Chiếu Code 8 Tuần</span><span class="nav-badge">Tổng hợp</span></a>
+<a class="nav-item" href="../HUONG_DAN_MOI_TRUONG_VA_CHAY_CODE.html" data-title="6. hướng dẫn môi trường (.venv), chạy code &amp; ros 2"><span class="nav-item-text">6. Hướng Dẫn Môi Trường (.venv), Chạy Code &amp; ROS 2</span><span class="nav-badge">Môi trường</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🎓 Bài Giảng Chuyên Sâu 8 Tuần</div>
+<a class="nav-item" href="../Week1/BAI_GIANG.html" data-title="week 1: giới thiệu rl, bandit (ucb1) &amp; pong"><span class="nav-item-text">Week 1: Giới Thiệu RL, Bandit (UCB1) &amp; Pong</span><span class="nav-badge">Tuần 1</span></a>
+<a class="nav-item" href="../Week2/BAI_GIANG.html" data-title="week 2: mdp, bellman, co banach &amp; q-learning"><span class="nav-item-text">Week 2: MDP, Bellman, Co Banach &amp; Q-Learning</span><span class="nav-badge">Tuần 2</span></a>
+<a class="nav-item" href="../Week3/BAI_GIANG.html" data-title="week 3: deep q-networks (dqn, double, dueling)"><span class="nav-item-text">Week 3: Deep Q-Networks (DQN, Double, Dueling)</span><span class="nav-badge">Tuần 3</span></a>
+<a class="nav-item" href="../Week4/BAI_GIANG.html" data-title="week 4: policy gradient, reinforce &amp; a2c"><span class="nav-item-text">Week 4: Policy Gradient, REINFORCE &amp; A2C</span><span class="nav-badge">Tuần 4</span></a>
+<a class="nav-item" href="../Week5/BAI_GIANG.html" data-title="week 5: trpo, ppo-clip &amp; chuỗi gae"><span class="nav-item-text">Week 5: TRPO, PPO-Clip &amp; Chuỗi GAE</span><span class="nav-badge">Tuần 5</span></a>
+<a class="nav-item" href="../Week6/BAI_GIANG.html" data-title="week 6: evolution strategies (es) &amp; ga"><span class="nav-item-text">Week 6: Evolution Strategies (ES) &amp; GA</span><span class="nav-badge">Tuần 6</span></a>
+<a class="nav-item" href="../Week7/BAI_GIANG.html" data-title="week 7: model-based rl, tikhonov &amp; mpc"><span class="nav-item-text">Week 7: Model-Based RL, Tikhonov &amp; MPC</span><span class="nav-badge">Tuần 7</span></a>
+<a class="nav-item active" href="BAI_GIANG.html" data-title="week 8: sac, irl, rnd, alphazero, rlhf &amp; dpo"><span class="nav-item-text">Week 8: SAC, IRL, RND, AlphaZero, RLHF &amp; DPO</span><span class="nav-badge">Tuần 8</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🤖 Simulation &amp; Sim-to-Real Robotics</div>
+<a class="nav-item" href="../HUONG_DAN_SIMULATION_VA_VAT_LY_ROBOT.html" data-title="cẩm nang simulation &amp; cấu hình vật lý robot"><span class="nav-item-text">Cẩm Nang Simulation &amp; Cấu Hình Vật Lý Robot</span><span class="nav-badge">Simulation</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/README.html" data-title="tổng quan kiến trúc 7 tầng sim-to-real"><span class="nav-item-text">Tổng Quan Kiến Trúc 7 Tầng Sim-to-Real</span><span class="nav-badge">7 Tầng</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part1_Physical_Modeling_URDF_MJCF.html" data-title="phần 1 (tầng 1): mô tả cơ học urdf/mjcf"><span class="nav-item-text">Phần 1 (Tầng 1): Mô Tả Cơ Học URDF/MJCF</span><span class="nav-badge">Tầng 1</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part2_Physics_Engine_And_Sensors.html" data-title="phần 2 (tầng 2): bộ giải động lực học &amp; cảm biến"><span class="nav-item-text">Phần 2 (Tầng 2): Bộ Giải Động Lực Học &amp; Cảm Biến</span><span class="nav-badge">Tầng 2</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part3_RL_Training_Environment_And_Rewards.html" data-title="phần 3 (tầng 3): môi trường rl &amp; domain randomization"><span class="nav-item-text">Phần 3 (Tầng 3): Môi Trường RL &amp; Domain Randomization</span><span class="nav-badge">Tầng 3</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part4_Code_Only_Physical_Verification.html" data-title="phần 4 (tầng 4): 7 bài kiểm định vật lý bằng code"><span class="nav-item-text">Phần 4 (Tầng 4): 7 Bài Kiểm Định Vật Lý Bằng Code</span><span class="nav-badge">Tầng 4</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part5_ROS2_Gazebo_And_Real_Robot_Bridge.html" data-title="phần 5 (tầng 5–7): cầu nối ros 2 &amp; robot thật"><span class="nav-item-text">Phần 5 (Tầng 5–7): Cầu Nối ROS 2 &amp; Robot Thật</span><span class="nav-badge">Tầng 5-7</span></a>
+</div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="doc-meta-bar">
+        <div>📚 <strong>Tài liệu:</strong> Week 8: SAC, IRL, RND, AlphaZero, RLHF &amp; DPO</div>
+        <div>📂 Đường dẫn gốc: <code>Week8/BAI_GIANG.md</code></div>
+      </div>
+      
+<section class="sim-lab-wrapper" id="interactive-simulator-lab">
+  <div class="sim-lab-header">
+    <div class="sim-lab-title-row">
+      <div>
+        <span class="sim-lab-badge">🎛️ INTERACTIVE SIMULATION LAB</span>
+        <h2 class="sim-lab-heading">Phòng Thí Nghiệm Mô Phỏng &amp; Tinh Chỉnh Tham Số Trực Quan</h2>
+        <p class="sim-lab-subtitle">
+          Kéo các thanh trượt (Sliders) bên dưới để thay đổi tham số toán học — đồ thị, quỹ đạo và phương trình sẽ phản hồi ngay lập tức theo thời gian thực.
+        </p>
+      </div>
+      <button class="btn-action" onclick="toggleSimLabCollapse()" id="sim-collapse-btn">Thu gọn / Mở rộng Lab</button>
+    </div>
+
+    <div class="sim-tabs" role="tablist">
+      <button class="sim-tab" data-tab="math_eigen" onclick="switchSimTab('math_eigen')">📐 Toán: Σ &amp; Trị riêng</button>
+      <button class="sim-tab" data-tab="bandit_ucb" onclick="switchSimTab('bandit_ucb')">🎰 W1: Bandit &amp; UCB1</button>
+      <button class="sim-tab" data-tab="mdp_bellman" onclick="switchSimTab('mdp_bellman')">🧭 W2: Bellman &amp; Q-Grid</button>
+      <button class="sim-tab" data-tab="dqn_bias" onclick="switchSimTab('dqn_bias')">🎯 W3: Double DQN Bias</button>
+      <button class="sim-tab" data-tab="pg_variance" onclick="switchSimTab('pg_variance')">📉 W4: PG Baseline &amp; Entropy</button>
+      <button class="sim-tab" data-tab="ppo_gae" onclick="switchSimTab('ppo_gae')">🛡️ W5: PPO Clip &amp; GAE</button>
+      <button class="sim-tab" data-tab="es_mirror" onclick="switchSimTab('es_mirror')">🧬 W6: ES Mirrored ±ε</button>
+      <button class="sim-tab" data-tab="mbrl_mpc" onclick="switchSimTab('mbrl_mpc')">🔮 W7: Model Error &amp; MPC</button>
+      <button class="sim-tab" data-tab="sac_dpo" onclick="switchSimTab('sac_dpo')">🔥 W8: SAC α &amp; DPO β</button>
+      <button class="sim-tab" data-tab="sim2real_physics" onclick="switchSimTab('sim2real_physics')">🤖 Sim2Real: Euler vs RK4</button>
+    </div>
+  </div>
+
+  <div class="sim-lab-body" id="sim-lab-body">
+    <!-- ==================== 1. MATH: COVARIANCE & EIGEN ==================== -->
+    <div class="sim-panel" id="panel-math_eigen">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📐 Đám Mây Mẫu 2D, Ma trận Σ &amp; Trị Riêng (λ₁, λ₂)</h3>
+          <p class="sim-desc">Quan sát cách độ lệch chuẩn $\sigma_x, \sigma_y$ và góc xoay tương quan $\theta$ biến đổi đám mây mẫu và 2 trục Vector riêng trực giao $\mathbf{v}_1, \mathbf{v}_2$.</p>
+          <label class="sim-ctrl">
+            <span>Độ trải trục chính $\sigma_1$: <strong id="val-math-s1">1.80</strong></span>
+            <input type="range" id="sl-math-s1" min="0.3" max="2.5" step="0.05" value="1.80" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ trải trục phụ $\sigma_2$: <strong id="val-math-s2">0.55</strong></span>
+            <input type="range" id="sl-math-s2" min="0.15" max="2.0" step="0.05" value="0.55" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Góc xoay tương quan $\theta$: <strong id="val-math-ang">35°</strong></span>
+            <input type="range" id="sl-math-ang" min="-85" max="85" step="1" value="35" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Biên độ mẫu nhiễu dị biệt (Outlier $e_N$): <strong id="val-math-out">0.0</strong></span>
+            <input type="range" id="sl-math-out" min="0" max="15" step="0.5" value="0" oninput="updateMathLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-math"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-math" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. WEEK 1: BANDIT & UCB1 ==================== -->
+    <div class="sim-panel" id="panel-bandit_ucb">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎰 Multi-Armed Bandit: UCB1 vs. ε-Greedy</h3>
+          <p class="sim-desc">Công thức UCB1: $a_t = \arg\max_a \big[Q_t(a) + c\sqrt{\ln t / N_t(a)}\big]$. Kéo $c$ để xem bán kính tin cậy màu cam thúc đẩy khám phá có định hướng.</p>
+          <label class="sim-ctrl">
+            <span>Hệ số tự tin UCB $c$: <strong id="val-w1-c">1.41</strong></span>
+            <input type="range" id="sl-w1-c" min="0.0" max="4.0" step="0.05" value="1.41" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Tỉ lệ khám phá $\epsilon$ (cho $\epsilon$-greedy): <strong id="val-w1-eps">0.15</strong></span>
+            <input type="range" id="sl-w1-eps" min="0.0" max="0.6" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Bước học cập nhật $\alpha$: <strong id="val-w1-alpha">0.15</strong></span>
+            <input type="range" id="sl-w1-alpha" min="0.02" max="0.8" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW1Bandit(1)">+1 Bước kéo</button>
+            <button class="btn-sim" onclick="stepW1Bandit(25)">+25 Bước</button>
+            <button class="btn-sim" onclick="stepW1Bandit(200)">+200 Bước</button>
+            <button class="btn-sim-sec" onclick="resetW1Bandit()">🔄 Reset</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w1"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w1" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. WEEK 2: MDP BELLMAN & Q-LEARNING ==================== -->
+    <div class="sim-panel" id="panel-mdp_bellman">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧭 FrozenLake 4×4: Toán tử Co Bellman &amp; Hệ số $\gamma$</h3>
+          <p class="sim-desc">Phương trình Bellman tối ưu: $V^*(s) = \max_a \sum_{s'} P(s'|s,a)[r + \gamma V^*(s')]$. Kéo $\gamma$ và xác suất trượt băng để xem giá trị lan truyền từ Đích (ô 15, +1) và né Hố băng (H, -1)!</p>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w2-gamma">0.92</strong></span>
+            <input type="range" id="sl-w2-gamma" min="0.10" max="0.99" step="0.01" value="0.92" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Xác suất trượt chân sang bên (`slip_prob`): <strong id="val-w2-slip">0.20</strong></span>
+            <input type="range" id="sl-w2-slip" min="0.0" max="0.60" step="0.05" value="0.20" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số vòng lặp Value Iteration $k$: <strong id="val-w2-iter">15</strong></span>
+            <input type="range" id="sl-w2-iter" min="1" max="40" step="1" value="15" oninput="updateW2Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w2"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w2" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. WEEK 3: DOUBLE DQN BIAS ==================== -->
+    <div class="sim-panel" id="panel-dqn_bias">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎯 Thiên Lệch Cực Đại Hóa (Maximization Bias) &amp; Double DQN</h3>
+          <p class="sim-desc">Mọi hành động đều có giá trị thật $Q^*(s,a) = 0$, nhưng ước lượng mạng bị nhiễu $\mathcal{N}(0, \sigma^2)$. DQN thường lấy $\max_a Q(s,a;\theta^-)$ nên bị thổi phồng dương, trong khi Double DQN tách chọn &amp; định giá nên khử sạch bias!</p>
+          <label class="sim-ctrl">
+            <span>Độ lệch chuẩn nhiễu ước lượng $\sigma$: <strong id="val-w3-sigma">1.20</strong></span>
+            <input type="range" id="sl-w3-sigma" min="0.1" max="3.0" step="0.1" value="1.20" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số lượng hành động $|\mathcal{A}|$: <strong id="val-w3-nact">8</strong></span>
+            <input type="range" id="sl-w3-nact" min="2" max="30" step="1" value="8" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$ (tích lũy qua $1/(1-\gamma)$): <strong id="val-w3-gamma">0.90</strong></span>
+            <input type="range" id="sl-w3-gamma" min="0.50" max="0.98" step="0.02" value="0.90" oninput="updateW3Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="updateW3Lab()">🎲 Lấy mẫu Monte Carlo mới (500 lần)</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w3"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w3" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ==================== -->
+    <div class="sim-panel" id="panel-pg_variance">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📉 Policy Gradient: Baseline $b(s)$ &amp; Entropy Bonus $\beta\mathcal{H}(\pi)$</h3>
+          <p class="sim-desc">Quan sát cách trừ Baseline $b(s) = V(s)$ cắt giảm phương sai mẫu của đạo hàm $\nabla_\theta J$, và cách hệ số Entropy $\beta$ chống sụp đổ chính sách sớm (Premature Collapse).</p>
+          <label class="sim-ctrl">
+            <span>Mức thưởng nền trung bình (Reward Offset): <strong id="val-w4-roff">50</strong></span>
+            <input type="range" id="sl-w4-roff" min="0" max="100" step="5" value="50" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chuẩn hóa Baseline ($0 = \text{Tắt}, 1 = V(s)$): <strong id="val-w4-base">1.00</strong></span>
+            <input type="range" id="sl-w4-base" min="0.0" max="1.0" step="0.05" value="1.00" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Trọng số Entropy Bonus $\beta$: <strong id="val-w4-ent">0.15</strong></span>
+            <input type="range" id="sl-w4-ent" min="0.01" max="1.50" step="0.02" value="0.15" oninput="updateW4Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w4"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w4" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 6. WEEK 5: PPO CLIP & GAE ==================== -->
+    <div class="sim-panel" id="panel-ppo_gae">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🛡️ PPO-Clip Objective &amp; Trọng Số Suy Giảm GAE($\gamma, \lambda$)</h3>
+          <p class="sim-desc">Trái: Hàm mục tiêu $L^{\text{CLIP}}(r_t) = \min\big(r_t \hat{A}_t, \text{clip}(r_t, 1-\epsilon, 1+\epsilon)\hat{A}_t\big)$. Phải: Trọng số $(\gamma\lambda)^l$ của sai số TD $\delta_{t+l}^V$ theo bước tương lai $l$.</p>
+          <label class="sim-ctrl">
+            <span>Ngưỡng kẹp PPO $\epsilon$ (`CLIP_EPS`): <strong id="val-w5-eps">0.20</strong></span>
+            <input type="range" id="sl-w5-eps" min="0.05" max="0.50" step="0.01" value="0.20" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Giá trị Lợi thế $\hat{A}_t$ (Dương = Tốt, Âm = Xấu): <strong id="val-w5-adv">+1.50</strong></span>
+            <input type="range" id="sl-w5-adv" min="-2.5" max="2.5" step="0.1" value="1.5" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số GAE $\lambda$ (`GAE_LAMBDA`): <strong id="val-w5-lam">0.95</strong></span>
+            <input type="range" id="sl-w5-lam" min="0.0" max="1.0" step="0.01" value="0.95" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w5-gam">0.99</strong></span>
+            <input type="range" id="sl-w5-gam" min="0.80" max="0.999" step="0.005" value="0.99" oninput="updateW5Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w5"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w5" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 7. WEEK 6: EVOLUTION STRATEGIES ==================== -->
+    <div class="sim-panel" id="panel-es_mirror">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧬 Evolution Strategies: Làm Trơn Gaussian &amp; Mirrored Sampling $\pm\varepsilon$</h3>
+          <p class="sim-desc">Mũi tên xanh lá là Gradient thật $\nabla F(\theta)$, mũi tên cam là ước lượng ES $\hat{g}$. Bật/tắt lấy mẫu đối xứng $\pm\varepsilon$ để thấy cách nó khử sạch sai số bậc chẵn!</p>
+          <label class="sim-ctrl">
+            <span>Bán kính nhiễu thăm dò $\sigma$ (`STD_NOISE`): <strong id="val-w6-sigma">0.35</strong></span>
+            <input type="range" id="sl-w6-sigma" min="0.05" max="1.00" step="0.05" value="0.35" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số cặp cá thể quần thể $n$ (`BATCH_SIZE`): <strong id="val-w6-npop">12</strong></span>
+            <input type="range" id="sl-w6-npop" min="2" max="50" step="1" value="12" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Chế độ lấy mẫu (0 = 1 phía $+\varepsilon$, 1 = Đối xứng $\pm\varepsilon$): <strong id="val-w6-mirror">Đối xứng ±ε</strong></span>
+            <input type="range" id="sl-w6-mirror" min="0" max="1" step="1" value="1" oninput="updateW6Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW6ES()">🚀 Bước nhảy cập nhật θ ← θ + α·ĝ</button>
+            <button class="btn-sim-sec" onclick="resetW6ES()">🔄 Đặt lại vị trí θ</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w6"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w6" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 8. WEEK 7: MODEL-BASED RL & MPC ==================== -->
+    <div class="sim-panel" id="panel-mbrl_mpc">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔮 Model-Based RL: Sai Số Tích Lũy $\mathcal{O}(L_f^H \varepsilon)$ &amp; Làm Trơn Tikhonov</h3>
+          <p class="sim-desc">Đường xanh là quỹ đạo thật $s_{t+k}$, đường đứt nét đỏ là quỹ đạo tưởng tượng $\hat{s}_{t+k}$ khi cuộn mô hình $H$ bước. Khi hằng số Lipschitz $L_f &gt; 1$, sai số phình to theo cấp số nhân!</p>
+          <label class="sim-ctrl">
+            <span>Tầm nhìn quy hoạch $H$ (`HORIZON_LENGTH`): <strong id="val-w7-h">12</strong></span>
+            <input type="range" id="sl-w7-h" min="2" max="25" step="1" value="12" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ dốc Jacobian mô hình $L_f = \|\nabla_s \hat{f}\|$: <strong id="val-w7-lip">1.14</strong></span>
+            <input type="range" id="sl-w7-lip" min="0.85" max="1.30" step="0.01" value="1.14" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Nhiễu đầu vào Tikhonov $\sigma_\xi$ (phạt $\|J_f\|_F^2$): <strong id="val-w7-tik">0.00</strong></span>
+            <input type="range" id="sl-w7-tik" min="0.00" max="0.25" step="0.01" value="0.00" oninput="updateW7Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w7"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w7" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 9. WEEK 8: SAC MAXENT & RLHF/DPO ==================== -->
+    <div class="sim-panel" id="panel-sac_dpo">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔥 SAC Soft-Bellman Temperature $\alpha$ &amp; RLHF/DPO $\beta_{KL}$</h3>
+          <p class="sim-desc">Trái: Địa hình $Q(s,a)$ có 2 đỉnh cực đại và phân phối Boltzmann $\pi^*(a|s) \propto \exp(Q(s,a)/\alpha)$. Phải: Đường cong xác suất thắng Bradley-Terry / DPO theo $\beta_{KL}$.</p>
+          <label class="sim-ctrl">
+            <span>Nhiệt độ Entropy SAC $\alpha$: <strong id="val-w8-alpha">0.25</strong></span>
+            <input type="range" id="sl-w8-alpha" min="0.03" max="1.50" step="0.02" value="0.25" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ chênh lệch đỉnh phụ $\Delta Q_{\text{sub}}$: <strong id="val-w8-dq">0.85</strong></span>
+            <input type="range" id="sl-w8-dq" min="0.20" max="1.00" step="0.05" value="0.85" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số phạt KL trong RLHF/DPO $\beta_{KL}$: <strong id="val-w8-beta">0.50</strong></span>
+            <input type="range" id="sl-w8-beta" min="0.05" max="2.00" step="0.05" value="0.50" oninput="updateW8Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w8"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w8" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 10. SIM-TO-REAL ROBOTICS PHYSICS ==================== -->
+    <div class="sim-panel" id="panel-sim2real_physics">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🤖 Sim-to-Real: Tích Phân Euler vs. RK4, Độ Cứng $K_p$ &amp; Ma Sát $\mu$</h3>
+          <p class="sim-desc">Kiểm chứng tại sao chọn sai bước thời gian $\Delta t$ lớn kết hợp với bộ điều khiển khớp cứng $K_p$ làm Explicit Euler nổ tung (Numerical Explosion), trong khi RK4 giữ vững ổn định vật lý!</p>
+          <label class="sim-ctrl">
+            <span>Bước thời gian mô phỏng $\Delta t$ (`max_step_size`): <strong id="val-sim-dt">0.025 s</strong></span>
+            <input type="range" id="sl-sim-dt" min="0.005" max="0.065" step="0.002" value="0.025" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ cứng lò xo ảo PD $K_p$ (`stiffness`): <strong id="val-sim-kp">65</strong></span>
+            <input type="range" id="sl-sim-kp" min="15" max="140" step="5" value="65" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số cản nhớt $K_d$ (`damping`): <strong id="val-sim-kd">8.0</strong></span>
+            <input type="range" id="sl-sim-kd" min="1.0" max="25.0" step="0.5" value="8.0" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số ma sát mặt sàn $\mu$ (giới hạn lực bám $\mu mg$): <strong id="val-sim-mu">0.60</strong></span>
+            <input type="range" id="sl-sim-mu" min="0.10" max="1.20" step="0.05" value="0.60" oninput="updateSim2RealLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-sim2real"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-sim2real" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sim-lab-wrapper {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 14px;
+    margin: 1.2rem 0 2.2rem;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .sim-lab-header {
+    padding: 1.15rem 1.35rem 0.75rem;
+    background: linear-gradient(180deg, rgba(88, 166, 255, 0.10), transparent);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sim-lab-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .sim-lab-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    background: var(--accent-primary);
+    color: #fff;
+    margin-bottom: 0.35rem;
+  }
+  .sim-lab-heading {
+    margin: 0 0 0.25rem 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 1.28rem !important;
+    color: var(--text-primary) !important;
+  }
+  .sim-lab-subtitle {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+  }
+  .sim-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.95rem;
+  }
+  .sim-tab {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.38rem 0.68rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .sim-tab:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+  }
+  .sim-tab.active {
+    background: var(--accent-primary);
+    color: #ffffff;
+    border-color: var(--accent-primary);
+  }
+  .sim-lab-body {
+    padding: 1.25rem 1.35rem;
+  }
+  .sim-panel {
+    display: none;
+  }
+  .sim-panel.active {
+    display: block;
+  }
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+  }
+  .sim-controls h3 {
+    margin: 0 0 0.4rem 0 !important;
+    font-size: 1.02rem !important;
+    color: var(--accent-primary);
+  }
+  .sim-desc {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.85rem 0;
+    line-height: 1.5;
+  }
+  .sim-ctrl {
+    display: block;
+    margin-bottom: 0.65rem;
+    font-size: 0.82rem;
+  }
+  .sim-ctrl span {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+  }
+  .sim-ctrl input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+  }
+  .sim-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.65rem 0;
+  }
+  .btn-sim {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-sim:hover {
+    opacity: 0.9;
+  }
+  .btn-sim-sec {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-metrics {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.8rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.77rem;
+    line-height: 1.55;
+  }
+  .sim-canvas-box {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .sim-canvas-box canvas {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 6px;
+  }
+  @media (max-width: 980px) {
+    .sim-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  function getColors() {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      bg: isLight ? '#ffffff' : '#0d1117',
+      grid: isLight ? '#e5e7eb' : '#21262d',
+      text: isLight ? '#1f2328' : '#e6edf3',
+      muted: isLight ? '#57606a' : '#8b949e',
+      blue: isLight ? '#0969da' : '#58a6ff',
+      green: isLight ? '#1a7f37' : '#3fb950',
+      purple: isLight ? '#8250df' : '#d2a8ff',
+      orange: isLight ? '#bc4c00' : '#f0883e',
+      red: isLight ? '#cf222e' : '#ff7b72'
+    };
+  }
+
+  window.toggleSimLabCollapse = function() {
+    const body = document.getElementById('sim-lab-body');
+    body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+  };
+
+  window.switchSimTab = function(tabId) {
+    document.querySelectorAll('.sim-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.sim-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + tabId);
+    });
+    renderActiveTab(tabId);
+  };
+
+  function renderActiveTab(tabId) {
+    if (tabId === 'math_eigen') updateMathLab();
+    else if (tabId === 'bandit_ucb') updateW1Lab();
+    else if (tabId === 'mdp_bellman') updateW2Lab();
+    else if (tabId === 'dqn_bias') updateW3Lab();
+    else if (tabId === 'pg_variance') updateW4Lab();
+    else if (tabId === 'ppo_gae') updateW5Lab();
+    else if (tabId === 'es_mirror') updateW6Lab();
+    else if (tabId === 'mbrl_mpc') updateW7Lab();
+    else if (tabId === 'sac_dpo') updateW8Lab();
+    else if (tabId === 'sim2real_physics') updateSim2RealLab();
+  }
+
+  // ==================== 1. MATH LAB: 2D CLOUD & EIGEN ====================
+  const basePts = [];
+  for (let i = 0; i < 120; i++) {
+    // Box-Muller
+    const u1 = (i + 1) / 121.0;
+    const u2 = ((i * 73) % 119 + 1) / 120.0;
+    const r = Math.sqrt(-2.0 * Math.log(u1));
+    const th = 2.0 * Math.PI * u2;
+    basePts.push([r * Math.cos(th), r * Math.sin(th)]);
+  }
+
+  window.updateMathLab = function() {
+    const s1 = parseFloat(document.getElementById('sl-math-s1').value);
+    const s2 = parseFloat(document.getElementById('sl-math-s2').value);
+    const angDeg = parseFloat(document.getElementById('sl-math-ang').value);
+    const outVal = parseFloat(document.getElementById('sl-math-out').value);
+    document.getElementById('val-math-s1').textContent = s1.toFixed(2);
+    document.getElementById('val-math-s2').textContent = s2.toFixed(2);
+    document.getElementById('val-math-ang').textContent = angDeg + '°';
+    document.getElementById('val-math-out').textContent = outVal.toFixed(1);
+
+    const rad = angDeg * Math.PI / 180.0;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    const l1 = s1 * s1, l2 = s2 * s2;
+    const sigXX = l1 * c * c + l2 * s * s;
+    const sigYY = l1 * s * s + l2 * c * c;
+    const sigXY = (l1 - l2) * c * s;
+
+    // Norms with outlier
+    const baseErrs = [0.2, -0.3, 0.4, -0.1, 0.25];
+    const errs = baseErrs.concat([outVal]);
+    const l1Norm = errs.reduce((a, b) => a + Math.abs(b), 0) / errs.length;
+    const l2Norm = Math.sqrt(errs.reduce((a, b) => a + b * b, 0) / errs.length);
+    const lInfNorm = Math.max(...errs.map(Math.abs));
+
+    document.getElementById('metrics-math').innerHTML =
+      `Ma trận Hiệp phương sai Σ = [[${sigXX.toFixed(2)}, ${sigXY.toFixed(2)}], [${sigXY.toFixed(2)}, ${sigYY.toFixed(2)}]]<br>` +
+      `Trị riêng: <strong>λ₁ = ${l1.toFixed(2)}</strong>, <strong>λ₂ = ${l2.toFixed(2)}</strong> | Số điều kiện κ = ${(Math.max(l1,l2)/Math.min(l1,l2)).toFixed(1)}<br>` +
+      `Chuẩn sai số khi Outlier=${outVal.toFixed(1)}: L₁=${l1Norm.toFixed(2)} | L₂=${l2Norm.toFixed(2)} | L∞=${lInfNorm.toFixed(2)}`;
+
+    const cv = document.getElementById('cv-math');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 210, cy = 180, scale = 48;
+    // Grid
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, cy); ctx.lineTo(400, cy);
+    ctx.moveTo(cx, 20); ctx.lineTo(cx, 340);
+    ctx.stroke();
+
+    // Cloud points
+    ctx.fillStyle = col.blue;
+    ctx.globalAlpha = 0.65;
+    basePts.forEach(([z1, z2]) => {
+      const x0 = z1 * s1, y0 = z2 * s2;
+      const x = x0 * c - y0 * s;
+      const y = x0 * s + y0 * c;
+      ctx.beginPath();
+      ctx.arc(cx + x * scale, cy - y * scale, 3, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+
+    // Eigenvector 1 & 2 arrows
+    function drawArrow(x1, y1, x2, y2, color, label) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 9 * Math.cos(ang - 0.4), y2 - 9 * Math.sin(ang - 0.4));
+      ctx.lineTo(x2 - 9 * Math.cos(ang + 0.4), y2 - 9 * Math.sin(ang + 0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.fillText(label, x2 + 6, y2 - 4);
+    }
+    drawArrow(cx, cy, cx + c * s1 * 1.6 * scale, cy - s * s1 * 1.6 * scale, col.orange, `v₁ (√λ₁=${s1.toFixed(2)})`);
+    drawArrow(cx, cy, cx - s * s2 * 1.6 * scale, cy - c * s2 * 1.6 * scale, col.green, `v₂ (√λ₂=${s2.toFixed(2)})`);
+
+    // Right side: Norm comparison bar chart
+    const bx = 435, bw = 36, baseB = 315;
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Độ nhạy Chuẩn vs Outlier', 425, 38);
+    const norms = [
+      { name: 'L₁ (Bền)', val: l1Norm, color: col.green },
+      { name: 'L₂ (MSE)', val: l2Norm, color: col.blue },
+      { name: 'L∞ (Max)', val: lInfNorm, color: col.red }
+    ];
+    norms.forEach((n, idx) => {
+      const x = bx + idx * 52;
+      const h = Math.min(240, n.val * 16);
+      ctx.fillStyle = n.color;
+      ctx.fillRect(x, baseB - h, bw, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(n.val.toFixed(1), x + 4, baseB - h - 6);
+      ctx.fillText(n.name, x - 2, baseB + 16);
+    });
+  };
+
+  // ==================== 2. WEEK 1: BANDIT & UCB1 ====================
+  const trueMeans = [0.2, 0.55, 0.85, 0.40, 0.65];
+  let w1State = {
+    t: 5,
+    N: [1, 1, 1, 1, 1],
+    Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+    regretUCB: [0],
+    regretEps: [0],
+    cumUCB: 0,
+    cumEps: 0
+  };
+
+  window.resetW1Bandit = function() {
+    w1State = {
+      t: 5,
+      N: [1, 1, 1, 1, 1],
+      Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+      regretUCB: [0],
+      regretEps: [0],
+      cumUCB: 0,
+      cumEps: 0
+    };
+    updateW1Lab();
+  };
+
+  window.stepW1Bandit = function(steps) {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    const bestMean = 0.85;
+
+    for (let s = 0; s < steps; s++) {
+      w1State.t += 1;
+      // UCB selection
+      let bestArm = 0, bestScore = -1e9;
+      for (let a = 0; a < 5; a++) {
+        const ucb = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+        if (ucb > bestScore) { bestScore = ucb; bestArm = a; }
+      }
+      const reward = trueMeans[bestArm] + (Math.random() - 0.5) * 0.4;
+      w1State.N[bestArm] += 1;
+      w1State.Q[bestArm] += alpha * (reward - w1State.Q[bestArm]);
+      w1State.cumUCB += (bestMean - trueMeans[bestArm]);
+      w1State.regretUCB.push(w1State.cumUCB);
+
+      // Eps-greedy regret simulation
+      let epsArm = 2;
+      if (Math.random() < eps) epsArm = Math.floor(Math.random() * 5);
+      w1State.cumEps += (bestMean - trueMeans[epsArm]);
+      w1State.regretEps.push(w1State.cumEps);
+    }
+    updateW1Lab();
+  };
+
+  window.updateW1Lab = function() {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    document.getElementById('val-w1-c').textContent = c.toFixed(2);
+    document.getElementById('val-w1-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w1-alpha').textContent = alpha.toFixed(2);
+
+    let nextArm = 0, maxU = -1e9;
+    for (let a = 0; a < 5; a++) {
+      const score = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      if (score > maxU) { maxU = score; nextArm = a; }
+    }
+
+    document.getElementById('metrics-w1').innerHTML =
+      `Tổng số bước t = <strong>${w1State.t}</strong> | Cánh tay tối ưu thật: <strong>Arm #3 (q*=0.85)</strong><br>` +
+      `Hành động UCB chọn kế tiếp: <strong>Arm #${nextArm + 1}</strong> (Điểm UCB = ${maxU.toFixed(2)})<br>` +
+      `Hối tiếc tích lũy (Regret): UCB1 = <strong>${w1State.cumUCB.toFixed(2)}</strong> vs ε-Greedy = <strong>${w1State.cumEps.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w1');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: 5 Arms Q_t(a) + Bonus U_t(a)
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Ước lượng Q_t(a) (Xanh) + Bán kính UCB (Cam)', 20, 26);
+
+    const baseY = 310, scaleH = 110;
+    for (let a = 0; a < 5; a++) {
+      const x = 30 + a * 58;
+      const qH = Math.max(5, w1State.Q[a] * scaleH);
+      const bonus = c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      const bH = Math.min(160, bonus * scaleH);
+
+      ctx.fillStyle = col.blue;
+      ctx.fillRect(x, baseY - qH, 38, qH);
+      ctx.fillStyle = col.orange;
+      ctx.fillRect(x, baseY - qH - bH, 38, bH);
+
+      // True mean marker
+      const trueY = baseY - trueMeans[a] * scaleH;
+      ctx.strokeStyle = col.green;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x - 4, trueY); ctx.lineTo(x + 42, trueY);
+      ctx.stroke();
+
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(`Arm ${a + 1}`, x + 3, baseY + 16);
+      ctx.fillStyle = col.muted;
+      ctx.fillText(`N=${w1State.N[a]}`, x + 4, baseY + 30);
+    }
+
+    // Right: Regret curves
+    const rx = 345, ry = 45, rw = 235, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Hối tiếc tích lũy L_T (Thấp = Tốt)', rx + 10, 26);
+
+    function drawCurve(arr, color) {
+      if (arr.length < 2) return;
+      const maxVal = Math.max(5, w1State.cumEps, w1State.cumUCB);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      arr.forEach((v, i) => {
+        const px = rx + (i / (arr.length - 1)) * rw;
+        const py = ry + rh - (v / maxVal) * (rh - 15);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+    drawCurve(w1State.regretEps, col.red);
+    drawCurve(w1State.regretUCB, col.green);
+    ctx.fillStyle = col.green; ctx.fillText('▬ UCB1 O(ln T)', rx + 12, ry + 22);
+    ctx.fillStyle = col.red; ctx.fillText('▬ ε-Greedy O(T)', rx + 12, ry + 40);
+  };
+
+  // ==================== 3. WEEK 2: MDP BELLMAN GRID ====================
+  const holes = new Set([5, 7, 11, 12]);
+  const goalCell = 15;
+
+  window.updateW2Lab = function() {
+    const gamma = parseFloat(document.getElementById('sl-w2-gamma').value);
+    const slip = parseFloat(document.getElementById('sl-w2-slip').value);
+    const iters = parseInt(document.getElementById('sl-w2-iter').value, 10);
+    document.getElementById('val-w2-gamma').textContent = gamma.toFixed(2);
+    document.getElementById('val-w2-slip').textContent = slip.toFixed(2);
+    document.getElementById('val-w2-iter').textContent = iters;
+
+    let V = new Array(16).fill(0);
+    let policy = new Array(16).fill(0);
+    const dirs = [
+      [0, -1], // Left
+      [1, 0],  // Down
+      [0, 1],  // Right
+      [-1, 0]  // Up
+    ];
+    const arrows = ['←', '↓', '→', '↑'];
+
+    function stepState(s, a) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const nr = Math.min(3, Math.max(0, r + dirs[a][0]));
+      const nc = Math.min(3, Math.max(0, c + dirs[a][1]));
+      return nr * 4 + nc;
+    }
+
+    for (let k = 0; k < iters; k++) {
+      const nextV = V.slice();
+      for (let s = 0; s < 16; s++) {
+        if (s === goalCell) { nextV[s] = 1.0; continue; }
+        if (holes.has(s)) { nextV[s] = -1.0; continue; }
+        let bestQ = -1e9, bestA = 0;
+        for (let a = 0; a < 4; a++) {
+          const pMain = 1.0 - slip;
+          const pSide = slip / 2.0;
+          const aLeft = (a + 3) % 4;
+          const aRight = (a + 1) % 4;
+          const transitions = [
+            [pMain, stepState(s, a)],
+            [pSide, stepState(s, aLeft)],
+            [pSide, stepState(s, aRight)]
+          ];
+          let q = 0;
+          transitions.forEach(([prob, sNext]) => {
+            const rew = (sNext === goalCell) ? 1.0 : (holes.has(sNext) ? -0.5 : -0.01);
+            const vNext = (sNext === goalCell || holes.has(sNext)) ? 0.0 : V[sNext];
+            q += prob * (rew + gamma * vNext);
+          });
+          if (q > bestQ) { bestQ = q; bestA = a; }
+        }
+        nextV[s] = bestQ;
+        policy[s] = bestA;
+      }
+      V = nextV;
+    }
+
+    document.getElementById('metrics-w2').innerHTML =
+      `Giá trị tại Ô xuất phát V*(0) = <strong>${V[0].toFixed(3)}</strong> | Hệ số co Banach γ^k = <strong>${Math.pow(gamma, iters).toFixed(4)}</strong><br>` +
+      `Hướng đi tối ưu tại Ô 0: <strong>${arrows[policy[0]]}</strong> | Tại Ô 14 (sát đích): <strong>V*(14) = ${V[14].toFixed(3)} (${arrows[policy[14]]})</strong>`;
+
+    const cv = document.getElementById('cv-w2');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cellS = 76, ox = 145, oy = 28;
+    for (let s = 0; s < 16; s++) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const x = ox + c * cellS, y = oy + r * cellS;
+      if (s === goalCell) {
+        ctx.fillStyle = 'rgba(63, 185, 80, 0.35)';
+      } else if (holes.has(s)) {
+        ctx.fillStyle = 'rgba(255, 123, 114, 0.32)';
+      } else {
+        const norm = Math.max(0, Math.min(1, (V[s] + 0.3) / 1.3));
+        ctx.fillStyle = `rgba(88, 166, 255, ${(0.08 + norm * 0.45).toFixed(2)})`;
+      }
+      ctx.fillRect(x, y, cellS - 4, cellS - 4);
+      ctx.strokeStyle = col.grid;
+      ctx.strokeRect(x, y, cellS - 4, cellS - 4);
+
+      ctx.fillStyle = col.text;
+      ctx.font = 'bold 12px Inter, sans-serif';
+      if (s === goalCell) {
+        ctx.fillText('🏆 GOAL', x + 10, y + 32);
+        ctx.fillText('+1.00', x + 18, y + 52);
+      } else if (holes.has(s)) {
+        ctx.fillText('🕳️ HOLE', x + 10, y + 32);
+        ctx.fillText('-0.50', x + 18, y + 52);
+      } else {
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.fillStyle = col.orange;
+        ctx.fillText(arrows[policy[s]], x + 28, y + 34);
+        ctx.font = '11px JetBrains Mono, monospace';
+        ctx.fillStyle = col.text;
+        ctx.fillText(V[s].toFixed(2), x + 18, y + 58);
+      }
+    }
+  };
+
+  // ==================== 4. WEEK 3: DOUBLE DQN BIAS ====================
+  window.updateW3Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w3-sigma').value);
+    const nAct = parseInt(document.getElementById('sl-w3-nact').value, 10);
+    const gamma = parseFloat(document.getElementById('sl-w3-gamma').value);
+    document.getElementById('val-w3-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w3-nact').textContent = nAct;
+    document.getElementById('val-w3-gamma').textContent = gamma.toFixed(2);
+
+    const trials = 400;
+    let sumDQN = 0, sumDDQN = 0;
+    const actionSampleQ1 = new Array(nAct).fill(0);
+    const actionSampleQ2 = new Array(nAct).fill(0);
+
+    function randn() {
+      const u1 = Math.max(1e-7, Math.random());
+      const u2 = Math.random();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    for (let t = 0; t < trials; t++) {
+      let maxQ1 = -1e9, argMax1 = 0;
+      const q1 = [], q2 = [];
+      for (let a = 0; a < nAct; a++) {
+        const v1 = randn() * sigma;
+        const v2 = randn() * sigma;
+        q1.push(v1); q2.push(v2);
+        if (v1 > maxQ1) { maxQ1 = v1; argMax1 = a; }
+        if (t === 0) { actionSampleQ1[a] = v1; actionSampleQ2[a] = v2; }
+      }
+      sumDQN += maxQ1;
+      sumDDQN += q2[argMax1];
+    }
+
+    const avgDQN = sumDQN / trials;
+    const avgDDQN = sumDDQN / trials;
+    const asympDQN = avgDQN / (1.0 - gamma);
+
+    document.getElementById('metrics-w3').innerHTML =
+      `Giá trị thật Q*(s,a) = <strong>0.00</strong> | Kỳ vọng DQN thường E[max Q] = <strong style="color:#ff7b72">+${avgDQN.toFixed(3)}</strong> (Bị thổi phồng!)<br>` +
+      `Kỳ vọng Double DQN E[Q₂(argmax Q₁)] = <strong style="color:#3fb950">${avgDDQN.toFixed(3)}</strong> (Không chệch ≈ 0)<br>` +
+      `Sai số tích lũy qua chuỗi Bellman 1/(1-γ): DQN nổ lên tới <strong>+${asympDQN.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w3');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Draw comparison bars & single sample action noises
+    const midY = 195;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath();
+    ctx.moveTo(25, midY); ctx.lineTo(360, midY);
+    ctx.stroke();
+
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Mẫu nhiễu Q(s, a; θ) trên ${nAct} hành động (1 lượt)`, 25, 28);
+
+    const wBar = Math.max(6, Math.floor(310 / nAct) - 4);
+    let maxIdx = 0;
+    for (let a = 1; a < nAct; a++) if (actionSampleQ1[a] > actionSampleQ1[maxIdx]) maxIdx = a;
+
+    for (let a = 0; a < nAct; a++) {
+      const x = 30 + a * (wBar + 4);
+      const h = actionSampleQ1[a] * 38;
+      ctx.fillStyle = (a === maxIdx) ? col.red : col.blue;
+      if (h >= 0) ctx.fillRect(x, midY - h, wBar, h);
+      else ctx.fillRect(x, midY, wBar, -h);
+    }
+
+    // Right: Summary bias bars
+    ctx.fillStyle = col.text;
+    ctx.fillText('Độ chệch trung bình (400 mẫu)', 390, 28);
+    const b1H = Math.min(140, avgDQN * 55);
+    ctx.fillStyle = col.red;
+    ctx.fillRect(415, midY - b1H, 60, b1H);
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DQN: +${avgDQN.toFixed(2)}`, 405, midY - b1H - 8);
+
+    const b2H = avgDDQN * 55;
+    ctx.fillStyle = col.green;
+    ctx.fillRect(505, midY - Math.max(3, Math.abs(b2H)), 60, Math.max(4, Math.abs(b2H)));
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DDQN: ${avgDDQN.toFixed(2)}`, 498, midY - 12);
+  };
+
+  // ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ====================
+  window.updateW4Lab = function() {
+    const roff = parseFloat(document.getElementById('sl-w4-roff').value);
+    const baseFrac = parseFloat(document.getElementById('sl-w4-base').value);
+    const beta = parseFloat(document.getElementById('sl-w4-ent').value);
+    document.getElementById('val-w4-roff').textContent = roff.toFixed(0);
+    document.getElementById('val-w4-base').textContent = baseFrac.toFixed(2);
+    document.getElementById('val-w4-ent').textContent = beta.toFixed(2);
+
+    // Raw returns around roff + [-4, +2, -1, +5]
+    const advs = [-4.0, 2.0, -1.5, 5.0];
+    const baseline = baseFrac * roff;
+    const signals = advs.map(a => (roff + a) - baseline);
+    const meanSig = signals.reduce((a, b) => a + b, 0) / signals.length;
+    const variance = signals.reduce((a, b) => a + Math.pow(b, 2), 0) / signals.length;
+
+    // Softmax policy with temperature / entropy weight beta
+    const logits = [1.8, 0.9, 0.2, -0.4].map(l => l / Math.max(0.08, beta * 3.5));
+    const maxL = Math.max(...logits);
+    const exps = logits.map(l => Math.exp(l - maxL));
+    const sumE = exps.reduce((a, b) => a + b, 0);
+    const probs = exps.map(e => e / sumE);
+    const entropy = -probs.reduce((acc, p) => acc + (p > 1e-9 ? p * Math.log(p) : 0), 0);
+
+    document.getElementById('metrics-w4').innerHTML =
+      `Bình phương độ lớn Gradient E[(G_t - b)²]: <strong>${variance.toFixed(1)}</strong> (Khi b=V(s), giảm từ ${(roff*roff + 11.5).toFixed(0)} về 11.6!)<br>` +
+      `Shannon Entropy H(π) = <strong>${entropy.toFixed(3)} nats</strong> (Max = ln(4) ≈ 1.386)<br>` +
+      `Phân phối π(a|s): [${probs.map(p => (p*100).toFixed(1)+'%').join(', ')}]`;
+
+    const cv = document.getElementById('cv-w4');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Signals G_t - b(s) for 4 sampled actions
+    const midY = 190;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath(); ctx.moveTo(20, midY); ctx.lineTo(300, midY); ctx.stroke();
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Tín hiệu đẩy Gradient (G_t - b) trên 4 mẫu', 20, 28);
+
+    signals.forEach((sig, i) => {
+      const x = 35 + i * 64;
+      const h = Math.max(-135, Math.min(135, sig * 2.2));
+      ctx.fillStyle = sig >= 0 ? col.green : col.red;
+      if (h >= 0) ctx.fillRect(x, midY - h, 42, h);
+      else ctx.fillRect(x, midY, 42, -h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((sig >= 0 ? '+' : '') + sig.toFixed(1), x + 4, h >= 0 ? midY - h - 6 : midY - h + 14);
+      ctx.fillText(`Mẫu ${i+1}`, x + 4, 340);
+    });
+
+    // Right: Policy distribution pi(a|s) under Entropy Bonus
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Phân phối π(a|s) (Entropy H = ${entropy.toFixed(2)})`, 335, 28);
+    const baseB = 315;
+    probs.forEach((p, i) => {
+      const x = 350 + i * 58;
+      const h = p * 230;
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(x, baseB - h, 40, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((p * 100).toFixed(0) + '%', x + 6, baseB - h - 6);
+      ctx.fillText(`a_${i+1}`, x + 12, baseB + 18);
+    });
+  };
+
+  // ==================== 6. WEEK 5: PPO CLIP & GAE ====================
+  window.updateW5Lab = function() {
+    const eps = parseFloat(document.getElementById('sl-w5-eps').value);
+    const adv = parseFloat(document.getElementById('sl-w5-adv').value);
+    const lam = parseFloat(document.getElementById('sl-w5-lam').value);
+    const gam = parseFloat(document.getElementById('sl-w5-gam').value);
+
+    document.getElementById('val-w5-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w5-adv').textContent = (adv >= 0 ? '+' : '') + adv.toFixed(2);
+    document.getElementById('val-w5-lam').textContent = lam.toFixed(2);
+    document.getElementById('val-w5-gam').textContent = gam.toFixed(3);
+
+    const gaeFactor = gam * lam;
+    const effHorizon = 1.0 / Math.max(1e-4, 1.0 - gaeFactor);
+
+    document.getElementById('metrics-w5').innerHTML =
+      `Vùng tin cậy tỷ số r_t(θ): <strong>[${(1 - eps).toFixed(2)}, ${(1 + eps).toFixed(2)}]</strong> | Khi vượt ngưỡng: <strong>∇_θ L^CLIP = 0</strong><br>` +
+      `Hệ số suy giảm GAE (γλ) = <strong>${gaeFactor.toFixed(4)}</strong> | Tầm nhìn hiệu dụng H_adv ≈ <strong>${effHorizon.toFixed(1)} bước</strong>`;
+
+    const cv = document.getElementById('cv-w5');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left Plot: PPO Clip Objective vs r_t in [0.2, 2.0]
+    const lx = 35, ly = 42, lw = 250, lh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Đồ thị L^CLIP(r_t) theo tỷ số r_t', lx, 26);
+
+    const midY = ly + lh / 2;
+    ctx.beginPath(); ctx.moveTo(lx, midY); ctx.lineTo(lx + lw, midY); ctx.stroke();
+
+    // Vertical lines at 1-eps, 1, 1+eps
+    function rToX(r) { return lx + ((r - 0.2) / 1.8) * lw; }
+    function valToY(v) { return midY - v * 28; }
+
+    [1 - eps, 1.0, 1 + eps].forEach((rVal, idx) => {
+      const px = rToX(rVal);
+      ctx.strokeStyle = idx === 1 ? col.muted : col.orange;
+      ctx.setLineDash(idx === 1 ? [3, 3] : [4, 4]);
+      ctx.beginPath(); ctx.moveTo(px, ly); ctx.lineTo(px, ly + lh); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = col.muted;
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(rVal.toFixed(2), px - 12, ly + lh + 14);
+    });
+
+    // Unclipped r*A (dashed blue)
+    ctx.strokeStyle = col.blue;
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.03) {
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(r * adv)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Clipped min(r*A, clip(r)*A) (solid green)
+    ctx.strokeStyle = col.green;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.02) {
+      const rClip = Math.max(1 - eps, Math.min(1 + eps, r));
+      const obj = Math.min(r * adv, rClip * adv);
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(obj)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Right Plot: GAE weights (gamma*lambda)^l for l=0..24
+    const rx = 325, ry = 42, rw = 250, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Trọng số (γλ)^l của sai số TD δ_{t+l}', rx, 26);
+
+    for (let l = 0; l < 20; l++) {
+      const w = Math.pow(gaeFactor, l);
+      const bx = rx + 8 + l * 12;
+      const bh = w * (rh - 25);
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(bx, ry + rh - bh, 8, bh);
+    }
+    ctx.fillStyle = col.muted;
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Bước tương lai l = 0 → 20', rx + 55, ry + rh + 16);
+  };
+
+  // ==================== 7. WEEK 6: EVOLUTION STRATEGIES ====================
+  let esTheta = [-1.4, -1.1];
+  window.resetW6ES = function() {
+    esTheta = [-1.4, -1.1];
+    updateW6Lab();
+  };
+
+  window.stepW6ES = function() {
+    const gEst = window._lastESGrad || [0, 0];
+    esTheta[0] += 0.22 * gEst[0];
+    esTheta[1] += 0.22 * gEst[1];
+    updateW6Lab();
+  };
+
+  window.updateW6Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w6-sigma').value);
+    const nPop = parseInt(document.getElementById('sl-w6-npop').value, 10);
+    const mirrored = parseInt(document.getElementById('sl-w6-mirror').value, 10) === 1;
+    document.getElementById('val-w6-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w6-npop').textContent = nPop;
+    document.getElementById('val-w6-mirror').textContent = mirrored ? 'Đối xứng ±ε' : '1 phía +ε';
+
+    // Objective F(x,y) = - (x^2 + 2*y^2) - 0.3*(x^3 + y^2*x) (has curvature so 1-sided has bias/noise)
+    function F(x, y) {
+      return -(x * x + 1.8 * y * y) + 0.25 * (x * x * x + x * y * y);
+    }
+    const trueGrad = [
+      -2 * esTheta[0] + 0.75 * esTheta[0] * esTheta[0] + 0.25 * esTheta[1] * esTheta[1],
+      -3.6 * esTheta[1] + 0.5 * esTheta[0] * esTheta[1]
+    ];
+
+    let gx = 0, gy = 0;
+    const samples = [];
+    for (let i = 0; i < nPop; i++) {
+      const ang = (2 * Math.PI * i) / nPop + 0.3;
+      const ex = Math.cos(ang) * 1.15, ey = Math.sin(ang) * 0.9;
+      const fPos = F(esTheta[0] + sigma * ex, esTheta[1] + sigma * ey);
+      samples.push([esTheta[0] + sigma * ex, esTheta[1] + sigma * ey, true]);
+      if (mirrored) {
+        const fNeg = F(esTheta[0] - sigma * ex, esTheta[1] - sigma * ey);
+        samples.push([esTheta[0] - sigma * ex, esTheta[1] - sigma * ey, false]);
+        gx += ((fPos - fNeg) / (2 * sigma)) * ex;
+        gy += ((fPos - fNeg) / (2 * sigma)) * ey;
+      } else {
+        // Without baseline, F(theta) term adds huge noise
+        gx += (fPos / sigma) * ex;
+        gy += (fPos / sigma) * ey;
+      }
+    }
+    gx /= nPop; gy /= nPop;
+    window._lastESGrad = [gx, gy];
+
+    const normTrue = Math.hypot(trueGrad[0], trueGrad[1]) + 1e-8;
+    const normEst = Math.hypot(gx, gy) + 1e-8;
+    const cosSim = (trueGrad[0] * gx + trueGrad[1] * gy) / (normTrue * normEst);
+
+    document.getElementById('metrics-w6').innerHTML =
+      `Tâm tham số hiện tại θ = [${esTheta[0].toFixed(2)}, ${esTheta[1].toFixed(2)}] | Đích tối ưu: [0.00, 0.00]<br>` +
+      `Độ tương đồng Cosine(∇F thật, ĝ ES) = <strong>${cosSim.toFixed(4)}</strong> (Mirrored ±ε khử sạch số hạng bậc chẵn F(θ) và Hessian!)`;
+
+    const cv = document.getElementById('cv-w6');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 300, cy = 180, scale = 95;
+    // Draw contour ellipses around (0,0)
+    for (let r = 0.35; r <= 2.2; r += 0.35) {
+      ctx.strokeStyle = col.grid;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * scale, (r / Math.sqrt(1.8)) * scale, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    // Optimum star
+    ctx.fillStyle = col.green;
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText('★ Đích θ*=(0,0)', cx + 6, cy - 6);
+
+    // Samples
+    samples.forEach(([sx, sy, isPos]) => {
+      ctx.fillStyle = isPos ? col.blue : col.purple;
+      ctx.beginPath();
+      ctx.arc(cx + sx * scale, cy - sy * scale, 3.5, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    // Current theta
+    const tx = cx + esTheta[0] * scale, ty = cy - esTheta[1] * scale;
+    ctx.fillStyle = col.orange;
+    ctx.beginPath(); ctx.arc(tx, ty, 6, 0, 2 * Math.PI); ctx.fill();
+
+    // True gradient vs ES gradient arrows
+    function drawVec(vx, vy, color, label) {
+      const len = Math.hypot(vx, vy);
+      if (len < 1e-4) return;
+      const ux = (vx / len) * 55, uy = (vy / len) * 55;
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + ux, ty - uy); ctx.stroke();
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.fillText(label, tx + ux + 5, ty - uy);
+    }
+    drawVec(trueGrad[0], trueGrad[1], col.green, '∇F thật');
+    drawVec(gx, gy, col.orange, 'ĝ ES');
+  };
+
+  // ==================== 8. WEEK 7: MODEL-BASED RL & MPC ====================
+  window.updateW7Lab = function() {
+    const H = parseInt(document.getElementById('sl-w7-h').value, 10);
+    const rawLip = parseFloat(document.getElementById('sl-w7-lip').value);
+    const tik = parseFloat(document.getElementById('sl-w7-tik').value);
+    document.getElementById('val-w7-h').textContent = H;
+    document.getElementById('val-w7-lip').textContent = rawLip.toFixed(2);
+    document.getElementById('val-w7-tik').textContent = tik.toFixed(2);
+
+    // Tikhonov input noise regularizes the effective Lipschitz constant
+    const effLip = Math.max(0.85, rawLip - tik * 0.9);
+    const eps1 = 0.04;
+    const trueTraj = [], predTraj = [], errBars = [];
+
+    let errAcc = 0;
+    for (let k = 0; k <= H; k++) {
+      const sTrue = Math.sin(k * 0.32);
+      trueTraj.push(sTrue);
+      if (k > 0) errAcc = errAcc * effLip + eps1;
+      predTraj.push(sTrue + errAcc * (k % 2 === 0 ? 1 : 0.85));
+      errBars.push(errAcc);
+    }
+
+    document.getElementById('metrics-w7').innerHTML =
+      `Độ dốc hiệu dụng sau làm trơn Tikhonov: <strong>L_eff = ${effLip.toFixed(3)}</strong><br>` +
+      `Sai số dự đoán ở bước cuối H=${H}: <strong>||ŝ_{t+H} - s_{t+H}|| = ${errAcc.toFixed(3)}</strong> (Gấp ${(errAcc / eps1).toFixed(1)} lần sai số 1 bước!)`;
+
+    const cv = document.getElementById('cv-w7');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 30, w = 525, h = 290, midY = oy + h / 2;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function stepToX(k) { return ox + (k / H) * w; }
+    function sToY(val) { return midY - val * 65; }
+
+    // Error fan shaded area
+    ctx.fillStyle = 'rgba(255, 123, 114, 0.16)';
+    ctx.beginPath();
+    for (let k = 0; k <= H; k++) {
+      const x = stepToX(k), y = sToY(trueTraj[k] + errBars[k]);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    for (let k = H; k >= 0; k--) {
+      const x = stepToX(k), y = sToY(trueTraj[k] - errBars[k]);
+      ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // True trajectory (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    trueTraj.forEach((v, k) => {
+      const x = stepToX(k), y = sToY(v);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Hallucinated rollout (red dashed)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    predTraj.forEach((v, k) => {
+      const x = stepToX(k), y = Math.max(oy + 5, Math.min(oy + h - 5, sToY(v)));
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Quỹ đạo thật s_{t+k}', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('--- Mô hình tưởng tượng ŝ_{t+k} (Vùng đỏ = Bùng nổ sai số O(L^H ε))', ox + 175, oy + 22);
+  };
+
+  // ==================== 9. WEEK 8: SAC & DPO ====================
+  window.updateW8Lab = function() {
+    const alpha = parseFloat(document.getElementById('sl-w8-alpha').value);
+    const dq = parseFloat(document.getElementById('sl-w8-dq').value);
+    const beta = parseFloat(document.getElementById('sl-w8-beta').value);
+    document.getElementById('val-w8-alpha').textContent = alpha.toFixed(2);
+    document.getElementById('val-w8-dq').textContent = dq.toFixed(2);
+    document.getElementById('val-w8-beta').textContent = beta.toFixed(2);
+
+    const N = 80;
+    const actions = [], qVals = [], probs = [];
+    let maxScaled = -1e9;
+    for (let i = 0; i < N; i++) {
+      const a = -1.0 + (2.0 * i) / (N - 1);
+      actions.push(a);
+      // Bimodal Q landscape: peak 1 at a=-0.45 (height 1.0), peak 2 at a=+0.50 (height dq)
+      const q = Math.exp(-Math.pow((a + 0.45) / 0.25, 2)) + dq * Math.exp(-Math.pow((a - 0.50) / 0.25, 2));
+      qVals.push(q);
+      if (q / alpha > maxScaled) maxScaled = q / alpha;
+    }
+    let sumExp = 0;
+    const rawExps = qVals.map(q => {
+      const e = Math.exp(q / alpha - maxScaled);
+      sumExp += e;
+      return e;
+    });
+    rawExps.forEach(e => probs.push(e / sumExp));
+
+    document.getElementById('metrics-w8').innerHTML =
+      `Khi α = ${alpha.toFixed(2)}: Policy SAC ${alpha < 0.08 ? 'co cụm thành Greedy (chỉ chọn đỉnh 1)' : (alpha > 0.8 ? 'phẳng dần về Uniform' : 'khám phá Đa Mốt (giữ cả 2 đỉnh!)')}<br>` +
+      `Trong DPO (β_KL = ${beta.toFixed(2)}): Độ dốc Sigmoid σ(β·Δlog(π/π_ref)) tỉ lệ thuận với β_KL.`;
+
+    const cv = document.getElementById('cv-w8');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Bimodal Q(s,a) and Boltzmann pi*(a|s)
+    const lx = 30, ly = 40, lw = 255, lh = 270;
+    ctx.strokeStyle = col.grid; ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Q(s,a) 2 đỉnh (Xanh) & π*(a|s) (Cam)', lx, 26);
+
+    // Q curve
+    ctx.strokeStyle = col.blue; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    qVals.forEach((q, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (q / 1.3) * (lh - 20);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Policy density curve
+    const maxP = Math.max(...probs) + 1e-6;
+    ctx.strokeStyle = col.orange; ctx.lineWidth = 3;
+    ctx.beginPath();
+    probs.forEach((p, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (p / maxP) * (lh - 30);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Right: DPO Sigmoid Loss & Preference Probability
+    const rx = 320, ry = 40, rw = 255, rh = 270;
+    ctx.strokeStyle = col.grid; ctx.lineWidth = 1; ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.fillText('DPO: Xác suất P(y_w ≻ y_l) = σ(β·Δ)', rx, 26);
+
+    ctx.strokeStyle = col.purple; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let i = 0; i <= 80; i++) {
+      const delta = -4.0 + (8.0 * i) / 80;
+      const prob = 1.0 / (1.0 + Math.exp(-beta * delta));
+      const px = rx + (i / 80) * rw;
+      const py = ry + lh - prob * (lh - 20) - 10;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  };
+
+  // ==================== 10. SIM-TO-REAL PHYSICS LAB ====================
+  window.updateSim2RealLab = function() {
+    const dt = parseFloat(document.getElementById('sl-sim-dt').value);
+    const kp = parseFloat(document.getElementById('sl-sim-kp').value);
+    const kd = parseFloat(document.getElementById('sl-sim-kd').value);
+    const mu = parseFloat(document.getElementById('sl-sim-mu').value);
+    document.getElementById('val-sim-dt').textContent = dt.toFixed(3) + ' s';
+    document.getElementById('val-sim-kp').textContent = kp.toFixed(0);
+    document.getElementById('val-sim-kd').textContent = kd.toFixed(1);
+    document.getElementById('val-sim-mu').textContent = mu.toFixed(2);
+
+    const mass = 1.0, g = 9.81, targetX = 1.0;
+    const maxForce = mu * mass * g; // Friction traction limit
+
+    function accel(x, v) {
+      const rawF = kp * (targetX - x) - kd * v;
+      const clampedF = Math.max(-maxForce, Math.min(maxForce, rawF));
+      return clampedF / mass;
+    }
+
+    const totalTime = 1.6;
+    const steps = Math.max(8, Math.floor(totalTime / dt));
+    const eulerTraj = [[0, 0]], rk4Traj = [[0, 0]];
+    let xe = 0, ve = 0, xr = 0, vr = 0;
+    let eulerExploded = false;
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i * dt;
+      // Explicit Euler
+      const ae = accel(xe, ve);
+      xe = xe + dt * ve;
+      ve = ve + dt * ae;
+      if (Math.abs(xe) > 3.5) eulerExploded = true;
+      eulerTraj.push([t, Math.max(-2.5, Math.min(2.8, xe))]);
+
+      // RK4
+      const k1x = vr, k1v = accel(xr, vr);
+      const k2x = vr + 0.5 * dt * k1v, k2v = accel(xr + 0.5 * dt * k1x, vr + 0.5 * dt * k1v);
+      const k3x = vr + 0.5 * dt * k2v, k3v = accel(xr + 0.5 * dt * k2x, vr + 0.5 * dt * k2v);
+      const k4x = vr + dt * k3v, k4v = accel(xr + dt * k3x, vr + dt * k3v);
+      xr += (dt / 6.0) * (k1x + 2 * k2x + 2 * k3x + k4x);
+      vr += (dt / 6.0) * (k1v + 2 * k2v + 2 * k3v + k4v);
+      rk4Traj.push([t, Math.max(-2.5, Math.min(2.8, xr))]);
+    }
+
+    document.getElementById('metrics-sim2real').innerHTML =
+      `Giới hạn lực bám ma sát F_max = μ·m·g = <strong>${maxForce.toFixed(2)} N</strong> | Tích số ổn định Δt·K_p = <strong>${(dt * kp).toFixed(2)}</strong><br>` +
+      `Trạng thái Explicit Euler: <strong style="color:${eulerExploded ? '#ff7b72' : '#3fb950'}">${eulerExploded ? '💥 MẤT ỔN ĐỊNH SỐ (NỔ QUỸ ĐẠO!)' : '✅ Hội tụ ổn định'}</strong> | RK4: <strong style="color:#3fb950">✅ Luôn ổn định vật lý</strong>`;
+
+    const cv = document.getElementById('cv-sim2real');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 32, w = 525, h = 290;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function tToX(t) { return ox + (t / totalTime) * w; }
+    function xToY(xVal) { return oy + h * 0.68 - xVal * 85; }
+
+    // Target line x = 1.0
+    const ty = xToY(1.0);
+    ctx.strokeStyle = col.muted; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(ox, ty); ctx.lineTo(ox + w, ty); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col.muted; ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Đích x_target = 1.0 m', ox + w - 125, ty - 6);
+
+    // Draw Euler (red)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    eulerTraj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Draw RK4 (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    rk4Traj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Runge-Kutta bậc 4 (RK4 - Chuẩn xác)', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('▬ Explicit Euler (Dễ nổ khi Δt hoặc K_p lớn)', ox + 265, oy + 22);
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    switchSimTab('sac_dpo');
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          const activeBtn = document.querySelector('.sim-tab.active');
+          if (activeBtn) renderActiveTab(activeBtn.getAttribute('data-tab'));
+        }, 20);
+      });
+    }
+  });
+})();
+</script>
+
+      <article class="markdown-body">
+        <h1 id="week-8-cac-khai-niem-nang-cao-o-an-tot-nghiep-advanced-rl-capstone">Week 8 – Các khái niệm nâng cao &amp; Đồ án tốt nghiệp (Advanced RL &amp; Capstone)<a class="headerlink" href="#week-8-cac-khai-niem-nang-cao-o-an-tot-nghiep-advanced-rl-capstone" title="Liên kết tới mục này">&para;</a></h1>
+<blockquote class="callout">
+<p>Mục tiêu: làm chủ các lý thuyết hiện đại ở ranh giới nghiên cứu (SOTA) của Deep RL: <strong>Suy luận xác suất &amp; Điều khiển (Chứng minh MaxEnt RL, SAC)</strong>, <strong>Học tăng cường nghịch đảo &amp; Bắt chước (DAgger, MaxEnt IRL, GAIL)</strong>, <strong>Khám phá nâng cao (Curiosity, RND)</strong>, <strong>Meta-RL (MAML, RL²)</strong>, kiến trúc vô địch cờ <strong>AlphaGo Zero / AlphaZero</strong>, hệ thống <strong>OpenAI Five</strong>, và <strong>Cầu nối RLHF &amp; DPO cho LLM</strong> (kèm chứng minh nghiệm đóng).<br />
+📖 <strong>Quy ước ký hiệu toàn khoá</strong>: Đối chiếu toàn bộ ký hiệu giải tích, không gian và toán tử tại <a href="../BANG_KY_HIEU_TOAN_HOC.html">BẢNG KÝ HIỆU TOÁN HỌC CHUẨN TẮC</a>.</p>
+</blockquote>
+<p><strong>Lộ trình</strong>: §1 Suy luận xác suất &amp; Chứng minh MaxEnt RL (SAC) → §2 Imitation Learning &amp; Inverse RL → §3 Cơ chế khám phá nâng cao → §4 Meta-Learning &amp; Transfer → §5 AlphaGo Zero &amp; MCTS → §6 OpenAI Five &amp; Hệ thống phân tán → §7 Cầu nối với RLHF &amp; LLM (kèm chứng minh nghiệm đóng) → §8 Phân tích chuyên sâu tham số thuật toán nâng cao → §9 Đề xuất đồ án Capstone → §10 Tổng kết toàn khóa.</p>
+<hr />
+<h2 id="1-suy-luan-xac-suat-maximum-entropy-rl-sac">1. Suy luận xác suất &amp; Maximum Entropy RL (SAC)<a class="headerlink" href="#1-suy-luan-xac-suat-maximum-entropy-rl-sac" title="Liên kết tới mục này">&para;</a></h2>
+<h3 id="11-khung-ly-thuyet-ieu-khien-nhu-bai-toan-suy-luan-control-as-inference">1.1 Khung lý thuyết: Điều khiển như bài toán suy luận (Control as Inference)<a class="headerlink" href="#11-khung-ly-thuyet-ieu-khien-nhu-bai-toan-suy-luan-control-as-inference" title="Liên kết tới mục này">&para;</a></h3>
+<p>Thay vì chỉ tối đa hoá phần thưởng, ta coi bài toán RL là bài toán <strong>suy luận xác suất Bayes</strong> trên đồ hình xác suất (Probabilistic Graphical Model).
+Định nghĩa một biến ngẫu nhiên nhị phân <span class="math-inline">$O_t \in \{0, 1\}$</span> thể hiện <strong>"bước <span class="math-inline">$t$</span> có tối ưu hay không"</strong> (Optimality event):
+<div class="math-block">$$p(O_t=1 \mid s_t, a_t) = \exp\big(\beta\, r(s_t, a_t)\big)$$</div></p>
+<p>Xác suất đồng thời của quỹ đạo <span class="math-inline">$\tau = (s_0, a_0, \dots, s_T, a_T)$</span> và toàn bộ chuỗi sự kiện tối ưu <span class="math-inline">$O_{1:T}=1$</span>:
+<div class="math-block">$$p(\tau, O_{1:T}=1) = p(s_0) \prod_{t=0}^T P(s_{t+1} \mid s_t, a_t) \exp\big(\beta\, r(s_t, a_t)\big)$$</div></p>
+<p>Khi ta điều kiện hoá theo <span class="math-inline">$O_{1:T}=1$</span>, phân phối hậu nghiệm chuẩn tắc trên quỹ đạo tối ưu là:
+<div class="math-block">$$p(\tau \mid O_{1:T}=1) = \frac{1}{Z} p(s_0) \prod_{t=0}^T P(s_{t+1} \mid s_t, a_t) \exp\Big(\beta \sum_{t=0}^T r(s_t, a_t)\Big)$$</div>
+với <span class="math-inline">$Z = \int p(\tau, O_{1:T}=1) d\tau$</span> là hằng số chuẩn hoá phân vùng (partition function).</p>
+<ul>
+<li><strong>Chứng minh toán học: Suy dẫn mục tiêu Maximum Entropy RL</strong>:
+  Ta muốn tìm một chính sách hành vi <span class="math-inline">$\pi_\theta(a_t \mid s_t)$</span> sao cho phân phối quỹ đạo sinh ra bởi chính sách:
+  <div class="math-block">$$p_\pi(\tau) = p(s_0) \prod_{t=0}^T P(s_{t+1} \mid s_t, a_t) \pi(a_t \mid s_t)$$</div>
+  tiệm cận phân phối hậu nghiệm tối ưu <span class="math-inline">$p(\tau \mid O_{1:T}=1)$</span> bằng cách cực tiểu hoá phân kỳ Kullback-Leibler:
+  <div class="math-block">$$\min_\pi D_{KL}\Big( p_\pi(\tau) \parallel p(\tau \mid O_{1:T}=1) \Big)$$</div></li>
+</ul>
+<p>Khai triển định nghĩa của <span class="math-inline">$D_{KL}$</span>:
+  <div class="math-block">$$\begin{aligned}
+  D_{KL}\Big( p_\pi(\tau) \parallel p(\tau \mid O_{1:T}=1) \Big) &amp;= \int p_\pi(\tau) \ln \frac{p_\pi(\tau)}{p(\tau \mid O_{1:T}=1)} d\tau \\
+  &amp;= \mathbb E_{\tau \sim \pi}\left[ \ln \frac{p(s_0) \prod_{t=0}^T P(s_{t+1} \mid s_t, a_t) \pi(a_t \mid s_t)}{\frac{1}{Z} p(s_0) \prod_{t=0}^T P(s_{t+1} \mid s_t, a_t) \exp\big(\beta r(s_t, a_t)\big)} \right]
+  \end{aligned}$$</div>
+  <em>Nhận xét kỳ diệu</em>: Toàn bộ phân phối khởi đầu <span class="math-inline">$p(s_0)$</span> và động học môi trường <span class="math-inline">$P(s_{t+1} \mid s_t, a_t)$</span> ở tử số và mẫu số <strong>triệt tiêu hoàn toàn lẫn nhau</strong>!
+  <div class="math-block">$$\begin{aligned}
+  &amp;= \mathbb E_{\tau \sim \pi}\left[ \ln Z + \sum_{t=0}^T \Big( \ln \pi(a_t \mid s_t) - \beta r(s_t, a_t) \Big) \right] \\
+  &amp;= \ln Z - \beta \sum_{t=0}^T \mathbb E_{(s_t, a_t) \sim \pi}\left[ r(s_t, a_t) - \frac{1}{\beta} \ln \pi(a_t \mid s_t) \right] \\
+  &amp;= \ln Z - \beta \sum_{t=0}^T \mathbb E_{(s_t, a_t) \sim \pi}\Big[ r(s_t, a_t) + \alpha \mathcal H\big(\pi(\cdot \mid s_t)\big) \Big]
+  \end{aligned}$$</div>
+  trong đó <span class="math-inline">$\alpha = \frac{1}{\beta} &gt; 0$</span> và <span class="math-inline">$\mathcal H(\pi(\cdot \mid s_t)) = -\mathbb E_{a \sim \pi}[\ln \pi(a \mid s_t)]$</span> là Shannon entropy.
+  Vì <span class="math-inline">$\ln Z$</span> là hằng số không phụ thuộc <span class="math-inline">$\pi$</span> và <span class="math-inline">$\beta &gt; 0$</span>, bài toán <span class="math-inline">$\min_\pi D_{KL}$</span> tương đương chính xác với:
+  <div class="math-block">$$\boxed{\max_\pi J_{MaxEnt}(\pi) = \sum_{t=0}^T \mathbb E_{(s_t, a_t) \sim \pi}\Big[ r(s_t, a_t) + \alpha \mathcal H\big(\pi(\cdot \mid s_t)\big) \Big]}$$</div>
+  Chứng minh toán học hoàn tất trọn vẹn! <span class="math-inline">$\square$</span></p>
+<blockquote class="callout callout-substitution">
+<p>🔄 <strong>Giải phẫu các bước thế hàm (Step-by-Step Function Substitution) — Thế Tỉ số Phân phối Quỹ đạo vào <span class="math-inline">$D_{\text{KL}}$</span> và Thế định nghĩa Entropy <span class="math-inline">$\mathcal{H}$</span>:</strong></p>
+<ul>
+<li>
+<p><strong>Bước 1 (Thế hai hàm phân phối quỹ đạo <span class="math-inline">$p_\pi(\tau)$</span> và <span class="math-inline">$p(\tau \mid O_{1:T}=1)$</span> vào phân số bên trong <span class="math-inline">$\ln(\cdot)$</span> của <span class="math-inline">$D_{\text{KL}}$</span>):</strong>
+  <div class="math-block">$$\frac{p_\pi(\tau)}{p(\tau \mid O_{1:T}=1)} = \frac{\cancel{p(s_0)} \prod_{t=0}^T \cancel{P(s_{t+1}\mid s_t, a_t)} \, \pi(a_t\mid s_t)}{\frac{1}{Z}\cancel{p(s_0)} \prod_{t=0}^T \cancel{P(s_{t+1}\mid s_t, a_t)} \, \exp\big(\beta r(s_t, a_t)\big)} = Z \prod_{t=0}^T \frac{\pi(a_t\mid s_t)}{\exp\big(\beta r(s_t, a_t)\big)}$$</div>
+  <em>(Nhờ cả hai phân phối đều đi qua cùng một môi trường vật lý <span class="math-inline">$P(s_{t+1}\mid s_t, a_t)$</span>, toàn bộ các thừa số môi trường ở tử và mẫu tự gạch chéo triệt tiêu nhau!)</em></p>
+</li>
+<li>
+<p><strong>Bước 2 (Thế tỉ số đã rút gọn vào hàm <span class="math-inline">$\ln(\cdot)$</span> và dùng <span class="math-inline">$\ln\big(\frac{A}{e^B}\big) = \ln A - B$</span>):</strong>
+  <div class="math-block">$$\ln \frac{p_\pi(\tau)}{p(\tau \mid O_{1:T}=1)} = \ln Z + \sum_{t=0}^T \Big[\ln \pi(a_t\mid s_t) - \beta r(s_t, a_t)\Big]$$</div></p>
+</li>
+<li>
+<p><strong>Bước 3 (Thế định nghĩa Shannon Entropy <span class="math-inline">$\mathcal{H}\big(\pi(\cdot\mid s_t)\big) = \mathbb{E}_{a_t \sim \pi}[-\ln \pi(a_t\mid s_t)]$</span> và <span class="math-inline">$\alpha = \frac{1}{\beta}$</span>):</strong>
+  Đặt <span class="math-inline">$-\beta$</span> làm nhân tử chung: <span class="math-inline">$\mathbb{E}[\ln \pi(a_t\mid s_t) - \beta r(s_t, a_t)] = -\beta \, \mathbb{E}\big[r(s_t, a_t) + \frac{1}{\beta}(-\ln \pi(a_t\mid s_t))\big]$</span>.
+  Thay <span class="math-inline">$\mathbb{E}_{a_t \sim \pi}[-\ln \pi(a_t\mid s_t)]$</span> bằng <span class="math-inline">$\mathcal{H}(\pi(\cdot\mid s_t))$</span> và thay <span class="math-inline">$\frac{1}{\beta}$</span> bằng <span class="math-inline">$\alpha$</span>, bài toán cực tiểu hóa <span class="math-inline">$-\beta J_{\text{MaxEnt}}(\pi)$</span> chuyển thành cực đại hóa <span class="math-inline">$J_{\text{MaxEnt}}(\pi)$</span>!</p>
+</li>
+</ul>
+<p>💡 <strong>Bản chất Logic &amp; Mục đích ra đời (Thay thế/Sửa đổi cái gì?)</strong>:</p>
+<ul>
+<li><strong>Thay thế thành phần nào</strong>: Thay thế các thuật toán Actor-Critic tất định hoặc tối ưu hóa phần thưởng thuần tuý như DDPG, TD3.</li>
+<li><strong>Khuyết điểm của phương pháp cũ</strong>: DDPG/TD3 có chính sách tất định, rất dễ bị sụp đổ sớm vào các cực tiểu địa phương nghèo nàn và cực kỳ nhạy cảm với việc chọn siêu tham số.</li>
+<li><strong>Logic thiết kế toán học</strong>: Dẫn xuất từ khung lý thuyết <strong>Điều khiển như bài toán suy luận xác suất (Control as Inference)</strong>. Đưa thêm số hạng Shannon Entropy vào hàm mục tiêu với trọng số nhiệt độ <span class="math-inline">$\alpha$</span>. Thuật toán đồng thời tối đa hóa phần thưởng VÀ độ bất định của hành động.</li>
+<li><strong>Cơ chế giải quyết</strong>: Chính sách khám phá tự nhiên khắp không gian trạng thái, nắm bắt được các nghiệm <strong>đa mốt (Multimodal)</strong>, chống chịu nhiễu tối ưu, kết hợp với kỹ thuật Dual Gradient Descent để tự động điều chỉnh nhiệt độ <span class="math-inline">$\alpha$</span> hướng về mức entropy mục tiêu <span class="math-inline">$\bar{\mathcal H} = -\dim(\mathcal A)$</span>.</li>
+</ul>
+</blockquote>
+<ul>
+<li><strong>Giải thích ký hiệu</strong>:</li>
+<li><span class="math-inline">$O_t \in \{0, 1\}$</span>: Biến nhị phân thể hiện trạng thái tối ưu.</li>
+<li><span class="math-inline">$\beta &gt; 0$</span>: Hệ số độ nhạy phần thưởng trong mô hình đồ hình.</li>
+<li><span class="math-inline">$\alpha = 1/\beta$</span>: Hệ số nhiệt độ entropy (Entropy temperature).</li>
+<li><span class="math-inline">$\mathcal H(\pi)$</span>: Độ đo đa dạng entropy của chính sách.</li>
+</ul>
+<p><strong>Ưu điểm của MaxEnt RL</strong>:</p>
+<ol>
+<li>Policy học được mọi cách giải khả dĩ (đa mốt - multimodal), không bị sụp đổ về một phương án duy nhất.</li>
+<li>Bền vững trước nhiễu và thay đổi bất ngờ của môi trường.</li>
+<li>Thăm dò (exploration) tự nhiên mà không cần các thủ thuật chắp vá như <span class="math-inline">$\epsilon$</span>-greedy.</li>
+</ol>
+<hr />
+<h3 id="12-phuong-trinh-soft-bellman-soft-value-iteration">1.2 Phương trình Soft Bellman &amp; Soft Value Iteration<a class="headerlink" href="#12-phuong-trinh-soft-bellman-soft-value-iteration" title="Liên kết tới mục này">&para;</a></h3>
+<p>Trong MaxEnt RL, phương trình Bellman được biến đổi thành dạng "mềm" (Soft):</p>
+<p><div class="math-block">$$V_{soft}(s) = \alpha \log \int_{\mathcal A} \exp\Big(\frac{1}{\alpha} Q_{soft}(s, a)\Big) da = \alpha \operatorname{soft}\max_{a} \frac{Q_{soft}(s, a)}{\alpha}$$</div>
+<div class="math-block">$$Q_{soft}(s, a) = r(s, a) + \gamma \mathbb E_{s&#x27; \sim P}\big[V_{soft}(s&#x27;)\big]$$</div></p>
+<p>Policy tối ưu tương ứng phân phối Boltzmann:
+<div class="math-block">$$\pi^*(a \mid s) \propto \exp\Big(\frac{1}{\alpha} Q_{soft}(s, a)\Big)$$</div></p>
+<hr />
+<h3 id="13-thuat-toan-soft-actor-critic-sac-haarnoja-et-al-2018">1.3 Thuật toán Soft Actor-Critic (SAC - Haarnoja et al., 2018)<a class="headerlink" href="#13-thuat-toan-soft-actor-critic-sac-haarnoja-et-al-2018" title="Liên kết tới mục này">&para;</a></h3>
+<p>SAC là thuật toán <strong>off-policy actor-critic</strong> chuẩn mực nhất cho không gian hành động liên tục hiện nay, kết hợp MaxEnt RL với ba kỹ thuật:</p>
+<h4 id="a-clipped-double-q-trick-chong-thoi-phong-q">(a) Clipped Double-Q trick (Chống thổi phồng Q)<a class="headerlink" href="#a-clipped-double-q-trick-chong-thoi-phong-q" title="Liên kết tới mục này">&para;</a></h4>
+<p>Duy trì hai mạng critic <span class="math-inline">$Q_{\theta_1}$</span> và <span class="math-inline">$Q_{\theta_2}$</span>, cùng hai mạng target <span class="math-inline">$Q_{\bar{\theta}_1}, Q_{\bar{\theta}_2}$</span>.
+Mục tiêu Bellman mềm dùng giá trị tối thiểu của hai critic:
+<div class="math-block">$$y = r + \gamma \Big(\min_{j=1,2} Q_{\bar{\theta}_j}(s&#x27;, \tilde{a}&#x27;) - \alpha \log \pi_\phi(\tilde{a}&#x27; \mid s&#x27;)\Big),\qquad \tilde{a}&#x27; \sim \pi_\phi(\cdot \mid s&#x27;)$$</div>
+Loss huấn luyện Critic (<span class="math-inline">$j \in \{1, 2\}$</span>):
+<div class="math-block">$$J_Q(\theta_j) = \mathbb E_{(s, a, r, s&#x27;)\sim \mathcal D}\Big[\big(Q_{\theta_j}(s, a) - y\big)^2\Big]$$</div></p>
+<h4 id="b-reparameterization-trick-tanh-squashing-cho-actor">(b) Reparameterization Trick &amp; Tanh Squashing cho Actor<a class="headerlink" href="#b-reparameterization-trick-tanh-squashing-cho-actor" title="Liên kết tới mục này">&para;</a></h4>
+<p>Để gradient truyền được qua quá trình lấy mẫu hành động liên tục bị chặn trong khoảng <span class="math-inline">$[-1, 1]$</span>:
+<div class="math-block">$$a_\phi(s, \xi) = \tanh\big(\mu_\phi(s) + \sigma_\phi(s) \odot \xi\big),\qquad \xi \sim \mathcal N(0, I)$$</div>
+Do phép biến đổi phi tuyến <span class="math-inline">$a = \tanh(u)$</span>, hàm mật độ xác suất phải điều chỉnh theo định lý biến đổi biến ngẫu nhiên (Jacobian determinant):
+<div class="math-block">$$\log \pi_\phi(a \mid s) = \log \mu(u \mid s) - \sum_{i=1}^{\dim(\mathcal A)} \log\big(1 - \tanh^2(u_i)\big)$$</div>
+Loss huấn luyện Actor:
+<div class="math-block">$$J_\pi(\phi) = \mathbb E_{s \sim \mathcal D, \xi \sim \mathcal N}\Big[\alpha \log \pi_\phi\big(a_\phi(s, \xi) \mid s\big) - \min_{j=1,2} Q_{\theta_j}\big(s, a_\phi(s, \xi)\big)\Big]$$</div></p>
+<blockquote class="callout callout-substitution">
+<p>🔄 <strong>Giải phẫu các bước thế hàm (Step-by-Step Function Substitution) — Phép thế Tái tham số hóa (Reparameterization) &amp; Định thức Jacobian trong SAC:</strong></p>
+<ul>
+<li>
+<p><strong>Bước 1 (Bài toán gốc bị tắc nghẽn đạo hàm):</strong>
+  Hàm mất mát gốc của Actor là kỳ vọng trên phân phối hành động <span class="math-inline">$a \sim \pi_\phi(\cdot\mid s)$</span>:
+  <div class="math-block">$$J_\pi(\phi) = \mathbb{E}_{s \sim \mathcal{D}}\Big[\mathbb{E}_{a \sim \pi_\phi(\cdot\mid s)}\big[\alpha \log \pi_\phi(a\mid s) - Q_\theta(s, a)\big]\Big]$$</div>
+  Vì phép lấy mẫu <span class="math-inline">$a \sim \pi_\phi$</span> phụ thuộc vào <span class="math-inline">$\phi$</span>, ta không thể đưa đạo hàm <span class="math-inline">$\nabla_\phi$</span> chui trực tiếp vào trong <span class="math-inline">$Q_\theta(s, a)$</span> nếu giữ nguyên biến <span class="math-inline">$a$</span>.</p>
+</li>
+<li>
+<p><strong>Bước 2 (Phép thế Tái tham số hóa — Biểu diễn biến ngẫu nhiên <span class="math-inline">$a$</span> thành hàm tất định của nhiễu chuẩn <span class="math-inline">$\xi \sim \mathcal{N}(0, I)$</span>):</strong>
+  Đặt biến trung gian (trước khi nén) <span class="math-inline">$u = \mu_\phi(s) + \sigma_\phi(s) \odot \xi$</span> và biến hành động sau khi nén <span class="math-inline">$a = a_\phi(s, \xi) = \tanh(u)$</span>.
+  <strong>Thế mọi chữ <span class="math-inline">$a$</span> trong hàm mất mát bằng hàm <span class="math-inline">$a_\phi(s, \xi)$</span></strong>, đồng thời chuyển kỳ vọng từ <span class="math-inline">$\mathbb{E}_{a \sim \pi_\phi}$</span> sang <span class="math-inline">$\mathbb{E}_{\xi \sim \mathcal{N}(0, I)}$</span> (không còn phụ thuộc vào <span class="math-inline">$\phi$</span>!):
+  <div class="math-block">$$J_\pi(\phi) = \mathbb{E}_{s \sim \mathcal{D},\, \xi \sim \mathcal{N}(0, I)}\Big[\alpha \log \pi_\phi\big(\underbrace{a_\phi(s, \xi)}_{\text{Thế cho }a}\mid s\big) - Q_\theta\big(s, \underbrace{a_\phi(s, \xi)}_{\text{Thế cho }a}\big)\Big]$$</div>
+  Nhờ phép thế này, <span class="math-inline">$\nabla_\phi Q_\theta(s, a_\phi(s, \xi)) = \nabla_a Q_\theta(s, a)\big|_{a=a_\phi} \cdot \nabla_\phi a_\phi(s, \xi)$</span> truyền thẳng đạo hàm từ Critic xuyên qua hành động <span class="math-inline">$a$</span> về mạng Actor <span class="math-inline">$\phi$</span>!</p>
+</li>
+<li>
+<p><strong>Bước 3 (Phép thế Đổi biến Mật độ Xác suất qua hàm <span class="math-inline">$a = \tanh(u)$</span>):</strong>
+  Theo định lý đổi biến xác suất với ánh xạ khả nghịch <span class="math-inline">$a = \tanh(u)$</span>, mật độ của <span class="math-inline">$a$</span> liên hệ với mật độ Gauss <span class="math-inline">$\mu(u\mid s)$</span> qua định thức ma trận Jacobian:
+  <div class="math-block">$$\pi_\phi(a\mid s) = \mu(u\mid s) \cdot \left|\det \left(\frac{\partial u}{\partial a}\right)\right| = \mu(u\mid s) \cdot \left|\det \left(\frac{\partial a}{\partial u}\right)\right|^{-1}$$</div>
+  Vì hàm <span class="math-inline">$\tanh$</span> tác động theo từng chiều độc lập nên ma trận Jacobian <span class="math-inline">$\frac{\partial a}{\partial u} = \operatorname{diag}\big(1 - \tanh^2(u_1), \dots, 1 - \tanh^2(u_D)\big)$</span> là ma trận đường chéo có định thức bằng tích đường chéo <span class="math-inline">$\prod_{i=1}^D (1 - \tanh^2(u_i))$</span>. Đem thế vào và lấy <span class="math-inline">$\log$</span> hai vế:
+  <div class="math-block">$$\log \pi_\phi(a\mid s) = \log \mu(u\mid s) - \sum_{i=1}^D \log\big(1 - \tanh^2(u_i)\big)$$</div></p>
+</li>
+</ul>
+</blockquote>
+<h4 id="c-tu-ong-ieu-chinh-he-so-entropy-inlinemathplaceholder149end-dual-gradient-descent">(c) Tự động điều chỉnh hệ số Entropy <span class="math-inline">$\alpha$</span> (Dual Gradient Descent)<a class="headerlink" href="#c-tu-ong-ieu-chinh-he-so-entropy-inlinemathplaceholder149end-dual-gradient-descent" title="Liên kết tới mục này">&para;</a></h4>
+<p>Thay vì cố định <span class="math-inline">$\alpha$</span>, ràng buộc entropy kỳ vọng không nhỏ hơn ngưỡng <span class="math-inline">$\bar{\mathcal H}$</span> (thường chọn <span class="math-inline">$\bar{\mathcal H} = -\dim(\mathcal A)$</span>):
+<div class="math-block">$$J(\alpha) = \mathbb E_{s \sim \mathcal D, a \sim \pi_\phi}\Big[-\alpha \log \pi_\phi(a \mid s) - \alpha \bar{\mathcal H}\Big]$$</div></p>
+<hr />
+<h2 id="2-bat-chuoc-imitation-learning-hoc-tang-cuong-nghich-ao-inverse-rl">2. Bắt chước (Imitation Learning) &amp; Học tăng cường nghịch đảo (Inverse RL)<a class="headerlink" href="#2-bat-chuoc-imitation-learning-hoc-tang-cuong-nghich-ao-inverse-rl" title="Liên kết tới mục này">&para;</a></h2>
+<p>Khi phần thưởng quá khó để thiết kế thủ công, ta học từ tập quỹ đạo mẫu của chuyên gia <span class="math-inline">$\mathcal D^* = \{\tau_1^*, \dots, \tau_N^*\}$</span>.</p>
+<pre><code>Imitation Learning
+├── Behavioral Cloning (Học có giám sát: s → a*)
+│    └── Khuyết điểm: Lệch phân phối tích luỹ O(εT²)
+├── DAgger (Dataset Aggregation: Hỏi chuyên gia ở trạng thái mới)
+│    └── Ưu điểm: Sai số co về O(εT)
+└── Inverse Reinforcement Learning (Tìm hàm Reward ngầm R)
+     ├── MaxEnt IRL (So khớp tần suất ghé thăm trạng thái)
+     └── GAIL (GAN + RL: Discriminator phân biệt Expert vs Agent)
+</code></pre>
+<h3 id="21-lech-phan-phoi-trong-behavioral-cloning-covariate-shift">2.1 Lệch phân phối trong Behavioral Cloning (Covariate Shift)<a class="headerlink" href="#21-lech-phan-phoi-trong-behavioral-cloning-covariate-shift" title="Liên kết tới mục này">&para;</a></h3>
+<p>Behavioral Cloning (BC) huấn luyện policy bằng hồi quy / phân loại có giám sát: <span class="math-inline">$\min_\theta \mathbb E_{(s, a)\sim \mathcal D^*}[\mathcal L(\pi_\theta(s), a)]$</span>.
+Nếu xác suất mắc lỗi tại mỗi bước là <span class="math-inline">$\epsilon$</span>:</p>
+<ol>
+<li>Bước đầu tiên agent lệch nhẹ khỏi quỹ đạo chuyên gia.</li>
+<li>Trạng thái kế tiếp <span class="math-inline">$s_1$</span> nằm ngoài phân phối huấn luyện <span class="math-inline">$\mathcal D^*$</span>.</li>
+<li>Sai số tại các bước tiếp theo bùng nổ dây chuyền.
+<div class="math-block">$$\mathbb E\big[\text{Tổng số lỗi}\big] \le \epsilon T + \epsilon (1-\epsilon) (T-1) + \dots \implies \mathcal O(\epsilon T^2)$$</div></li>
+</ol>
+<h3 id="22-thuat-toan-dagger-ross-et-al-2011">2.2 Thuật toán DAgger (Ross et al., 2011)<a class="headerlink" href="#22-thuat-toan-dagger-ross-et-al-2011" title="Liên kết tới mục này">&para;</a></h3>
+<p>Khắc phục covariate shift bằng cách <strong>cho chuyên gia dán nhãn lại các trạng thái mà agent tự đi vào</strong>:</p>
+<ol>
+<li>Huấn luyện <span class="math-inline">$\pi_1$</span> ban đầu bằng BC trên <span class="math-inline">$\mathcal D^*$</span>.</li>
+<li>Cho <span class="math-inline">$\pi_k$</span> chạy trên môi trường thực tế, thu thập tập trạng thái <span class="math-inline">$\{s_t\}$</span>.</li>
+<li>Yêu cầu chuyên gia cung cấp hành động chuẩn <span class="math-inline">$a_t^* = \pi^*(s_t)$</span> cho các trạng thái này.</li>
+<li>Gộp dữ liệu mới vào tập tích lũy: <span class="math-inline">$\mathcal D \leftarrow \mathcal D \cup \{(s_t, a_t^*)\}$</span>.</li>
+<li>Huấn luyện lại <span class="math-inline">$\pi_{k+1}$</span> trên <span class="math-inline">$\mathcal D$</span>.
+<strong>Kết quả lý thuyết</strong>: Kỳ vọng sai số giảm từ <span class="math-inline">$\mathcal O(\epsilon T^2)$</span> xuống tuyến tính <span class="math-inline">$\mathcal O(\epsilon T)$</span>.</li>
+</ol>
+<hr />
+<h3 id="23-maximum-entropy-inverse-reinforcement-learning-ziebart-et-al-2008">2.3 Maximum Entropy Inverse Reinforcement Learning (Ziebart et al., 2008)<a class="headerlink" href="#23-maximum-entropy-inverse-reinforcement-learning-ziebart-et-al-2008" title="Liên kết tới mục này">&para;</a></h3>
+<p>IRL giả định chuyên gia hành động để tối đa hoá một hàm phần thưởng tuyến tính ngầm <span class="math-inline">$R_\theta(s) = \theta^\top \phi(s)$</span>.
+Xác suất một quỹ đạo tỉ lệ với phần thưởng tích luỹ (nguyên lý MaxEnt):
+<div class="math-block">$$p(\tau \mid \theta) = \frac{1}{Z(\theta)} \exp\big(R_\theta(\tau)\big) = \frac{1}{Z(\theta)} \exp\Big(\theta^\top \sum_{t=0}^T \phi(s_t)\Big)$$</div>
+Cực đại hoá log-likelihood của tập dữ liệu chuyên gia <span class="math-inline">$\mathcal D^*$</span>:
+<div class="math-block">$$\mathcal L(\theta) = \sum_{\tau^* \in \mathcal D^*} \log p(\tau^* \mid \theta) = \sum_{\tau^*} \theta^\top \Phi(\tau^*) - M \log Z(\theta)$$</div>
+Đạo hàm theo tham số <span class="math-inline">$\theta$</span>:
+<div class="math-block">$$\nabla_\theta \mathcal L(\theta) = \sum_{\tau^* \in \mathcal D^*} \Phi(\tau^*) - M \sum_\tau p(\tau \mid \theta) \Phi(\tau) = M \Big(\mathbb E_{\tau \sim \pi^*}\big[\Phi(\tau)\big] - \mathbb E_{\tau \sim \pi_\theta}\big[\Phi(\tau)\big]\Big)$$</div>
+<div class="math-block">$$\boxed{\nabla_\theta \mathcal L(\theta) = M \sum_{s} \big(\mu^*(s) - \mu_\theta(s)\big) \phi(s)}$$</div>
+trong đó <span class="math-inline">$\mu(s)$</span> là <strong>Tần suất ghé thăm trạng thái (State Visitation Frequency - SVF)</strong>. Gradient bằng 0 khi tần suất ghé thăm các đặc trưng trạng thái của agent trùng khít với chuyên gia.</p>
+<hr />
+<h3 id="24-gail-generative-adversarial-imitation-learning-ho-ermon-2016">2.4 GAIL: Generative Adversarial Imitation Learning (Ho &amp; Ermon, 2016)<a class="headerlink" href="#24-gail-generative-adversarial-imitation-learning-ho-ermon-2016" title="Liên kết tới mục này">&para;</a></h3>
+<p>GAIL bỏ qua bước giải bài toán RL nghịch đảo tốn kém để tìm reward, mà thiết lập một <strong>trò chơi Minimax kiểu GAN</strong>:</p>
+<p><div class="math-block">$$\min_\pi \max_{D \in (0, 1)} \mathbb E_{(s, a)\sim \pi^*}\big[\log D(s, a)\big] + \mathbb E_{(s, a)\sim \pi}\big[\log (1 - D(s, a))\big] - \lambda \mathcal H(\pi)$$</div></p>
+<ul>
+<li><strong>Discriminator <span class="math-inline">$D(s, a)$</span></strong>: Đóng vai trò bộ phân biệt — chấm điểm cao cho cặp <span class="math-inline">$(s, a)$</span> từ chuyên gia, điểm thấp cho agent.</li>
+<li><strong>Generator / Policy <span class="math-inline">$\pi(a \mid s)$</span></strong>: Tối ưu bằng PPO hoặc TRPO với phần thưởng nội tại:
+<div class="math-block">$$r_{GAIL}(s, a) = -\log\big(1 - D(s, a)\big)$$</div>
+Khi <span class="math-inline">$D$</span> không thể phân biệt nổi (<span class="math-inline">$D \to 0.5$</span>), phân phối chiếm dụng trạng thái–hành động <span class="math-inline">$\rho_\pi(s, a)$</span> tiệm cận hoàn toàn phân phối của chuyên gia <span class="math-inline">$\rho_{\pi^*}(s, a)$</span>.</li>
+</ul>
+<hr />
+<h2 id="3-cac-co-che-kham-pha-nang-cao-advanced-exploration">3. Các cơ chế khám phá nâng cao (Advanced Exploration)<a class="headerlink" href="#3-cac-co-che-kham-pha-nang-cao-advanced-exploration" title="Liên kết tới mục này">&para;</a></h2>
+<p>Trong các môi trường phần thưởng cực thưa (sparse reward) như game giải đố Montezuma's Revenge hay Pitfall, thuật toán truyền thống không bao giờ tình cờ tìm thấy điểm thưởng. Ta bổ sung <strong>phần thưởng nội tại (intrinsic reward)</strong>:
+<div class="math-block">$$r_t^{total} = r_t^{ext} + \beta\, r_t^{int}$$</div></p>
+<pre><code>Cơ chế Khám phá (Exploration)
+├── Count-based &amp; Density Models (Ghé thăm ít → Thưởng nhiều)
+│    └── r_int ∝ 1 / √(N(s))
+├── Curiosity / ICM (Tò mò dựa trên sai số dự đoán động học)
+│    └── Loại bỏ nhiễu &quot;Noisy TV&quot; qua Inverse Dynamic Features
+└── RND (Random Network Distillation)
+     └── Sai số giữa mạng cố định và mạng học → Đơn giản, cực kỳ hiệu quả
+</code></pre>
+<h3 id="31-intrinsic-curiosity-module-icm-pathak-et-al-2017">3.1 Intrinsic Curiosity Module (ICM - Pathak et al., 2017)<a class="headerlink" href="#31-intrinsic-curiosity-module-icm-pathak-et-al-2017" title="Liên kết tới mục này">&para;</a></h3>
+<p>Nếu chỉ dùng mạng dự đoán trạng thái kế tiếp thô <span class="math-inline">$\hat{s}_{t+1} = f(s_t, a_t)$</span>, agent sẽ bị "nghiện" đứng nhìn màn hình tivi nhiễu hạt ngẫu nhiên (<strong>Noisy TV problem</strong>) vì nhiễu ngẫu nhiên không thể dự đoán, tạo ra lỗi dự đoán vĩnh viễn cao.</p>
+<p>ICM giải quyết triệt để vấn đề này bằng cách chiếu trạng thái vào không gian đặc trưng <span class="math-inline">$\phi(s)$</span> chỉ giữ lại thông tin <strong>mà hành động của agent có thể tác động</strong>:</p>
+<ol>
+<li>
+<p><strong>Inverse Dynamic Model</strong>: Dự đoán hành động đã thực hiện từ hai trạng thái liên tiếp:
+   <div class="math-block">$$\hat{a}_t = g\big(\phi(s_t), \phi(s_{t+1})\big),\qquad \min \mathcal L_{inv}(\hat{a}_t, a_t)$$</div></p>
+</li>
+<li>
+<p><strong>Forward Dynamic Model</strong>: Dự đoán đặc trưng trạng thái kế tiếp trong không gian <span class="math-inline">$\phi$</span>:
+   <div class="math-block">$$\hat{\phi}(s_{t+1}) = f\big(\phi(s_t), a_t\big),\qquad \mathcal L_{forw} = \frac{1}{2}\big\|\hat{\phi}(s_{t+1}) - \phi(s_{t+1})\big\|_2^2$$</div></p>
+</li>
+<li>
+<p>Phần thưởng tò mò:
+   <div class="math-block">$$\boxed{r_t^{int} = \frac{\eta}{2}\big\|\hat{\phi}(s_{t+1}) - \phi(s_{t+1})\big\|_2^2}$$</div></p>
+</li>
+</ol>
+<hr />
+<h3 id="32-random-network-distillation-rnd-burda-et-al-2018">3.2 Random Network Distillation (RND - Burda et al., 2018)<a class="headerlink" href="#32-random-network-distillation-rnd-burda-et-al-2018" title="Liên kết tới mục này">&para;</a></h3>
+<p>RND là bước đột phá đưa PPO lần đầu tiên vượt qua màn 1 của <em>Montezuma's Revenge</em> mà không cần dữ liệu chuyên gia.
+Cơ chế gồm 2 mạng nơ-ron:</p>
+<ol>
+<li><strong>Target Network <span class="math-inline">$f(s)$</span></strong>: Khởi tạo ngẫu nhiên, <strong>đóng băng trọng số vĩnh viễn</strong>.</li>
+<li><strong>Predictor Network <span class="math-inline">$\hat{f}_\theta(s)$</span></strong>: Huấn luyện liên tục để dự đoán đầu ra của mạng Target:
+   <div class="math-block">$$\min_\theta \big\|\hat{f}_\theta(s) - f(s)\big\|_2^2$$</div></li>
+</ol>
+<p>Phần thưởng nội tại:
+<div class="math-block">$$\boxed{r_t^{int} = \big\|\hat{f}_\theta(s_t) - f(s_t)\big\|_2^2}$$</div></p>
+<ul>
+<li><strong>Logic toán học</strong>: </li>
+<li>Ở các trạng thái quen thuộc (được thăm nhiều lần), <span class="math-inline">$\hat{f}_\theta$</span> đã được tối ưu để khớp với <span class="math-inline">$f$</span>, sai số MSE <span class="math-inline">$\to 0$</span>.</li>
+<li>Ở các trạng thái mới lạ, <span class="math-inline">$\hat{f}_\theta$</span> chưa từng thấy nên dự đoán sai lệch lớn so với <span class="math-inline">$f$</span>, sai số MSE cao <span class="math-inline">$\to$</span> thưởng lớn.</li>
+<li>Vì target <span class="math-inline">$f(s)$</span> là hàm tất định cố định (deterministic), không có tính ngẫu nhiên, nên hoàn toàn miễn nhiễm với bài toán Noisy TV.</li>
+</ul>
+<blockquote class="callout callout-logic">
+<p>💡 <strong>Bản chất Logic &amp; Mục đích ra đời (Thay thế/Sửa đổi cái gì?)</strong>:</p>
+<ul>
+<li><strong>Thay thế thành phần nào</strong>: Thay thế cơ chế tạo tò mò dựa trên sai số dự đoán động học của Intrinsic Curiosity Module (ICM).</li>
+<li><strong>Khuyết điểm của phương pháp cũ</strong>: Vấn nạn <strong>"Tivi nhiễu hạt" (Noisy TV Problem)</strong>. Nếu môi trường có một chiếc màn hình tivi phát nhiễu ngẫu nhiên không thể đoán trước, mạng dự đoán động học liên tục ghi nhận sai số khổng lồ, khiến agent bị "thôi miên", đứng nhìn tivi mãi mãi vì tưởng rằng đó là vùng đất mới lạ cần khám phá.</li>
+<li><strong>Logic thiết kế toán học</strong>: Sử dụng một mạng mục tiêu cố định <span class="math-inline">$f(s)$</span> được khởi tạo ngẫu nhiên và <strong>đóng băng vĩnh viễn trọng số</strong>, cùng một mạng dự đoán <span class="math-inline">$\hat f_\theta(s)$</span> học cách bắt chước đầu ra của mạng mục tiêu.</li>
+<li><strong>Cơ chế giải quyết</strong>: Trạng thái nào đã ghé thăm nhiều lần thì <span class="math-inline">$\hat f_\theta$</span> sẽ chưng cất thành công <span class="math-inline">$\implies r^{int} \to 0$</span>. Chiếc tivi phát nhiễu dù ngẫu nhiên nhưng các trạng thái ảnh của nó khi qua <span class="math-inline">$f(s)$</span> sẽ dần được <span class="math-inline">$\hat f_\theta$</span> khớp dữ liệu, triệt tiêu ảo giác tò mò và giải quyết hoàn toàn bài toán Sparse Reward (như game kinh điển Montezuma's Revenge).</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="4-meta-learning-transfer-learning-trong-rl">4. Meta-Learning &amp; Transfer Learning trong RL<a class="headerlink" href="#4-meta-learning-transfer-learning-trong-rl" title="Liên kết tới mục này">&para;</a></h2>
+<p>Mục tiêu của Meta-RL là học một thuật toán học tăng cường nhanh: huấn luyện trên phân phối các bài toán <span class="math-inline">$\mathcal T \sim p(\mathcal T)$</span> sao cho khi đối mặt với một môi trường mới, agent thích nghi chỉ sau 1 đến vài episode.</p>
+<h3 id="41-rl2-fast-reinforcement-learning-via-slow-reinforcement-learning-duan-et-al-wang-et-al-2016">4.1 RL²: Fast Reinforcement Learning via Slow Reinforcement Learning (Duan et al., Wang et al., 2016)<a class="headerlink" href="#41-rl2-fast-reinforcement-learning-via-slow-reinforcement-learning-duan-et-al-wang-et-al-2016" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li>Biến thuật toán RL thành một mạng hồi quy (RNN / LSTM / GRU).</li>
+<li>
+<p>Đầu vào của RNN tại mỗi bước chứa cả lịch sử đầy đủ:
+  <div class="math-block">$$x_t = (s_t, a_{t-1}, r_{t-1}, d_{t-1})$$</div></p>
+</li>
+<li>
+<p>Trọng số của RNN được cố định sau khi huấn luyện (gọi là "Slow learning").</p>
+</li>
+<li>Ẩn số trạng thái (hidden state <span class="math-inline">$h_t$</span>) của RNN đóng vai trò như một <strong>bộ nhớ đệm</strong>, tự động chạy thuật toán học tăng cường trong nội bộ ("Fast learning") mà không cần tính đạo hàm gradient khi inference.</li>
+</ul>
+<hr />
+<h3 id="42-maml-for-rl-model-agnostic-meta-learning-finn-et-al-2017">4.2 MAML for RL (Model-Agnostic Meta-Learning - Finn et al., 2017)<a class="headerlink" href="#42-maml-for-rl-model-agnostic-meta-learning-finn-et-al-2017" title="Liên kết tới mục này">&para;</a></h3>
+<p>Tìm bộ trọng số khởi tạo ban đầu <span class="math-inline">$\theta$</span> sao cho chỉ cần 1 bước cập nhật Policy Gradient trên bài toán mới <span class="math-inline">$\mathcal T_i$</span>:
+<div class="math-block">$$\theta_i&#x27; = \theta + \alpha \nabla_\theta J_{\mathcal T_i}(\pi_\theta)$$</div>
+thì policy <span class="math-inline">$\pi_{\theta_i&#x27;}$</span> đạt hiệu năng tối đa trên bài toán đó:</p>
+<p><div class="math-block">$$\max_\theta \sum_{\mathcal T_i \sim p(\mathcal T)} J_{\mathcal T_i}\big(\pi_{\theta_i&#x27;}\big) = \sum_{\mathcal T_i} J_{\mathcal T_i}\Big(\pi_{\theta + \alpha \nabla_\theta J_{\mathcal T_i}(\pi_\theta)}\Big)$$</div></p>
+<p>Cập nhật meta-gradient (Gradient of Gradient - đạo hàm bậc 2 Hessian-vector product):
+<div class="math-block">$$\theta \leftarrow \theta + \beta \sum_{\mathcal T_i} \Big(I + \alpha \nabla_\theta^2 J_{\mathcal T_i}(\theta)\Big) \nabla_{\theta_i&#x27;} J_{\mathcal T_i}(\theta_i&#x27;)$$</div></p>
+<hr />
+<h2 id="5-mcts-alphago-zero-alphazero-silver-et-al-deepmind">5. MCTS, AlphaGo Zero &amp; AlphaZero (Silver et al. - DeepMind)<a class="headerlink" href="#5-mcts-alphago-zero-alphazero-silver-et-al-deepmind" title="Liên kết tới mục này">&para;</a></h2>
+<p>AlphaGo Zero loại bỏ toàn bộ dữ liệu ván cờ của con người, tự chơi với chính mình từ con số không (Tabula Rasa) và đánh bại nhà vô địch thế giới.</p>
+<pre><code>       Chu trình Self-Play của AlphaGo Zero
+   ┌──────────────────────────────────────────┐
+   │ Trạng thái bàn cờ s                      │
+   │    │                                     │
+   │    ▼                                     │
+   │ MCTS Search (Nhiều mô phỏng ngầm)       │
+   │    │                                     │
+   │    ▼                                     │
+   │ Phân phối thăm dò π (Hành động cải thiện) │
+   │    │                                     │
+   │    ▼ Chọn nước đi a ~ π                  │
+   │ Chơi đến hết ván → Kết quả z ∈ {+1, -1}  │
+   │    │                                     │
+   │    ▼                                     │
+   │ Huấn luyện mạng nơ-ron: (p, v) = f_θ(s)  │
+   │    - Policy head p khớp với π             │
+   │    - Value head v khớp với z              │
+   └──────────────────────────────────────────┘
+</code></pre>
+<h3 id="51-kien-truc-mang-tich-hop-dual-headed-resnet">5.1 Kiến trúc mạng tích hợp (Dual-Headed ResNet)<a class="headerlink" href="#51-kien-truc-mang-tich-hop-dual-headed-resnet" title="Liên kết tới mục này">&para;</a></h3>
+<p>Một mạng tích chập sâu (ResNet 20 hoặc 40 blocks) nhận đầu vào là trạng thái bàn cờ <span class="math-inline">$s$</span>, dự đoán đồng thời hai đầu ra:
+<div class="math-block">$$(\mathbf p, v) = f_\theta(s)$$</div></p>
+<ul>
+<li><span class="math-inline">$\mathbf p = \Pr(a \mid s)$</span>: Vector xác suất ưu tiên cho các nước đi hợp lệ (Policy head).</li>
+<li><span class="math-inline">$v \in [-1, 1]$</span>: Dự đoán xác suất người chơi hiện tại sẽ thắng (Value head).</li>
+</ul>
+<hr />
+<h3 id="52-thuat-toan-mcts-co-mang-no-ron-dan-huong-puct">5.2 Thuật toán MCTS có mạng nơ-ron dẫn hướng (PUCT)<a class="headerlink" href="#52-thuat-toan-mcts-co-mang-no-ron-dan-huong-puct" title="Liên kết tới mục này">&para;</a></h3>
+<p>Tại mỗi trạng thái <span class="math-inline">$s$</span>, thuật toán thực hiện hàng nghìn lượt mô phỏng cây (simulation). Mỗi cạnh <span class="math-inline">$(s, a)$</span> lưu trữ:
+<span class="math-inline">$\{N(s, a): \text{số lần ghé thăm},\ W(s, a): \text{tổng giá trị},\ Q(s, a) = W/N,\ P(s, a): \text{tiền nghiệm từ mạng}\}$</span>.</p>
+<p>Bốn pha của MCTS:</p>
+<ol>
+<li><strong>Selection (Chọn nhánh)</strong>: Đi từ gốc xuống lá, tại mỗi nút chọn hành động theo công thức biến thể UCB (PUCT):
+   <div class="math-block">$$\boxed{a_t = \arg\max_a \Big[ Q(s, a) + U(s, a) \Big] = \arg\max_a \Big[ Q(s, a) + c_{puct}\, P(s, a) \frac{\sqrt{\sum_b N(s, b)}}{1 + N(s, a)} \Big]}$$</div></li>
+</ol>
+<ul>
+<li>Giai đoạn đầu (<span class="math-inline">$N$</span> nhỏ): <span class="math-inline">$U(s, a)$</span> chiếm ưu thế <span class="math-inline">$\to$</span> ưu tiên nước đi mạng nơ-ron gợi ý <span class="math-inline">$P(s, a)$</span>.</li>
+<li>Giai đoạn sau (<span class="math-inline">$N$</span> lớn): <span class="math-inline">$Q(s, a)$</span> chiếm ưu thế <span class="math-inline">$\to$</span> chọn nước đi đã chứng minh bằng mô phỏng là tốt.</li>
+</ul>
+<blockquote class="callout callout-logic">
+<p>💡 <strong>Bản chất Logic &amp; Mục đích ra đời (Thay thế/Sửa đổi cái gì?)</strong>:</p>
+<ul>
+<li><strong>Thay thế thành phần nào</strong>: Thay thế thuật toán Minimax Alpha-Beta Pruning và UCT truyền thống (dùng mô phỏng ngẫu nhiên rollout ngẫu nhiên).</li>
+<li><strong>Khuyết điểm của phương pháp cũ</strong>: Không gian trạng thái cờ vây quá khổng lồ (<span class="math-inline">$10^{170}$</span> trạng thái, phân nhánh <span class="math-inline">$b \approx 250$</span>). Minimax chỉ nhìn được vài bước, còn rollout ngẫu nhiên trong UCT không có chiều sâu chiến thuật vì các nước đi ngẫu nhiên hoàn toàn phi lý.</li>
+<li><strong>Logic thiết kế toán học</strong>: Tích hợp mạng nơ-ron hai đầu (Policy <span class="math-inline">$\mathbf p$</span> và Value <span class="math-inline">$v$</span>) vào cây MCTS. Thay thế việc mô phỏng ngẫu nhiên bằng giá trị dự đoán tức thì <span class="math-inline">$v(s)$</span>, và dùng xác suất tiên nghiệm <span class="math-inline">$P(s, a)$</span> từ mạng policy để định hướng tìm kiếm PUCT.</li>
+<li><strong>Cơ chế giải quyết</strong>: MCTS đóng vai trò như một <strong>bộ khuếch đại chính sách (Policy Improvement Operator)</strong>: phân phối lượt thăm nom <span class="math-inline">$N(s, a)$</span> sau khi tìm kiếm là một chính sách mạnh hơn nhiều so với policy gốc <span class="math-inline">$\mathbf p(s)$</span>. Mạng nơ-ron sau đó học lại chính phân phối MCTS này trong vòng lặp Self-play để đạt tới trình độ siêu phàm không cần tri thức con người.</li>
+</ul>
+</blockquote>
+<ol start="2">
+<li><strong>Expansion &amp; Evaluation (Mở rộng &amp; Đánh giá)</strong>: Khi gặp nút lá chưa có trên cây, gọi mạng <span class="math-inline">$f_\theta(s_{leaf}) \to (\mathbf p, v)$</span>. Gán <span class="math-inline">$P(s_{leaf}, \cdot) = \mathbf p$</span>.</li>
+<li><strong>Backup (Cập nhật ngược)</strong>: Lan truyền giá trị <span class="math-inline">$v$</span> ngược lên toàn bộ các nút cha dọc theo đường đã đi:
+   <div class="math-block">$$N(s, a) \leftarrow N(s, a) + 1,\qquad W(s, a) \leftarrow W(s, a) + v,\qquad Q(s, a) \leftarrow \frac{W(s, a)}{N(s, a)}$$</div></li>
+</ol>
+<hr />
+<h3 id="53-lay-mau-hanh-ong-va-ham-mat-mat-self-play">5.3 Lấy mẫu hành động và Hàm mất mát Self-Play<a class="headerlink" href="#53-lay-mau-hanh-ong-va-ham-mat-mat-self-play" title="Liên kết tới mục này">&para;</a></h3>
+<p>Sau khi hoàn thành mô phỏng MCTS, phân phối hành động cải thiện <span class="math-inline">$\mathbf \pi$</span> được tính từ tần suất ghé thăm của các nhánh:
+<div class="math-block">$$\pi(a \mid s) = \frac{N(s, a)^{1/\tau}}{\sum_b N(s, b)^{1/\tau}}$$</div>
+(với <span class="math-inline">$\tau = 1$</span> ở 30 nước đầu để tăng khám phá, sau đó <span class="math-inline">$\tau \to 0$</span> để chọn nước đi có <span class="math-inline">$N$</span> cao nhất).</p>
+<p>Hàm mất mát toàn cục huấn luyện mạng <span class="math-inline">$f_\theta$</span>:
+<div class="math-block">$$\boxed{\mathcal L(\theta) = (z - v)^2 - \mathbf \pi^\top \log \mathbf p + c \|\theta\|_2^2}$$</div></p>
+<ul>
+<li><span class="math-inline">$(z - v)^2$</span>: Sai số MSE giữa giá trị dự đoán <span class="math-inline">$v$</span> và kết quả thắng/thua thực tế của ván đấu <span class="math-inline">$z \in \{+1, -1\}$</span>.</li>
+<li><span class="math-inline">$-\mathbf \pi^\top \log \mathbf p$</span>: Cross-entropy loss ép vector ưu tiên của mạng <span class="math-inline">$\mathbf p$</span> tiến dần về chính sách đã được MCTS cải thiện <span class="math-inline">$\mathbf \pi$</span>.</li>
+<li><span class="math-inline">$c\|\theta\|^2$</span>: L2 regularization chống overfitting.</li>
+</ul>
+<hr />
+<h2 id="6-openai-five-he-thong-rl-phan-tan-quy-mo-lon">6. OpenAI Five &amp; Hệ thống RL phân tán quy mô lớn<a class="headerlink" href="#6-openai-five-he-thong-rl-phan-tan-quy-mo-lon" title="Liên kết tới mục này">&para;</a></h2>
+<p>OpenAI Five là hệ thống AI đầu tiên đánh bại các nhà vô địch thế giới bộ môn thể thao điện tử Dota 2 (vào tháng 4 năm 2019). Đây là môi trường cực kỳ khắc nghiệt: không gian quan sát liên tục ~20,000 chiều, không gian hành động phân cấp khổng lồ, thời gian chơi ~45 phút (≈90,000 frames) và thông tin không hoàn hảo.</p>
+<h3 id="61-kien-truc-huan-luyen-rapid-framework">6.1 Kiến trúc huấn luyện (Rapid Framework)<a class="headerlink" href="#61-kien-truc-huan-luyen-rapid-framework" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li><strong>Quy mô tính toán</strong>: Chạy PPO phân tán trên 256 GPU P100 và 128,000 nhân CPU.</li>
+<li>Mỗi ngày hệ thống tích luỹ được lượng kinh nghiệm tương đương <strong>180 năm chơi game của con người</strong>.</li>
+<li>Mô hình dùng mạng nơ-ron khổng lồ với lõi là một tầng LSTM 1024 đơn vị ẩn để ghi nhớ lịch sử dài hạn.</li>
+</ul>
+<h3 id="62-ky-thuat-team-spirit-chia-se-phan-thuong-ong-oi">6.2 Kỹ thuật Team Spirit (Chia sẻ phần thưởng đồng đội)<a class="headerlink" href="#62-ky-thuat-team-spirit-chia-se-phan-thuong-ong-oi" title="Liên kết tới mục này">&para;</a></h3>
+<p>Dota 2 là game phối hợp 5 đấu 5. Nếu mỗi agent chỉ tối ưu phần thưởng cá nhân <span class="math-inline">$r_{ind}$</span>, các người chơi sẽ tranh giành tài nguyên (farm lính).
+Định nghĩa phần thưởng tổng hợp thông qua tham số <span class="math-inline">$\tau \in [0, 1]$</span>:
+<div class="math-block">$$r_i(t) = (1 - \tau) r_{ind, i}(t) + \tau\, \bar{r}_{team}(t),\qquad \bar{r}_{team}(t) = \frac{1}{5}\sum_{j=1}^5 r_{ind, j}(t)$$</div>
+Trong suốt quá trình huấn luyện hàng tháng trời, <span class="math-inline">$\tau$</span> được tăng dần từ <span class="math-inline">$0$</span> (tập trung học kỹ năng cá nhân như di chuyển, ăn lính) lên <span class="math-inline">$1$</span> (hoàn toàn hy sinh vì chiến thắng chung của đội).</p>
+<h3 id="63-phau-thuat-mang-no-ron-surgical-surgery">6.3 Phẫu thuật mạng nơ-ron (Surgical Surgery)<a class="headerlink" href="#63-phau-thuat-mang-no-ron-surgical-surgery" title="Liên kết tới mục này">&para;</a></h3>
+<p>Khi cập nhật phiên bản game hoặc thêm tính năng (thêm tướng, mở rộng item), kích thước vector quan sát và hành động bị thay đổi. Nếu huấn luyện lại từ đầu sẽ mất hàng tháng trời.
+OpenAI phát triển kỹ thuật <strong>phẫu thuật trọng số</strong>:</p>
+<ul>
+<li>Mở rộng ma trận trọng số của lớp Linear: các hàng/cột mới được khởi tạo sao cho giá trị đầu ra ban đầu bằng 0, không ảnh hưởng đến các đặc trưng đã học.</li>
+<li>Cập nhật và tiếp tục huấn luyện mà không làm suy giảm hiệu năng hiện có.</li>
+</ul>
+<hr />
+<h2 id="7-cau-noi-hien-ai-reinforcement-learning-from-human-feedback-rlhf">7. Cầu nối hiện đại: Reinforcement Learning from Human Feedback (RLHF)<a class="headerlink" href="#7-cau-noi-hien-ai-reinforcement-learning-from-human-feedback-rlhf" title="Liên kết tới mục này">&para;</a></h2>
+<p>Thuật toán PPO (được học tại <a href="../Week5/BAI_GIANG.html">Week 5</a>) chính là xương sống của công nghệ căn chỉnh mô hình ngôn ngữ lớn (LLM Alignment như InstructGPT, ChatGPT, Claude).</p>
+<pre><code>               Quy trình RLHF kinh điển
+┌─────────────────────────────────────────────────────────┐
+│ 1. Pretraining LLM (Mô hình ngôn ngữ ban đầu π_init)    │
+│    │                                                    │
+│ 2. Reward Modeling (Huấn luyện r_ψ từ phản hồi người)   │
+│    │  min -E[log σ(r_ψ(x, y_win) - r_ψ(x, y_lose))]     │
+│    │                                                    │
+│ 3. PPO Fine-Tuning:                                     │
+│    max E [ r_ψ(x, y) - β D_KL(π_θ(y|x) || π_init(y|x)) ]│
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<p>Mục tiêu huấn luyện của giai đoạn 3 chính là biến thể <strong>Maximum Entropy PPO</strong>:
+<div class="math-block">$$\max_\theta \mathbb E_{x \sim \mathcal D, y \sim \pi_\theta(\cdot \mid x)}\Big[r_\psi(x, y) - \beta\, D_{KL}\big(\pi_\theta(y \mid x) \parallel \pi_{init}(y \mid x)\big)\Big]$$</div></p>
+<ul>
+<li><strong>Giải thích ký hiệu</strong>:</li>
+<li><span class="math-inline">$x$</span>: Câu lệnh gợi ý đầu vào (Prompt context).</li>
+<li><span class="math-inline">$y$</span>: Chuỗi token câu trả lời do mô hình sinh ra.</li>
+<li><span class="math-inline">$r_\psi(x, y)$</span>: Điểm số phần thưởng do mạng Reward Model chấm.</li>
+<li><span class="math-inline">$\pi_{init}$</span>: Mô hình ngôn ngữ gốc sau giai đoạn Supervised Fine-Tuning (SFT).</li>
+<li>
+<p><span class="math-inline">$\beta &gt; 0$</span>: Hệ số phạt phân kỳ KL chống "hack reward".</p>
+</li>
+<li>
+<p><strong>Chứng minh toán học: Nghiệm tối ưu giải tích đóng (Closed-Form Solution &amp; Tiền đề DPO)</strong>:
+  Với mỗi prompt <span class="math-inline">$x$</span> cố định, ta giải bài toán cực đại hoá hàm mục tiêu theo phân phối <span class="math-inline">$\pi(y \mid x)$</span>:
+  <div class="math-block">$$\max_\pi \sum_y \pi(y \mid x) r_\psi(x, y) - \beta \sum_y \pi(y \mid x) \ln \frac{\pi(y \mid x)}{\pi_{init}(y \mid x)}$$</div>
+  Nhóm các số hạng theo thừa số chung <span class="math-inline">$-\beta$</span>:
+  <div class="math-block">$$\begin{aligned}
+  &amp;= -\beta \sum_y \pi(y \mid x) \left[ \ln \frac{\pi(y \mid x)}{\pi_{init}(y \mid x)} - \frac{1}{\beta} r_\psi(x, y) \right] \\
+  &amp;= -\beta \sum_y \pi(y \mid x) \ln \left( \frac{\pi(y \mid x)}{\pi_{init}(y \mid x) \exp\big(\frac{1}{\beta} r_\psi(x, y)\big)} \right)
+  \end{aligned}$$</div>
+  Định nghĩa hàm phân phối tối ưu chuẩn hoá <span class="math-inline">$\pi^*(y \mid x)$</span> với hằng số chuẩn hoá <span class="math-inline">$Z(x) = \sum_y \pi_{init}(y \mid x) \exp\big(\frac{1}{\beta} r_\psi(x, y)\big)$</span>:
+  <div class="math-block">$$\pi^*(y \mid x) = \frac{1}{Z(x)} \pi_{init}(y \mid x) \exp\left( \frac{1}{\beta} r_\psi(x, y) \right)$$</div>
+  Thay vào biểu thức trên:
+  <div class="math-block">$$\begin{aligned}
+  &amp;= -\beta \sum_y \pi(y \mid x) \ln \left( \frac{\pi(y \mid x)}{Z(x) \pi^*(y \mid x)} \right) \\
+  &amp;= -\beta \sum_y \pi(y \mid x) \ln \frac{\pi(y \mid x)}{\pi^*(y \mid x)} + \beta \ln Z(x) \sum_y \pi(y \mid x) \\
+  &amp;= \beta \ln Z(x) - \beta D_{KL}\Big( \pi(y \mid x) \parallel \pi^*(y \mid x) \Big)
+  \end{aligned}$$</div>
+  Vì <span class="math-inline">$D_{KL}(p \parallel q) \ge 0$</span> và đạt cực tiểu bằng <span class="math-inline">$0$</span> khi và chỉ khi <span class="math-inline">$p = q$</span>, giá trị lớn nhất đạt được khi <span class="math-inline">$\pi(y \mid x) \equiv \pi^*(y \mid x)$</span>. Do đó nghiệm tối ưu đóng là:
+  <div class="math-block">$$\boxed{\pi^*(y \mid x) = \frac{1}{Z(x)} \pi_{init}(y \mid x) \exp\left( \frac{1}{\beta} r_\psi(x, y) \right)}$$</div></p>
+</li>
+<li>
+<p><strong>Ý nghĩa đột phá</strong>: Công thức này chứng minh rằng policy tối ưu trong RLHF có dạng phân phối Boltzmann gia quyền trên mô hình nền <span class="math-inline">$\pi_{init}$</span>. Đảo ngược công thức này để biểu diễn <span class="math-inline">$r(x, y)$</span> theo <span class="math-inline">$\ln \frac{\pi^*(y \mid x)}{\pi_{init}(y \mid x)}$</span> chính là nền tảng ra đời của thuật toán <strong>Direct Preference Optimization (DPO - Rafailov et al., 2023)</strong>, cho phép căn chỉnh LLM trực tiếp mà không cần huấn luyện mạng Reward Model riêng hay chạy PPO! <span class="math-inline">$\square$</span></p>
+</li>
+</ul>
+<blockquote class="callout callout-substitution">
+<p>💡 <strong>Bản chất Logic &amp; Mục đích ra đời (Thay thế/Sửa đổi cái gì?)</strong>:</p>
+<ul>
+<li><strong>Thay thế thành phần nào</strong>: Thay thế toàn bộ quy trình PPO-RLHF truyền thống gồm 4 mô hình (Actor <span class="math-inline">$\pi_\theta$</span>, Critic <span class="math-inline">$V_\phi$</span>, Reference Model <span class="math-inline">$\pi_{ref}$</span>, Reward Model <span class="math-inline">$r_\psi$</span>).</li>
+<li><strong>Khuyết điểm của phương pháp cũ</strong>: PPO-RLHF cực kỳ phức tạp và thiếu ổn định: phải huấn luyện riêng Reward Model, sau đó chạy vòng lặp tương tác Actor-Critic với hàng loạt siêu tham số nhạy cảm, dễ gặp hiện tượng Reward Hacking và sụp đổ phân phối từ ngữ.</li>
+<li>
+<p><strong>Logic thiết kế toán học</strong>: Xuất phát từ nghiệm đóng giải tích của bài toán cực đại phần thưởng có ràng buộc KL:
+  <div class="math-block">$$r(x, y) = \beta \ln \frac{\pi^*(y \mid x)}{\pi_{ref}(y \mid x)} + \beta \ln Z(x)$$</div>
+  Thay nghiệm đóng này trực tiếp vào mô hình xác suất Bradley-Terry lựa chọn của con người <span class="math-inline">$p(y_w \succ y_l \mid x) = \sigma\big(r(x, y_w) - r(x, y_l)\big)$</span>. Hằng số phân vùng <span class="math-inline">$Z(x)$</span> <strong>triệt tiêu hoàn toàn</strong>!</p>
+</li>
+<li>
+<p><strong>Cơ chế giải quyết</strong>: Biến toàn bộ bài toán Reinforcement Learning phức tạp thành bài toán <strong>Hồi quy Logistic / Binary Cross-Entropy có giám sát</strong> trực tiếp trên mô hình ngôn ngữ, loại bỏ hoàn toàn mạng Reward Model và mạng Critic, đơn giản hóa và tối ưu hóa vượt bậc quá trình căn chỉnh LLM.</p>
+</li>
+</ul>
+<p>🔄 <strong>Giải phẫu các bước thế hàm (Step-by-Step Function Substitution) — Chuỗi 3 phép thế biến RLHF thành DPO (Direct Preference Optimization):</strong></p>
+<ul>
+<li>
+<p><strong>Bước 1 (Cô lập hàm phần thưởng <span class="math-inline">$r(x,y)$</span> từ nghiệm đóng <span class="math-inline">$\pi^*(y\mid x)$</span>):</strong>
+  Từ phương trình nghiệm đóng vừa chứng minh ở trên:
+  <div class="math-block">$$\pi^*(y\mid x) = \frac{1}{Z(x)}\pi_{\text{init}}(y\mid x)\exp\left(\frac{1}{\beta}r(x, y)\right) \iff \frac{\pi^*(y\mid x)}{\pi_{\text{init}}(y\mid x)} = \frac{1}{Z(x)}\exp\left(\frac{1}{\beta}r(x, y)\right)$$</div>
+  Lấy logarit tự nhiên <span class="math-inline">$\ln(\cdot)$</span> hai vế rồi nhân với <span class="math-inline">$\beta$</span>, ta rút được hàm phần thưởng <span class="math-inline">$r(x,y)$</span> theo <span class="math-inline">$\pi^*$</span>:
+  <div class="math-block">$$\ln \frac{\pi^*(y\mid x)}{\pi_{\text{init}}(y\mid x)} = \frac{1}{\beta}r(x, y) - \ln Z(x) \implies \boxed{r(x, y) = \beta \ln \frac{\pi^*(y\mid x)}{\pi_{\text{init}}(y\mid x)} + \beta \ln Z(x)}$$</div>
+  <em>(Khó khăn lớn nhất ở đây là tổng phân hoạch <span class="math-inline">$Z(x) = \sum_{y \in \mathcal{V}^L} \pi_{\text{init}}(y\mid x)\exp(\frac{1}{\beta}r(x,y))$</span> chạy trên mọi câu trả lời khả dĩ của từ điển nên <strong>không thể tính được</strong>!)</em></p>
+</li>
+<li>
+<p><strong>Bước 2 (Viết hàm <span class="math-inline">$r(x,y)$</span> cho câu trả lời thắng <span class="math-inline">$y_w$</span> và câu trả lời thua <span class="math-inline">$y_l$</span> trên cùng một prompt <span class="math-inline">$x$</span>):</strong>
+  <div class="math-block">$$\begin{aligned}
+  (1)\;\; r(x, y_w) &amp;= \beta \ln \frac{\pi^*(y_w\mid x)}{\pi_{\text{init}}(y_w\mid x)} + \beta \ln Z(x) \\
+  (2)\;\; r(x, y_l) &amp;= \beta \ln \frac{\pi^*(y_l\mid x)}{\pi_{\text{init}}(y_l\mid x)} + \beta \ln Z(x)
+  \end{aligned}$$</div></p>
+</li>
+<li>
+<p><strong>Bước 3 (Thế (1) và (2) vào hiệu số <span class="math-inline">$r(x, y_w) - r(x, y_l)$</span> trong mô hình Bradley-Terry <span class="math-inline">$P(y_w \succ y_l \mid x) = \sigma\big(r(x, y_w) - r(x, y_l)\big)$</span>):</strong>
+  Vì cả <span class="math-inline">$y_w$</span> và <span class="math-inline">$y_l$</span> đều trả lời cho <strong>cùng một câu hỏi <span class="math-inline">$x$</span></strong>, nên số hạng <span class="math-inline">$\beta \ln Z(x)$</span> ở (1) và (2) <strong>giống hệt nhau và tự trừ nhau bằng <span class="math-inline">$0$</span></strong>:
+  <div class="math-block">$$r(x, y_w) - r(x, y_l) = \left(\beta \ln \frac{\pi^*(y_w\mid x)}{\pi_{\text{init}}(y_w\mid x)} + \cancel{\beta \ln Z(x)}\right) - \left(\beta \ln \frac{\pi^*(y_l\mid x)}{\pi_{\text{init}}(y_l\mid x)} + \cancel{\beta \ln Z(x)}\right) = \beta \ln \frac{\pi^*(y_w\mid x)}{\pi_{\text{init}}(y_w\mid x)} - \beta \ln \frac{\pi^*(y_l\mid x)}{\pi_{\text{init}}(y_l\mid x)}$$</div>
+  Thế hiệu số sạch bóng <span class="math-inline">$Z(x)$</span> này vào hàm Sigmoid <span class="math-inline">$\sigma(\cdot)$</span>, ta thu được ngay hàm mất mát <strong>DPO Loss</strong> chỉ phụ thuộc trực tiếp vào mạng ngôn ngữ <span class="math-inline">$\pi_\theta$</span>:
+  <div class="math-block">$$\mathcal{L}_{\text{DPO}}(\pi_\theta; \pi_{\text{init}}) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}}\left[\ln \sigma\left(\beta \ln \frac{\pi_\theta(y_w\mid x)}{\pi_{\text{init}}(y_w\mid x)} - \beta \ln \frac{\pi_\theta(y_l\mid x)}{\pi_{\text{init}}(y_l\mid x)}\right)\right]$$</div></p>
+</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="8-phan-tich-chuyen-sau-cac-tham-so-cot-loi-trong-cac-thuat-toan-nang-cao">8. Phân tích chuyên sâu các tham số cốt lõi trong các thuật toán nâng cao<a class="headerlink" href="#8-phan-tich-chuyen-sau-cac-tham-so-cot-loi-trong-cac-thuat-toan-nang-cao" title="Liên kết tới mục này">&para;</a></h2>
+<p>Các thuật toán tiên tiến nhất trong Deep RL được định hình bởi các tham số cân bằng giữa tính ngẫu nhiên, sự phối hợp đa tác tử, khả năng mở rộng quy mô và tính ổn định toán học:</p>
+<table>
+<thead>
+<tr>
+<th>Thuật toán</th>
+<th>Siêu tham số</th>
+<th>Ký hiệu Toán</th>
+<th>Vai trò &amp; Biểu thức chứa tham số</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SAC</strong></td>
+<td>Hệ số nhiệt độ entropy</td>
+<td><span class="math-inline">$\alpha$</span></td>
+<td>Cân bằng Reward vs Entropy: <span class="math-inline">$J(\pi) = \mathbb E[r + \alpha \mathcal H(\pi)]$</span></td>
+</tr>
+<tr>
+<td><strong>SAC</strong></td>
+<td>Entropy mục tiêu</td>
+<td><span class="math-inline">$\bar{\mathcal H}$</span></td>
+<td>Ngưỡng điều khiển Dual Gradient: <span class="math-inline">$\nabla_\alpha J(\alpha) = -\mathbb E[\log \pi + \bar{\mathcal H}]$</span></td>
+</tr>
+<tr>
+<td><strong>SAC</strong></td>
+<td>Hệ số cập nhật mềm</td>
+<td><span class="math-inline">$\tau$</span></td>
+<td>Polyak target update: <span class="math-inline">$\bar{\theta} \leftarrow (1-\tau)\bar{\theta} + \tau \theta$</span></td>
+</tr>
+<tr>
+<td><strong>ICM / RND</strong></td>
+<td>Trọng số phần thưởng tò mò</td>
+<td><span class="math-inline">$\beta$</span></td>
+<td>Tích hợp ngoại tại &amp; nội tại: <span class="math-inline">$r_t = r_t^{ext} + \beta r_t^{int}$</span></td>
+</tr>
+<tr>
+<td><strong>AlphaGo Zero</strong></td>
+<td>Hệ số khám phá PUCT</td>
+<td><span class="math-inline">$c_{puct}$</span></td>
+<td>Cân bằng Value vs Prior trong MCTS: <span class="math-inline">$Q(s, a) + c_{puct} P(s, a) \frac{\sqrt{\sum N}}{1 + N(s, a)}$</span></td>
+</tr>
+<tr>
+<td><strong>AlphaGo Zero</strong></td>
+<td>Nhiệt độ chọn nước đi</td>
+<td><span class="math-inline">$\tau_{mcts}$</span></td>
+<td>Làm phẳng/nhọn phân phối ghé thăm: <span class="math-inline">$\pi(a \mid s) \propto N(s, a)^{1/\tau_{mcts}}$</span></td>
+</tr>
+<tr>
+<td><strong>OpenAI Five</strong></td>
+<td>Hệ số Team Spirit</td>
+<td><span class="math-inline">$\tau_{team}$</span></td>
+<td>Cân bằng cá nhân &amp; đồng đội: <span class="math-inline">$r_i = (1-\tau_{team})r_{ind, i} + \tau_{team}\bar{r}_{team}$</span></td>
+</tr>
+<tr>
+<td><strong>RLHF</strong></td>
+<td>Hệ số phạt KL</td>
+<td><span class="math-inline">$\beta_{KL}$</span></td>
+<td>Chống Reward Hacking: <span class="math-inline">$\max \mathbb E[r_\psi(x, y) - \beta_{KL} D_{KL}(\pi_\theta \parallel \pi_{init})]$</span></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="81-nhom-soft-actor-critic-sac">8.1 Nhóm Soft Actor-Critic (SAC)<a class="headerlink" href="#81-nhom-soft-actor-critic-sac" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="1-he-so-nhiet-o-entropy-inlinemathplaceholder304end-entropy-temperature">1. Hệ số nhiệt độ entropy <span class="math-inline">$\alpha$</span> (Entropy Temperature)<a class="headerlink" href="#1-he-so-nhiet-o-entropy-inlinemathplaceholder304end-entropy-temperature" title="Liên kết tới mục này">&para;</a></h4>
+<p><span class="math-inline">$\alpha$</span> xuất hiện đồng thời trong 3 phương trình cốt lõi của SAC:</p>
+<ul>
+<li><strong>Hàm mục tiêu toàn cục</strong>: <span class="math-inline">$J(\pi) = \sum_t \mathbb E\big[r(s_t, a_t) + \alpha \mathcal H(\pi(\cdot \mid s_t))\big]$</span>.</li>
+<li>
+<p><strong>Mục tiêu Soft Bellman cho Critic</strong>:
+  <div class="math-block">$$y = r(s, a) + \gamma \Big(\min_{j=1,2} Q_{\bar{\theta}_j}(s&#x27;, \tilde{a}&#x27;) - \alpha \log \pi_\phi(\tilde{a}&#x27; \mid s&#x27;)\Big),\qquad \tilde{a}&#x27; \sim \pi_\phi(\cdot \mid s&#x27;)$$</div></p>
+</li>
+<li>
+<p><strong>Hàm mất mát của Actor</strong>:
+  <div class="math-block">$$J_\pi(\phi) = \mathbb E_{s \sim \mathcal D, \xi \sim \mathcal N}\Big[\alpha \log \pi_\phi\big(a_\phi(s, \xi) \mid s\big) - \min_{j=1,2} Q_{\theta_j}\big(s, a_\phi(s, \xi)\big)\Big]$$</div></p>
+</li>
+<li>
+<p><strong>Cơ chế tác động &amp; Phân tích giới hạn</strong>:</p>
+</li>
+<li><strong>Khi <span class="math-inline">$\alpha \to 0$</span></strong>: Thành phần <span class="math-inline">$-\alpha \log \pi$</span> biến mất hoàn toàn. SAC suy biến thành thuật toán <strong>TD3 (Twin Delayed DDPG)</strong> với chính sách tất định. Policy sụp đổ về phân phối Dirac delta <span class="math-inline">$\pi(a \mid s) \to \delta(a - a^*)$</span>. Agent mất khả năng khám phá tự nhiên, dễ bị mắc kẹt vĩnh viễn ở các cực tiểu cục bộ (local optima) trong các môi trường có địa hình reward gồ ghề.</li>
+<li><strong>Khi <span class="math-inline">$\alpha \to \infty$</span></strong>: Phần thưởng môi trường <span class="math-inline">$r(s, a)$</span> bị áp đảo hoàn toàn. Policy trở thành phân phối đều ngẫu nhiên (Uniform Distribution) trên không gian hành động, biến agent thành kẻ lang thang vô định phớt lờ nhiệm vụ.</li>
+<li>
+<p><strong>Cơ chế tự động điều chỉnh <span class="math-inline">$\alpha$</span> (Dual Gradient Descent)</strong>:
+    Do mỗi giai đoạn huấn luyện đòi hỏi mức độ khám phá khác nhau, SAC tối ưu hoá <span class="math-inline">$\alpha$</span> qua bài toán đối ngẫu Lagrange với ràng buộc <span class="math-inline">$\mathbb E[-\log \pi(a \mid s)] \ge \bar{\mathcal H}$</span>:
+    <div class="math-block">$$J(\alpha) = \mathbb E_{s \sim \mathcal D, a \sim \pi_\phi}\big[-\alpha \log \pi_\phi(a \mid s) - \alpha \bar{\mathcal H}\big] \implies \nabla_\alpha J(\alpha) = -\mathbb E_{a \sim \pi_\phi}\big[\log \pi_\phi(a \mid s) + \bar{\mathcal H}\big]$$</div></p>
+<ul>
+<li>Khi policy quá tập trung (entropy thấp, <span class="math-inline">$-\log \pi &lt; \bar{\mathcal H}$</span>): Đạo hàm <span class="math-inline">$\nabla_\alpha J(\alpha) &lt; 0 \implies$</span> bước gradient descent <span class="math-inline">$-\eta_\alpha \nabla_\alpha$</span> sẽ <strong>làm tăng <span class="math-inline">$\alpha$</span></strong>, kích thích policy bung rộng trở lại.</li>
+<li>Khi policy quá phân tán (entropy cao, <span class="math-inline">$-\log \pi &gt; \bar{\mathcal H}$</span>): Đạo hàm dương làm <strong>giảm <span class="math-inline">$\alpha$</span></strong>, hướng agent tập trung vào khai thác phần thưởng.</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-nguong-entropy-muc-tieu-inlinemathplaceholder321end">2. Ngưỡng Entropy mục tiêu <span class="math-inline">$\bar{\mathcal H}$</span><a class="headerlink" href="#2-nguong-entropy-muc-tieu-inlinemathplaceholder321end" title="Liên kết tới mục này">&para;</a></h4>
+<p>Giá trị chuẩn mực được Haarnoja et al. đề xuất là:
+<div class="math-block">$$\boxed{\bar{\mathcal H} = -\dim(\mathcal A)}$$</div></p>
+<ul>
+<li>
+<p><strong>Nguồn gốc giải tích</strong>:
+  Xét phân phối chuẩn nhiều chiều <span class="math-inline">$u \sim \mathcal N(\mu, \sigma^2 I)$</span> trên <span class="math-inline">$\mathbb R^D$</span> (với <span class="math-inline">$D = \dim(\mathcal A)$</span>). Entropy vi phân là:
+  <div class="math-block">$$\mathcal H(u) = \sum_{i=1}^D \frac{1}{2} \ln(2\pi e \sigma_i^2) = \frac{D}{2} \ln(2\pi e) + \sum_{i=1}^D \ln(\sigma_i)$$</div>
+  Để sau khi qua hàm bọc <span class="math-inline">$a = \tanh(u) \in [-1, 1]^D$</span>, hành động vẫn giữ được độ linh hoạt vừa phải (độ lệch chuẩn <span class="math-inline">$\sigma_i \approx 1/e \approx 0.37$</span>), ta có:
+  <div class="math-block">$$\ln(\sigma_i) \approx -1 \implies \frac{1}{2}\ln(2\pi e) - 1 = \frac{1}{2}\ln(2\pi) - \frac{1}{2} \approx 0.919 - 0.5 = 0.419 \approx 0$$</div>
+  Khi đó <span class="math-inline">$\mathcal H \approx -D = -\dim(\mathcal A)$</span>.</p>
+</li>
+<li>
+<p>Nếu đặt <span class="math-inline">$\bar{\mathcal H} &gt; 0$</span>: Policy bị ép duy trì phương sai cực lớn, khiến hầu hết các hành động sau khi qua <span class="math-inline">$\tanh$</span> đều bị đẩy dính chặt vào hai vách biên <span class="math-inline">$\{-1, +1\}$</span>, làm bão hòa gradient <span class="math-inline">$\nabla_u \tanh(u) \to 0$</span>.</p>
+</li>
+<li>Nếu đặt <span class="math-inline">$\bar{\mathcal H} \ll -\dim(\mathcal A)$</span>: Ràng buộc quá lỏng lẻo, <span class="math-inline">$\alpha$</span> nhanh chóng tụt về <span class="math-inline">$0$</span>, triệt tiêu ưu thế của MaxEnt RL.</li>
+</ul>
+<h4 id="3-he-so-polyak-target-update-inlinemathplaceholder335end-tau-0005">3. Hệ số Polyak Target Update <span class="math-inline">$\tau$</span> (<code>\tau = 0.005</code>)<a class="headerlink" href="#3-he-so-polyak-target-update-inlinemathplaceholder335end-tau-0005" title="Liên kết tới mục này">&para;</a></h4>
+<p>Mạng target <span class="math-inline">$Q_{\bar{\theta}}$</span> trong SAC không cập nhật gián đoạn theo chu kỳ <span class="math-inline">$C$</span> bước như DQN, mà được làm trơn liên tục ở mọi bước huấn luyện:
+<div class="math-block">$$\bar{\theta} \leftarrow (1 - \tau)\bar{\theta} + \tau \theta$$</div></p>
+<ul>
+<li><strong>Khi <span class="math-inline">$\tau \to 1$</span></strong>: Target network lập tức đồng nhất với critic hiện tại. Vòng lặp hồi tiếp dương giữa giá trị dự đoán và mục tiêu Bellman gây nổ phương sai và phân kỳ hàm giá trị.</li>
+<li><strong>Khi <span class="math-inline">$\tau \to 0$</span> (<span class="math-inline">$\tau = 10^{-5}$</span>)</strong>: Mạng target biến thiên quá chậm, thông tin phần thưởng TD lan truyền cực kỳ chậm chạp, kéo dài thời gian hội tụ gấp hàng chục lần.</li>
+<li>Mức <span class="math-inline">$\tau = 0.005$</span> tương đương với việc target network là một bộ lọc thông thấp (exponential moving average) với "chu kỳ bán rã" khoảng <span class="math-inline">$\approx \frac{1}{\tau} = 200$</span> bước cập nhật, bảo đảm đường mục tiêu trơn tru hoàn hảo.</li>
+</ul>
+<hr />
+<h3 id="82-nhom-kham-pha-nang-cao-curiosity-rnd">8.2 Nhóm Khám phá nâng cao (Curiosity &amp; RND)<a class="headerlink" href="#82-nhom-kham-pha-nang-cao-curiosity-rnd" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="trong-so-phan-thuong-to-mo-inlinemathplaceholder343end-trong-inlinemathplaceholder344end">Trọng số phần thưởng tò mò <span class="math-inline">$\beta$</span> trong <span class="math-inline">$r_t^{total} = r_t^{ext} + \beta\, r_t^{int}$</span><a class="headerlink" href="#trong-so-phan-thuong-to-mo-inlinemathplaceholder343end-trong-inlinemathplaceholder344end" title="Liên kết tới mục này">&para;</a></h4>
+<ul>
+<li><strong>Khi <span class="math-inline">$\beta \to 0$</span></strong>: Agent quay về model-free RL truyền thống. Trong môi trường thưa thưởng (sparse reward như Montezuma's Revenge), tín hiệu gradient <span class="math-inline">$\nabla_\theta J = 0$</span> ở hầu hết mọi quỹ đạo, quá trình học tê liệt hoàn toàn.</li>
+<li><strong>Khi <span class="math-inline">$\beta \gg 1$</span></strong>: Xảy ra hiện tượng <strong>"Nghiện tò mò" (Curiosity trap / delusion)</strong>. Agent bị cuốn theo việc khám phá các ngóc ngách lạ lẫm của bản đồ và phớt lờ hoàn toàn mục tiêu chính (nhặt chìa khóa, mở cửa, bảo toàn mạng sống).</li>
+<li><strong>Chuẩn hóa động (Running Normalization)</strong>:
+  Do sai số MSE dự đoán của mạng Predictor <span class="math-inline">$\hat f_\theta(s)$</span> trong RND có biên độ thay đổi liên tục theo thời gian, nếu giữ nguyên <span class="math-inline">$r_t^{int}$</span> thô, độ lớn của gradient nội tại sẽ lấn át gradient ngoại tại. Giải pháp bắt buộc là chia <span class="math-inline">$r_t^{int}$</span> cho độ lệch chuẩn trôi <span class="math-inline">$\hat \sigma_{int}$</span>:
+  <div class="math-block">$$\tilde r_t^{int} = \frac{r_t^{int}}{\hat \sigma_{int} + \epsilon}$$</div>
+  nhờ đó giữ cho tỷ số tín hiệu ngoại/nội luôn ổn định qua mọi giai đoạn huấn luyện.</li>
+</ul>
+<hr />
+<h3 id="83-nhom-mcts-alphago-zero">8.3 Nhóm MCTS &amp; AlphaGo Zero<a class="headerlink" href="#83-nhom-mcts-alphago-zero" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="1-he-so-tham-do-puct-inlinemathplaceholder352end">1. Hệ số thăm dò PUCT <span class="math-inline">$c_{puct}$</span><a class="headerlink" href="#1-he-so-tham-do-puct-inlinemathplaceholder352end" title="Liên kết tới mục này">&para;</a></h4>
+<p>Trong công thức chọn nhánh cây MCTS:
+<div class="math-block">$$a_t = \arg\max_a \Big[ Q(s, a) + c_{puct}\, P(s, a) \frac{\sqrt{\sum_b N(s, b)}}{1 + N(s, a)} \Big]$$</div></p>
+<ul>
+<li><strong>Khi <span class="math-inline">$c_{puct} \to 0$</span></strong>: Nút cây được chọn thuần túy theo giá trị trung bình <span class="math-inline">$Q(s, a)$</span> của các lần mô phỏng trước (Greedy Exploitation). Các nước cờ đột phá mà mạng nơ-ron gợi ý với xác suất tiền nghiệm <span class="math-inline">$P(s, a)$</span> cao nhưng chưa được mô phỏng đủ số lần sẽ bị bỏ qua hoàn toàn.</li>
+<li><strong>Khi <span class="math-inline">$c_{puct} \to \infty$</span></strong>: Giá trị mô phỏng <span class="math-inline">$Q(s, a)$</span> bị phớt lờ. Cây MCTS suy biến thành quá trình lấy mẫu thuần túy theo phân phối tiên nghiệm của mạng nơ-ron <span class="math-inline">$P(s, a)$</span>.</li>
+<li><strong>Khoảng tối ưu thực nghiệm</strong>: <span class="math-inline">$c_{puct} \in [1.0, 2.5]$</span>. AlphaGo Zero dùng <span class="math-inline">$c_{puct} = \approx 1.25$</span> (hoặc lên tới <span class="math-inline">$2.5$</span> ở các phiên bản sau), cho phép mở rộng nhanh chóng các biến thế cờ mới ở giai đoạn đầu mô phỏng trước khi hội tụ về nhánh có <span class="math-inline">$Q$</span> cao nhất.</li>
+</ul>
+<h4 id="2-nhiet-o-phan-phoi-hanh-ong-inlinemathplaceholder363end">2. Nhiệt độ phân phối hành động <span class="math-inline">$\tau_{mcts}$</span><a class="headerlink" href="#2-nhiet-o-phan-phoi-hanh-ong-inlinemathplaceholder363end" title="Liên kết tới mục này">&para;</a></h4>
+<p><div class="math-block">$$\pi(a \mid s) = \frac{N(s, a)^{1/\tau_{mcts}}}{\sum_b N(s, b)^{1/\tau_{mcts}}}$$</div></p>
+<ul>
+<li><strong>Giai đoạn khai cuộc (30 nước đầu - Self-play Exploration)</strong>: Đặt <span class="math-inline">$\tau_{mcts} = 1.0$</span>. Phân phối xác suất chọn nước đi <span class="math-inline">$\pi(a \mid s)$</span> tỉ lệ thuận tuyến tính với số lần ghé thăm <span class="math-inline">$N(s, a)$</span>. Nhờ đó, kho ván cờ tự chơi có độ đa dạng cực lớn, không ván nào lặp lại ván nào.</li>
+<li><strong>Giai đoạn trung cuộc và tàn cuộc (Nước thứ 31 trở đi &amp; Thi đấu cạnh tranh)</strong>: Đặt <span class="math-inline">$\tau_{mcts} \to 0$</span>. Phân phối <span class="math-inline">$\pi(a \mid s)$</span> trở thành hàm one-hot:
+  <div class="math-block">$$\pi(a \mid s) = \begin{cases} 1 &amp; \text{nếu } a = \arg\max_b N(s, b) \\ 0 &amp; \text{ngược lại} \end{cases}$$</div>
+  Loại bỏ hoàn toàn tính ngẫu nhiên, bảo đảm agent luôn ra đòn tối ưu và chính xác tuyệt đối.</li>
+</ul>
+<hr />
+<h3 id="84-nhom-he-thong-multi-agent-openai-five">8.4 Nhóm Hệ thống Multi-Agent &amp; OpenAI Five<a class="headerlink" href="#84-nhom-he-thong-multi-agent-openai-five" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="he-so-tinh-than-ong-oi-inlinemathplaceholder369end-team-spirit-annealing">Hệ số tinh thần đồng đội <span class="math-inline">$\tau_{team} \in [0, 1]$</span> (Team Spirit Annealing)<a class="headerlink" href="#he-so-tinh-than-ong-oi-inlinemathplaceholder369end-team-spirit-annealing" title="Liên kết tới mục này">&para;</a></h4>
+<p><div class="math-block">$$r_i(t) = (1 - \tau_{team}) r_{ind, i}(t) + \tau_{team}\, \bar{r}_{team}(t),\qquad \bar{r}_{team}(t) = \frac{1}{5}\sum_{j=1}^5 r_{ind, j}(t)$$</div></p>
+<ul>
+<li><strong>Giai đoạn đầu (<span class="math-inline">$\tau_{team} = 0$</span>)</strong>: Mỗi tác tử (tướng) chỉ quan tâm đến phần thưởng cá nhân <span class="math-inline">$r_{ind, i}$</span> (tiêu diệt lính, nhận kinh nghiệm, không để chết). Nếu đặt <span class="math-inline">$\tau_{team} = 1$</span> ngay từ đầu, xảy ra vấn đề <strong>Credit Assignment đa tác tử</strong>: tín hiệu thắng/thua của cả đội bị san phẳng cho 5 người chơi, gradient bị nhiễu loạn cực lớn khiến từng tướng không học nổi các thao tác vi mô cơ bản.</li>
+<li><strong>Lộ trình tăng dần (Curriculum Schedule)</strong>: <span class="math-inline">$\tau_{team}$</span> được tăng tuyến tính từ <span class="math-inline">$0.0$</span> lên <span class="math-inline">$1.0$</span> trong suốt hàng ngàn giờ huấn luyện. Khi các kỹ năng cá nhân đã thuần thục, <span class="math-inline">$\tau_{team} \to 1.0$</span> ép toàn bộ 5 người chơi phải biết hy sinh tài nguyên (support nhường tiền cho carry, che chắn đòn đánh để đồng đội rút lui), đưa lối chơi của tập thể lên tầm vô địch thế giới.</li>
+</ul>
+<hr />
+<h3 id="85-nhom-can-chinh-ngon-ngu-lon-rlhf">8.5 Nhóm Căn chỉnh Ngôn ngữ lớn (RLHF)<a class="headerlink" href="#85-nhom-can-chinh-ngon-ngu-lon-rlhf" title="Liên kết tới mục này">&para;</a></h3>
+<h4 id="he-so-phat-phan-ky-inlinemathplaceholder377end-trong-toi-uu-hoa-ppo-cho-llm">Hệ số phạt phân kỳ <span class="math-inline">$\beta_{KL}$</span> trong tối ưu hóa PPO cho LLM<a class="headerlink" href="#he-so-phat-phan-ky-inlinemathplaceholder377end-trong-toi-uu-hoa-ppo-cho-llm" title="Liên kết tới mục này">&para;</a></h4>
+<p><div class="math-block">$$\max_\theta \mathbb E_{x \sim \mathcal D, y \sim \pi_\theta}\Big[r_\psi(x, y) - \beta_{KL}\, D_{KL}\big(\pi_\theta(y \mid x) \parallel \pi_{init}(y \mid x)\big)\Big]$$</div></p>
+<ul>
+<li><strong>Khi <span class="math-inline">$\beta_{KL} \to 0$</span></strong>: Hiện tượng <strong>"Reward Hacking" / "Goodhart's Law"</strong>. LLM phát hiện ra các lỗ hổng của mạng Reward Model <span class="math-inline">$r_\psi$</span> và sinh ra các chuỗi văn bản kỳ dị (ví dụ: lặp đi lặp lại những cụm từ nịnh bợ, chèn hàng loạt từ khóa ưa thích của RM) để giành điểm số cực cao, làm phá hủy hoàn toàn khả năng ngôn ngữ tự nhiên.</li>
+<li><strong>Khi <span class="math-inline">$\beta_{KL} \gg 1$</span></strong>: Khoảng cách KL bị siết quá chặt, <span class="math-inline">$\pi_\theta$</span> bị giam lỏng tại mô hình nền ban đầu <span class="math-inline">$\pi_{init}$</span>, khiến LLM không tiếp thu được bất kỳ định hướng an toàn hay phong cách trả lời nào từ dữ liệu con người.</li>
+<li><strong>Bộ điều khiển thích nghi <span class="math-inline">$\beta_{KL}$</span> (Adaptive Controller)</strong>:
+  Các hệ thống thực tế (như InstructGPT) điều chỉnh <span class="math-inline">$\beta_{KL}$</span> động sau mỗi batch:
+  <div class="math-block">$$\beta_{new} = \beta_{old} \cdot \exp\Big(K_p \cdot \big(D_{KL}^{batch} - D_{KL}^{target}\big)\Big)$$</div>
+  giữ cho độ chệch phân phối của mô hình luôn dao động ổn định quanh mức mong muốn <span class="math-inline">$D_{KL}^{target} \approx 6.0\text{ nats}$</span>.</li>
+</ul>
+<hr />
+<h2 id="9-e-xuat-o-an-capstone-final-project-ideas">9. Đề xuất đồ án Capstone (Final Project Ideas)<a class="headerlink" href="#9-e-xuat-o-an-capstone-final-project-ideas" title="Liên kết tới mục này">&para;</a></h2>
+<p>Dưới đây là 4 hướng đồ án kinh điển để bạn hiện thực hoá và đưa vào portfolio chuyên môn:</p>
+<table>
+<thead>
+<tr>
+<th>Hướng đồ án</th>
+<th>Mô tả bài toán</th>
+<th>Thuật toán đề xuất</th>
+<th>Thách thức chính</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Multi-Agent Pommerman</strong></td>
+<td>Game đặt bom đối kháng 4 người trên lưới</td>
+<td>PPO + Centralized Critic / Self-Play</td>
+<td>Quan sát một phần, phối hợp đồng đội, tránh tự sát</td>
+</tr>
+<tr>
+<td><strong>2. Continuous Locomotion</strong></td>
+<td>Điều khiển robot Mujoco Ant / Humanoid vượt chướng ngại vật</td>
+<td>SAC (Soft Actor-Critic) hoặc PPO</td>
+<td>Không gian liên tục số chiều cao, nhạy cảm với khởi tạo</td>
+</tr>
+<tr>
+<td><strong>3. World Models &amp; Latent RL</strong></td>
+<td>Game đua xe CarRacing-v0 học từ ảnh thô</td>
+<td>VAE (Vision) + MDN-RNN (Memory) + Linear Controller</td>
+<td>Học biểu diễn tiềm ẩn, "mơ" trong tiềm thức để lập kế hoạch</td>
+</tr>
+<tr>
+<td><strong>4. Mini-RLHF cho LLM</strong></td>
+<td>Căn chỉnh mô hình ngôn ngữ nhỏ (GPT-2)</td>
+<td>HuggingFace TRL (PPO + LoRA)</td>
+<td>Reward hacking, cân bằng tham số phạt KL</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-tong-ket-toan-khoa-ban-o-tu-duy-8-tuan">10. Tổng kết toàn khóa: Bản đồ tư duy 8 Tuần<a class="headerlink" href="#10-tong-ket-toan-khoa-ban-o-tu-duy-8-tuan" title="Liên kết tới mục này">&para;</a></h2>
+<pre><code>                                  [RL ROADMAP]
+                                       │
+            ┌──────────────────────────┴──────────────────────────┐
+            ▼                                                     ▼
+     [Model-Free RL]                                       [Model-Based RL]
+            │                                                     │
+    ┌───────┴───────────────┐                                     ▼
+    ▼                       ▼                            [Week 7: MB-MF]
+[Value-Based]        [Policy-Based]                     (Học động học s' &amp; r,
+    │                       │                            MPC Random Shooting)
+    ├─ Week 2: Tabular      ├─ Week 4: PG &amp; A2C                   │
+    │  (Q-Learning, SARSA)  │  (REINFORCE, Baseline,              ▼
+    │                       │   Advantage)               [Week 8: Advanced]
+    └─ Week 3: Deep Q       │                            - AlphaGo Zero (MCTS)
+       (DQN, Double,        ├─ Week 5: PPO &amp; TRPO        - SAC (MaxEnt RL)
+        Dueling, N-Step)    │  (Clipped objective, GAE)  - GAIL &amp; IRL
+                            │                            - RND (Curiosity)
+                            └─ Week 6: Black-Box         - OpenAI Five &amp; RLHF
+                               (Evolution Strategies)
+</code></pre>
+<p><strong>Chúc mừng bạn đã hoàn thành trọn vẹn lý thuyết và phân tích mã nguồn của toàn bộ lộ trình Học tăng cường sâu!</strong>
+Mọi nền tảng toán học, trực giác logic và kinh nghiệm thực chiến phân tích bug từ Week 1 đến Week 8 đã sẵn sàng để bạn tự tin xây dựng và tinh chỉnh các hệ thống AI tăng cường tự chủ.</p>
+      </article>
+      <nav class="doc-pager"><a class="pager-card pager-prev" href="../Week7/BAI_GIANG.html"><span class="pager-label">← Bài trước</span><span class="pager-title">Week 7: Model-Based RL, Tikhonov &amp; MPC</span></a><a class="pager-card pager-next" href="../HUONG_DAN_SIMULATION_VA_VAT_LY_ROBOT.html"><span class="pager-label">Bài tiếp theo →</span><span class="pager-title">Cẩm Nang Simulation &amp; Cấu Hình Vật Lý Robot</span></a></nav>
+    </main>
+
+    <aside class="sidebar-right">
+      <div class="toc-header">📑 Mục lục trên trang này</div>
+      <nav class="toc-nav">
+        <a class="toc-link toc-l2" href="#1-suy-luan-xac-suat-maximum-entropy-rl-sac">1. Suy luận xác suất &amp; Maximum Entropy RL (SAC)</a>
+<a class="toc-link toc-l3" href="#11-khung-ly-thuyet-ieu-khien-nhu-bai-toan-suy-luan-control-as-inference">1.1 Khung lý thuyết: Điều khiển như bài toán suy luận (Control as Inference)</a>
+<a class="toc-link toc-l3" href="#12-phuong-trinh-soft-bellman-soft-value-iteration">1.2 Phương trình Soft Bellman &amp; Soft Value Iteration</a>
+<a class="toc-link toc-l3" href="#13-thuat-toan-soft-actor-critic-sac-haarnoja-et-al-2018">1.3 Thuật toán Soft Actor-Critic (SAC - Haarnoja et al., 2018)</a>
+<a class="toc-link toc-l2" href="#2-bat-chuoc-imitation-learning-hoc-tang-cuong-nghich-ao-inverse-rl">2. Bắt chước (Imitation Learning) &amp; Học tăng cường nghịch đảo (Inverse RL)</a>
+<a class="toc-link toc-l3" href="#21-lech-phan-phoi-trong-behavioral-cloning-covariate-shift">2.1 Lệch phân phối trong Behavioral Cloning (Covariate Shift)</a>
+<a class="toc-link toc-l3" href="#22-thuat-toan-dagger-ross-et-al-2011">2.2 Thuật toán DAgger (Ross et al., 2011)</a>
+<a class="toc-link toc-l3" href="#23-maximum-entropy-inverse-reinforcement-learning-ziebart-et-al-2008">2.3 Maximum Entropy Inverse Reinforcement Learning (Ziebart et al., 2008)</a>
+<a class="toc-link toc-l3" href="#24-gail-generative-adversarial-imitation-learning-ho-ermon-2016">2.4 GAIL: Generative Adversarial Imitation Learning (Ho &amp; Ermon, 2016)</a>
+<a class="toc-link toc-l2" href="#3-cac-co-che-kham-pha-nang-cao-advanced-exploration">3. Các cơ chế khám phá nâng cao (Advanced Exploration)</a>
+<a class="toc-link toc-l3" href="#31-intrinsic-curiosity-module-icm-pathak-et-al-2017">3.1 Intrinsic Curiosity Module (ICM - Pathak et al., 2017)</a>
+<a class="toc-link toc-l3" href="#32-random-network-distillation-rnd-burda-et-al-2018">3.2 Random Network Distillation (RND - Burda et al., 2018)</a>
+<a class="toc-link toc-l2" href="#4-meta-learning-transfer-learning-trong-rl">4. Meta-Learning &amp; Transfer Learning trong RL</a>
+<a class="toc-link toc-l3" href="#41-rl2-fast-reinforcement-learning-via-slow-reinforcement-learning-duan-et-al-wang-et-al-2016">4.1 RL²: Fast Reinforcement Learning via Slow Reinforcement Learning (Duan et al., Wang et al., 2016)</a>
+<a class="toc-link toc-l3" href="#42-maml-for-rl-model-agnostic-meta-learning-finn-et-al-2017">4.2 MAML for RL (Model-Agnostic Meta-Learning - Finn et al., 2017)</a>
+<a class="toc-link toc-l2" href="#5-mcts-alphago-zero-alphazero-silver-et-al-deepmind">5. MCTS, AlphaGo Zero &amp; AlphaZero (Silver et al. - DeepMind)</a>
+<a class="toc-link toc-l3" href="#51-kien-truc-mang-tich-hop-dual-headed-resnet">5.1 Kiến trúc mạng tích hợp (Dual-Headed ResNet)</a>
+<a class="toc-link toc-l3" href="#52-thuat-toan-mcts-co-mang-no-ron-dan-huong-puct">5.2 Thuật toán MCTS có mạng nơ-ron dẫn hướng (PUCT)</a>
+<a class="toc-link toc-l3" href="#53-lay-mau-hanh-ong-va-ham-mat-mat-self-play">5.3 Lấy mẫu hành động và Hàm mất mát Self-Play</a>
+<a class="toc-link toc-l2" href="#6-openai-five-he-thong-rl-phan-tan-quy-mo-lon">6. OpenAI Five &amp; Hệ thống RL phân tán quy mô lớn</a>
+<a class="toc-link toc-l3" href="#61-kien-truc-huan-luyen-rapid-framework">6.1 Kiến trúc huấn luyện (Rapid Framework)</a>
+<a class="toc-link toc-l3" href="#62-ky-thuat-team-spirit-chia-se-phan-thuong-ong-oi">6.2 Kỹ thuật Team Spirit (Chia sẻ phần thưởng đồng đội)</a>
+<a class="toc-link toc-l3" href="#63-phau-thuat-mang-no-ron-surgical-surgery">6.3 Phẫu thuật mạng nơ-ron (Surgical Surgery)</a>
+<a class="toc-link toc-l2" href="#7-cau-noi-hien-ai-reinforcement-learning-from-human-feedback-rlhf">7. Cầu nối hiện đại: Reinforcement Learning from Human Feedback (RLHF)</a>
+<a class="toc-link toc-l2" href="#8-phan-tich-chuyen-sau-cac-tham-so-cot-loi-trong-cac-thuat-toan-nang-cao">8. Phân tích chuyên sâu các tham số cốt lõi trong các thuật toán nâng cao</a>
+<a class="toc-link toc-l3" href="#81-nhom-soft-actor-critic-sac">8.1 Nhóm Soft Actor-Critic (SAC)</a>
+<a class="toc-link toc-l3" href="#82-nhom-kham-pha-nang-cao-curiosity-rnd">8.2 Nhóm Khám phá nâng cao (Curiosity &amp; RND)</a>
+<a class="toc-link toc-l3" href="#83-nhom-mcts-alphago-zero">8.3 Nhóm MCTS &amp; AlphaGo Zero</a>
+<a class="toc-link toc-l3" href="#84-nhom-he-thong-multi-agent-openai-five">8.4 Nhóm Hệ thống Multi-Agent &amp; OpenAI Five</a>
+<a class="toc-link toc-l3" href="#85-nhom-can-chinh-ngon-ngu-lon-rlhf">8.5 Nhóm Căn chỉnh Ngôn ngữ lớn (RLHF)</a>
+<a class="toc-link toc-l2" href="#9-e-xuat-o-an-capstone-final-project-ideas">9. Đề xuất đồ án Capstone (Final Project Ideas)</a>
+<a class="toc-link toc-l2" href="#10-tong-ket-toan-khoa-ban-o-tu-duy-8-tuan">10. Tổng kết toàn khóa: Bản đồ tư duy 8 Tuần</a>
+      </nav>
+    </aside>
+  </div>
+
+  <script>
+    // Khởi tạo giao diện Sáng/Tối từ localStorage
+    (function() {
+      const saved = localStorage.getItem('rl_docs_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('rl_docs_theme', next);
+    }
+
+    function filterSidebar(query) {
+      const q = query.trim().toLowerCase();
+      const items = document.querySelectorAll('#sidebar-nav .nav-item');
+      items.forEach(item => {
+        const title = item.getAttribute('data-title') || '';
+        item.style.display = (!q || title.includes(q)) ? 'flex' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.hljs) {
+        hljs.highlightAll();
+      }
+    });
+  </script>
+</body>
+</html>

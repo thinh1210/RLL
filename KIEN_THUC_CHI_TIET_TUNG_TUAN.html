@@ -1,0 +1,2976 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5. Tổng Hợp Kiến Thức &amp; Đối Chiếu Code 8 Tuần — Deep RL & Sim-to-Real Robotics</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- MathJax 3 for full LaTeX support (\boxed, \cancel, \underbrace, aligned) -->
+  <script>
+    window.MathJax = {
+      loader: { load: ['[tex]/cancel', '[tex]/ams', '[tex]/boldsymbol'] },
+      tex: {
+        packages: { '[+]': ['cancel', 'ams', 'boldsymbol'] },
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    :root[data-theme="dark"] {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --bg-card: #131921;
+      --text-primary: #e6edf3;
+      --text-secondary: #9198a1;
+      --text-muted: #6e7681;
+      --border-color: #30363d;
+      --accent-primary: #58a6ff;
+      --accent-secondary: #3fb950;
+      --accent-purple: #d2a8ff;
+      --accent-amber: #f0883e;
+      --callout-sub-bg: rgba(210, 168, 255, 0.08);
+      --callout-sub-border: #a371f7;
+      --callout-logic-bg: rgba(88, 166, 255, 0.08);
+      --callout-logic-border: #58a6ff;
+      --callout-sample-bg: rgba(63, 185, 80, 0.08);
+      --callout-sample-border: #3fb950;
+      --table-row-alt: rgba(255, 255, 255, 0.025);
+      --code-bg: #090d13;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    :root[data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --bg-tertiary: #eaeef2;
+      --bg-card: #f8fafc;
+      --text-primary: #1f2328;
+      --text-secondary: #57606a;
+      --text-muted: #6e7781;
+      --border-color: #d0d7de;
+      --accent-primary: #0969da;
+      --accent-secondary: #1a7f37;
+      --accent-purple: #8250df;
+      --accent-amber: #bc4c00;
+      --callout-sub-bg: #fbefff;
+      --callout-sub-border: #8250df;
+      --callout-logic-bg: #ddf4ff;
+      --callout-logic-border: #0969da;
+      --callout-sample-bg: #dafbe1;
+      --callout-sample-border: #1a7f37;
+      --table-row-alt: #f6f8fa;
+      --code-bg: #1e242c;
+      --shadow: 0 6px 18px rgba(31, 35, 40, 0.08);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.72;
+      font-size: 16px;
+    }
+    /* Top Navbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 60px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .brand-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .brand-pill {
+      background: linear-gradient(135deg, #238636, #1f6feb);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .btn-action {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    /* 3-Column Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr) 260px;
+      max-width: 1720px;
+      margin: 0 auto;
+    }
+    /* Left Sidebar */
+    .sidebar-left {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      padding: 1rem 0.85rem 2rem;
+    }
+    .search-box {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 0.86rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    .search-box:focus {
+      border-color: var(--accent-primary);
+    }
+    .nav-group {
+      margin-bottom: 1.15rem;
+    }
+    .nav-group-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      padding: 0.35rem 0.5rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      padding: 0.46rem 0.6rem;
+      margin: 2px 0;
+      border-radius: 7px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+    }
+    .nav-item.active {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-primary);
+      font-weight: 700;
+      border-left: 3px solid var(--accent-primary);
+    }
+    .nav-badge {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.42rem;
+      border-radius: 99px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* Main Content Area */
+    .main-content {
+      min-width: 0;
+      padding: 2.2rem 3rem 4rem;
+      max-width: 1020px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .doc-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+    .doc-meta-bar code {
+      background: var(--bg-tertiary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 5px;
+      color: var(--accent-primary);
+    }
+    /* Typography */
+    .markdown-body h1 {
+      font-size: 2.05rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-top: 0.5rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .markdown-body h2 {
+      font-size: 1.48rem;
+      font-weight: 700;
+      margin-top: 2.4rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--accent-primary);
+    }
+    .markdown-body h3 {
+      font-size: 1.18rem;
+      font-weight: 700;
+      margin-top: 1.75rem;
+      margin-bottom: 0.65rem;
+    }
+    .markdown-body h4 {
+      font-size: 1.02rem;
+      font-weight: 600;
+      margin-top: 1.35rem;
+      margin-bottom: 0.45rem;
+      color: var(--accent-purple);
+    }
+    .markdown-body .headerlink {
+      opacity: 0;
+      margin-left: 0.4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85em;
+      transition: opacity 0.15s;
+    }
+    .markdown-body h1:hover .headerlink,
+    .markdown-body h2:hover .headerlink,
+    .markdown-body h3:hover .headerlink,
+    .markdown-body h4:hover .headerlink {
+      opacity: 1;
+    }
+    .markdown-body a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .markdown-body a:hover {
+      text-decoration: underline;
+    }
+    .markdown-body hr {
+      border: 0;
+      border-top: 1px solid var(--border-color);
+      margin: 2rem 0;
+    }
+    .markdown-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin: 0.75rem 0;
+    }
+    /* Code & Pre */
+    .markdown-body code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.87em;
+      background: var(--bg-tertiary);
+      padding: 0.16em 0.42em;
+      border-radius: 5px;
+    }
+    .markdown-body pre {
+      background: var(--code-bg);
+      color: #e6edf3;
+      padding: 1.1rem 1.25rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+      margin: 1.15rem 0;
+    }
+    .markdown-body pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    /* Tables */
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.35rem 0;
+      font-size: 0.92rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      display: block;
+      overflow-x: auto;
+    }
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid var(--border-color);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .markdown-body th {
+      background: var(--bg-secondary);
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    .markdown-body tr:nth-child(even) {
+      background: var(--table-row-alt);
+    }
+    /* Math Blocks */
+    .math-block {
+      overflow-x: auto;
+      padding: 0.65rem 0.9rem;
+      margin: 0.9rem 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    /* Callout Blockquotes */
+    .callout {
+      margin: 1.35rem 0;
+      padding: 1rem 1.25rem;
+      border-left: 4px solid var(--accent-primary);
+      background: var(--bg-secondary);
+      border-radius: 0 10px 10px 0;
+    }
+    .callout > :first-child {
+      margin-top: 0;
+    }
+    .callout > :last-child {
+      margin-bottom: 0;
+    }
+    .callout-substitution {
+      background: var(--callout-sub-bg);
+      border-left: 4px solid var(--callout-sub-border);
+      box-shadow: 0 4px 14px rgba(163, 113, 247, 0.08);
+    }
+    .callout-logic {
+      background: var(--callout-logic-bg);
+      border-left: 4px solid var(--callout-logic-border);
+    }
+    .callout-sample {
+      background: var(--callout-sample-bg);
+      border-left: 4px solid var(--callout-sample-border);
+    }
+    .callout-warning {
+      background: rgba(240, 136, 62, 0.1);
+      border-left: 4px solid var(--accent-amber);
+    }
+    /* Right TOC Sidebar */
+    .sidebar-right {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 1.25rem 1rem 2rem;
+      border-left: 1px solid var(--border-color);
+      font-size: 0.82rem;
+    }
+    .toc-header {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+      font-size: 0.75rem;
+    }
+    .toc-link {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 0.28rem 0.45rem;
+      border-radius: 5px;
+      line-height: 1.4;
+      margin-bottom: 2px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .toc-link:hover {
+      color: var(--accent-primary);
+      background: var(--bg-secondary);
+    }
+    .toc-l3 {
+      padding-left: 1.15rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    /* Pager */
+    .doc-pager {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .pager-card {
+      display: flex;
+      flex-direction: column;
+      padding: 0.9rem 1.1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-secondary);
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .pager-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+    .pager-next {
+      text-align: right;
+    }
+    .pager-label {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .pager-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    /* Responsive */
+    @media (max-width: 1240px) {
+      .layout {
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+      .sidebar-right {
+        display: none;
+      }
+    }
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar-left {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .main-content {
+        padding: 1.5rem 1.15rem 3rem;
+      }
+      .doc-pager {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand-link" href="index.html">
+        <span>🚀 Deep RL & Sim-to-Real Portal</span>
+        <span class="brand-pill">LOCAL DOCS</span>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn-action" href="#interactive-simulator-lab" title="Mở phòng thí nghiệm mô phỏng tương tác">🎛️ Mô phỏng &amp; Tham số</a>
+      <a class="btn-action" href="KIEN_THUC_CHI_TIET_TUNG_TUAN.md" title="Xem file Markdown gốc">📄 File .md gốc</a>
+      <button class="btn-action" id="theme-toggle" onclick="toggleTheme()">🌗 Đổi giao diện Sáng/Tối</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar-left">
+      <input
+        type="text"
+        id="doc-search"
+        class="search-box"
+        placeholder="🔍 Tìm nhanh bài giảng, chủ đề..."
+        oninput="filterSidebar(this.value)"
+      />
+      <nav id="sidebar-nav">
+        <div class="nav-group"><div class="nav-group-title">🏠 Tổng Quan Hệ Thống</div>
+<a class="nav-item" href="index.html" data-title="trang chủ &amp; bản đồ toàn khóa"><span class="nav-item-text">Trang Chủ &amp; Bản Đồ Toàn Khóa</span><span class="nav-badge">Portal</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">📐 Toán Học &amp; Cẩm Nang Tham Số</div>
+<a class="nav-item" href="BANG_KY_HIEU_TOAN_HOC.html" data-title="1. bảng ký hiệu toán học chuẩn tắc"><span class="nav-item-text">1. Bảng Ký Hiệu Toán Học Chuẩn Tắc</span><span class="nav-badge">Ký hiệu</span></a>
+<a class="nav-item" href="TONG_HOP_TOAN_HOC_XSTK_DSTT_RL.html" data-title="2. tổng hợp xstk, đstt &amp; các bước thế hàm"><span class="nav-item-text">2. Tổng Hợp XSTK, ĐSTT &amp; Các Bước Thế Hàm</span><span class="nav-badge">Toán cốt lõi</span></a>
+<a class="nav-item" href="CAM_NANG_THAM_SO_RL.html" data-title="3. cẩm nang toàn diện về tham số rl"><span class="nav-item-text">3. Cẩm Nang Toàn Diện Về Tham Số RL</span><span class="nav-badge">Tham số</span></a>
+<a class="nav-item" href="KIEN_THUC_CAN_HOC.html" data-title="4. lộ trình kiến thức cần học"><span class="nav-item-text">4. Lộ Trình Kiến Thức Cần Học</span><span class="nav-badge">Lộ trình</span></a>
+<a class="nav-item active" href="KIEN_THUC_CHI_TIET_TUNG_TUAN.html" data-title="5. tổng hợp kiến thức &amp; đối chiếu code 8 tuần"><span class="nav-item-text">5. Tổng Hợp Kiến Thức &amp; Đối Chiếu Code 8 Tuần</span><span class="nav-badge">Tổng hợp</span></a>
+<a class="nav-item" href="HUONG_DAN_MOI_TRUONG_VA_CHAY_CODE.html" data-title="6. hướng dẫn môi trường (.venv), chạy code &amp; ros 2"><span class="nav-item-text">6. Hướng Dẫn Môi Trường (.venv), Chạy Code &amp; ROS 2</span><span class="nav-badge">Môi trường</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🎓 Bài Giảng Chuyên Sâu 8 Tuần</div>
+<a class="nav-item" href="Week1/BAI_GIANG.html" data-title="week 1: giới thiệu rl, bandit (ucb1) &amp; pong"><span class="nav-item-text">Week 1: Giới Thiệu RL, Bandit (UCB1) &amp; Pong</span><span class="nav-badge">Tuần 1</span></a>
+<a class="nav-item" href="Week2/BAI_GIANG.html" data-title="week 2: mdp, bellman, co banach &amp; q-learning"><span class="nav-item-text">Week 2: MDP, Bellman, Co Banach &amp; Q-Learning</span><span class="nav-badge">Tuần 2</span></a>
+<a class="nav-item" href="Week3/BAI_GIANG.html" data-title="week 3: deep q-networks (dqn, double, dueling)"><span class="nav-item-text">Week 3: Deep Q-Networks (DQN, Double, Dueling)</span><span class="nav-badge">Tuần 3</span></a>
+<a class="nav-item" href="Week4/BAI_GIANG.html" data-title="week 4: policy gradient, reinforce &amp; a2c"><span class="nav-item-text">Week 4: Policy Gradient, REINFORCE &amp; A2C</span><span class="nav-badge">Tuần 4</span></a>
+<a class="nav-item" href="Week5/BAI_GIANG.html" data-title="week 5: trpo, ppo-clip &amp; chuỗi gae"><span class="nav-item-text">Week 5: TRPO, PPO-Clip &amp; Chuỗi GAE</span><span class="nav-badge">Tuần 5</span></a>
+<a class="nav-item" href="Week6/BAI_GIANG.html" data-title="week 6: evolution strategies (es) &amp; ga"><span class="nav-item-text">Week 6: Evolution Strategies (ES) &amp; GA</span><span class="nav-badge">Tuần 6</span></a>
+<a class="nav-item" href="Week7/BAI_GIANG.html" data-title="week 7: model-based rl, tikhonov &amp; mpc"><span class="nav-item-text">Week 7: Model-Based RL, Tikhonov &amp; MPC</span><span class="nav-badge">Tuần 7</span></a>
+<a class="nav-item" href="Week8/BAI_GIANG.html" data-title="week 8: sac, irl, rnd, alphazero, rlhf &amp; dpo"><span class="nav-item-text">Week 8: SAC, IRL, RND, AlphaZero, RLHF &amp; DPO</span><span class="nav-badge">Tuần 8</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🤖 Simulation &amp; Sim-to-Real Robotics</div>
+<a class="nav-item" href="HUONG_DAN_SIMULATION_VA_VAT_LY_ROBOT.html" data-title="cẩm nang simulation &amp; cấu hình vật lý robot"><span class="nav-item-text">Cẩm Nang Simulation &amp; Cấu Hình Vật Lý Robot</span><span class="nav-badge">Simulation</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/README.html" data-title="tổng quan kiến trúc 7 tầng sim-to-real"><span class="nav-item-text">Tổng Quan Kiến Trúc 7 Tầng Sim-to-Real</span><span class="nav-badge">7 Tầng</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part1_Physical_Modeling_URDF_MJCF.html" data-title="phần 1 (tầng 1): mô tả cơ học urdf/mjcf"><span class="nav-item-text">Phần 1 (Tầng 1): Mô Tả Cơ Học URDF/MJCF</span><span class="nav-badge">Tầng 1</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part2_Physics_Engine_And_Sensors.html" data-title="phần 2 (tầng 2): bộ giải động lực học &amp; cảm biến"><span class="nav-item-text">Phần 2 (Tầng 2): Bộ Giải Động Lực Học &amp; Cảm Biến</span><span class="nav-badge">Tầng 2</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part3_RL_Training_Environment_And_Rewards.html" data-title="phần 3 (tầng 3): môi trường rl &amp; domain randomization"><span class="nav-item-text">Phần 3 (Tầng 3): Môi Trường RL &amp; Domain Randomization</span><span class="nav-badge">Tầng 3</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part4_Code_Only_Physical_Verification.html" data-title="phần 4 (tầng 4): 7 bài kiểm định vật lý bằng code"><span class="nav-item-text">Phần 4 (Tầng 4): 7 Bài Kiểm Định Vật Lý Bằng Code</span><span class="nav-badge">Tầng 4</span></a>
+<a class="nav-item" href="Sim2Real_Robotics/Part5_ROS2_Gazebo_And_Real_Robot_Bridge.html" data-title="phần 5 (tầng 5–7): cầu nối ros 2 &amp; robot thật"><span class="nav-item-text">Phần 5 (Tầng 5–7): Cầu Nối ROS 2 &amp; Robot Thật</span><span class="nav-badge">Tầng 5-7</span></a>
+</div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="doc-meta-bar">
+        <div>📚 <strong>Tài liệu:</strong> 5. Tổng Hợp Kiến Thức &amp; Đối Chiếu Code 8 Tuần</div>
+        <div>📂 Đường dẫn gốc: <code>KIEN_THUC_CHI_TIET_TUNG_TUAN.md</code></div>
+      </div>
+      
+<section class="sim-lab-wrapper" id="interactive-simulator-lab">
+  <div class="sim-lab-header">
+    <div class="sim-lab-title-row">
+      <div>
+        <span class="sim-lab-badge">🎛️ INTERACTIVE SIMULATION LAB</span>
+        <h2 class="sim-lab-heading">Phòng Thí Nghiệm Mô Phỏng &amp; Tinh Chỉnh Tham Số Trực Quan</h2>
+        <p class="sim-lab-subtitle">
+          Kéo các thanh trượt (Sliders) bên dưới để thay đổi tham số toán học — đồ thị, quỹ đạo và phương trình sẽ phản hồi ngay lập tức theo thời gian thực.
+        </p>
+      </div>
+      <button class="btn-action" onclick="toggleSimLabCollapse()" id="sim-collapse-btn">Thu gọn / Mở rộng Lab</button>
+    </div>
+
+    <div class="sim-tabs" role="tablist">
+      <button class="sim-tab" data-tab="math_eigen" onclick="switchSimTab('math_eigen')">📐 Toán: Σ &amp; Trị riêng</button>
+      <button class="sim-tab" data-tab="bandit_ucb" onclick="switchSimTab('bandit_ucb')">🎰 W1: Bandit &amp; UCB1</button>
+      <button class="sim-tab" data-tab="mdp_bellman" onclick="switchSimTab('mdp_bellman')">🧭 W2: Bellman &amp; Q-Grid</button>
+      <button class="sim-tab" data-tab="dqn_bias" onclick="switchSimTab('dqn_bias')">🎯 W3: Double DQN Bias</button>
+      <button class="sim-tab" data-tab="pg_variance" onclick="switchSimTab('pg_variance')">📉 W4: PG Baseline &amp; Entropy</button>
+      <button class="sim-tab" data-tab="ppo_gae" onclick="switchSimTab('ppo_gae')">🛡️ W5: PPO Clip &amp; GAE</button>
+      <button class="sim-tab" data-tab="es_mirror" onclick="switchSimTab('es_mirror')">🧬 W6: ES Mirrored ±ε</button>
+      <button class="sim-tab" data-tab="mbrl_mpc" onclick="switchSimTab('mbrl_mpc')">🔮 W7: Model Error &amp; MPC</button>
+      <button class="sim-tab" data-tab="sac_dpo" onclick="switchSimTab('sac_dpo')">🔥 W8: SAC α &amp; DPO β</button>
+      <button class="sim-tab" data-tab="sim2real_physics" onclick="switchSimTab('sim2real_physics')">🤖 Sim2Real: Euler vs RK4</button>
+    </div>
+  </div>
+
+  <div class="sim-lab-body" id="sim-lab-body">
+    <!-- ==================== 1. MATH: COVARIANCE & EIGEN ==================== -->
+    <div class="sim-panel" id="panel-math_eigen">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📐 Đám Mây Mẫu 2D, Ma trận Σ &amp; Trị Riêng (λ₁, λ₂)</h3>
+          <p class="sim-desc">Quan sát cách độ lệch chuẩn $\sigma_x, \sigma_y$ và góc xoay tương quan $\theta$ biến đổi đám mây mẫu và 2 trục Vector riêng trực giao $\mathbf{v}_1, \mathbf{v}_2$.</p>
+          <label class="sim-ctrl">
+            <span>Độ trải trục chính $\sigma_1$: <strong id="val-math-s1">1.80</strong></span>
+            <input type="range" id="sl-math-s1" min="0.3" max="2.5" step="0.05" value="1.80" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ trải trục phụ $\sigma_2$: <strong id="val-math-s2">0.55</strong></span>
+            <input type="range" id="sl-math-s2" min="0.15" max="2.0" step="0.05" value="0.55" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Góc xoay tương quan $\theta$: <strong id="val-math-ang">35°</strong></span>
+            <input type="range" id="sl-math-ang" min="-85" max="85" step="1" value="35" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Biên độ mẫu nhiễu dị biệt (Outlier $e_N$): <strong id="val-math-out">0.0</strong></span>
+            <input type="range" id="sl-math-out" min="0" max="15" step="0.5" value="0" oninput="updateMathLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-math"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-math" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. WEEK 1: BANDIT & UCB1 ==================== -->
+    <div class="sim-panel" id="panel-bandit_ucb">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎰 Multi-Armed Bandit: UCB1 vs. ε-Greedy</h3>
+          <p class="sim-desc">Công thức UCB1: $a_t = \arg\max_a \big[Q_t(a) + c\sqrt{\ln t / N_t(a)}\big]$. Kéo $c$ để xem bán kính tin cậy màu cam thúc đẩy khám phá có định hướng.</p>
+          <label class="sim-ctrl">
+            <span>Hệ số tự tin UCB $c$: <strong id="val-w1-c">1.41</strong></span>
+            <input type="range" id="sl-w1-c" min="0.0" max="4.0" step="0.05" value="1.41" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Tỉ lệ khám phá $\epsilon$ (cho $\epsilon$-greedy): <strong id="val-w1-eps">0.15</strong></span>
+            <input type="range" id="sl-w1-eps" min="0.0" max="0.6" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Bước học cập nhật $\alpha$: <strong id="val-w1-alpha">0.15</strong></span>
+            <input type="range" id="sl-w1-alpha" min="0.02" max="0.8" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW1Bandit(1)">+1 Bước kéo</button>
+            <button class="btn-sim" onclick="stepW1Bandit(25)">+25 Bước</button>
+            <button class="btn-sim" onclick="stepW1Bandit(200)">+200 Bước</button>
+            <button class="btn-sim-sec" onclick="resetW1Bandit()">🔄 Reset</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w1"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w1" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. WEEK 2: MDP BELLMAN & Q-LEARNING ==================== -->
+    <div class="sim-panel" id="panel-mdp_bellman">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧭 FrozenLake 4×4: Toán tử Co Bellman &amp; Hệ số $\gamma$</h3>
+          <p class="sim-desc">Phương trình Bellman tối ưu: $V^*(s) = \max_a \sum_{s'} P(s'|s,a)[r + \gamma V^*(s')]$. Kéo $\gamma$ và xác suất trượt băng để xem giá trị lan truyền từ Đích (ô 15, +1) và né Hố băng (H, -1)!</p>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w2-gamma">0.92</strong></span>
+            <input type="range" id="sl-w2-gamma" min="0.10" max="0.99" step="0.01" value="0.92" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Xác suất trượt chân sang bên (`slip_prob`): <strong id="val-w2-slip">0.20</strong></span>
+            <input type="range" id="sl-w2-slip" min="0.0" max="0.60" step="0.05" value="0.20" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số vòng lặp Value Iteration $k$: <strong id="val-w2-iter">15</strong></span>
+            <input type="range" id="sl-w2-iter" min="1" max="40" step="1" value="15" oninput="updateW2Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w2"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w2" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. WEEK 3: DOUBLE DQN BIAS ==================== -->
+    <div class="sim-panel" id="panel-dqn_bias">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎯 Thiên Lệch Cực Đại Hóa (Maximization Bias) &amp; Double DQN</h3>
+          <p class="sim-desc">Mọi hành động đều có giá trị thật $Q^*(s,a) = 0$, nhưng ước lượng mạng bị nhiễu $\mathcal{N}(0, \sigma^2)$. DQN thường lấy $\max_a Q(s,a;\theta^-)$ nên bị thổi phồng dương, trong khi Double DQN tách chọn &amp; định giá nên khử sạch bias!</p>
+          <label class="sim-ctrl">
+            <span>Độ lệch chuẩn nhiễu ước lượng $\sigma$: <strong id="val-w3-sigma">1.20</strong></span>
+            <input type="range" id="sl-w3-sigma" min="0.1" max="3.0" step="0.1" value="1.20" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số lượng hành động $|\mathcal{A}|$: <strong id="val-w3-nact">8</strong></span>
+            <input type="range" id="sl-w3-nact" min="2" max="30" step="1" value="8" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$ (tích lũy qua $1/(1-\gamma)$): <strong id="val-w3-gamma">0.90</strong></span>
+            <input type="range" id="sl-w3-gamma" min="0.50" max="0.98" step="0.02" value="0.90" oninput="updateW3Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="updateW3Lab()">🎲 Lấy mẫu Monte Carlo mới (500 lần)</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w3"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w3" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ==================== -->
+    <div class="sim-panel" id="panel-pg_variance">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📉 Policy Gradient: Baseline $b(s)$ &amp; Entropy Bonus $\beta\mathcal{H}(\pi)$</h3>
+          <p class="sim-desc">Quan sát cách trừ Baseline $b(s) = V(s)$ cắt giảm phương sai mẫu của đạo hàm $\nabla_\theta J$, và cách hệ số Entropy $\beta$ chống sụp đổ chính sách sớm (Premature Collapse).</p>
+          <label class="sim-ctrl">
+            <span>Mức thưởng nền trung bình (Reward Offset): <strong id="val-w4-roff">50</strong></span>
+            <input type="range" id="sl-w4-roff" min="0" max="100" step="5" value="50" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chuẩn hóa Baseline ($0 = \text{Tắt}, 1 = V(s)$): <strong id="val-w4-base">1.00</strong></span>
+            <input type="range" id="sl-w4-base" min="0.0" max="1.0" step="0.05" value="1.00" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Trọng số Entropy Bonus $\beta$: <strong id="val-w4-ent">0.15</strong></span>
+            <input type="range" id="sl-w4-ent" min="0.01" max="1.50" step="0.02" value="0.15" oninput="updateW4Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w4"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w4" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 6. WEEK 5: PPO CLIP & GAE ==================== -->
+    <div class="sim-panel" id="panel-ppo_gae">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🛡️ PPO-Clip Objective &amp; Trọng Số Suy Giảm GAE($\gamma, \lambda$)</h3>
+          <p class="sim-desc">Trái: Hàm mục tiêu $L^{\text{CLIP}}(r_t) = \min\big(r_t \hat{A}_t, \text{clip}(r_t, 1-\epsilon, 1+\epsilon)\hat{A}_t\big)$. Phải: Trọng số $(\gamma\lambda)^l$ của sai số TD $\delta_{t+l}^V$ theo bước tương lai $l$.</p>
+          <label class="sim-ctrl">
+            <span>Ngưỡng kẹp PPO $\epsilon$ (`CLIP_EPS`): <strong id="val-w5-eps">0.20</strong></span>
+            <input type="range" id="sl-w5-eps" min="0.05" max="0.50" step="0.01" value="0.20" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Giá trị Lợi thế $\hat{A}_t$ (Dương = Tốt, Âm = Xấu): <strong id="val-w5-adv">+1.50</strong></span>
+            <input type="range" id="sl-w5-adv" min="-2.5" max="2.5" step="0.1" value="1.5" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số GAE $\lambda$ (`GAE_LAMBDA`): <strong id="val-w5-lam">0.95</strong></span>
+            <input type="range" id="sl-w5-lam" min="0.0" max="1.0" step="0.01" value="0.95" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w5-gam">0.99</strong></span>
+            <input type="range" id="sl-w5-gam" min="0.80" max="0.999" step="0.005" value="0.99" oninput="updateW5Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w5"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w5" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 7. WEEK 6: EVOLUTION STRATEGIES ==================== -->
+    <div class="sim-panel" id="panel-es_mirror">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧬 Evolution Strategies: Làm Trơn Gaussian &amp; Mirrored Sampling $\pm\varepsilon$</h3>
+          <p class="sim-desc">Mũi tên xanh lá là Gradient thật $\nabla F(\theta)$, mũi tên cam là ước lượng ES $\hat{g}$. Bật/tắt lấy mẫu đối xứng $\pm\varepsilon$ để thấy cách nó khử sạch sai số bậc chẵn!</p>
+          <label class="sim-ctrl">
+            <span>Bán kính nhiễu thăm dò $\sigma$ (`STD_NOISE`): <strong id="val-w6-sigma">0.35</strong></span>
+            <input type="range" id="sl-w6-sigma" min="0.05" max="1.00" step="0.05" value="0.35" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số cặp cá thể quần thể $n$ (`BATCH_SIZE`): <strong id="val-w6-npop">12</strong></span>
+            <input type="range" id="sl-w6-npop" min="2" max="50" step="1" value="12" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Chế độ lấy mẫu (0 = 1 phía $+\varepsilon$, 1 = Đối xứng $\pm\varepsilon$): <strong id="val-w6-mirror">Đối xứng ±ε</strong></span>
+            <input type="range" id="sl-w6-mirror" min="0" max="1" step="1" value="1" oninput="updateW6Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW6ES()">🚀 Bước nhảy cập nhật θ ← θ + α·ĝ</button>
+            <button class="btn-sim-sec" onclick="resetW6ES()">🔄 Đặt lại vị trí θ</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w6"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w6" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 8. WEEK 7: MODEL-BASED RL & MPC ==================== -->
+    <div class="sim-panel" id="panel-mbrl_mpc">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔮 Model-Based RL: Sai Số Tích Lũy $\mathcal{O}(L_f^H \varepsilon)$ &amp; Làm Trơn Tikhonov</h3>
+          <p class="sim-desc">Đường xanh là quỹ đạo thật $s_{t+k}$, đường đứt nét đỏ là quỹ đạo tưởng tượng $\hat{s}_{t+k}$ khi cuộn mô hình $H$ bước. Khi hằng số Lipschitz $L_f &gt; 1$, sai số phình to theo cấp số nhân!</p>
+          <label class="sim-ctrl">
+            <span>Tầm nhìn quy hoạch $H$ (`HORIZON_LENGTH`): <strong id="val-w7-h">12</strong></span>
+            <input type="range" id="sl-w7-h" min="2" max="25" step="1" value="12" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ dốc Jacobian mô hình $L_f = \|\nabla_s \hat{f}\|$: <strong id="val-w7-lip">1.14</strong></span>
+            <input type="range" id="sl-w7-lip" min="0.85" max="1.30" step="0.01" value="1.14" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Nhiễu đầu vào Tikhonov $\sigma_\xi$ (phạt $\|J_f\|_F^2$): <strong id="val-w7-tik">0.00</strong></span>
+            <input type="range" id="sl-w7-tik" min="0.00" max="0.25" step="0.01" value="0.00" oninput="updateW7Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w7"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w7" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 9. WEEK 8: SAC MAXENT & RLHF/DPO ==================== -->
+    <div class="sim-panel" id="panel-sac_dpo">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔥 SAC Soft-Bellman Temperature $\alpha$ &amp; RLHF/DPO $\beta_{KL}$</h3>
+          <p class="sim-desc">Trái: Địa hình $Q(s,a)$ có 2 đỉnh cực đại và phân phối Boltzmann $\pi^*(a|s) \propto \exp(Q(s,a)/\alpha)$. Phải: Đường cong xác suất thắng Bradley-Terry / DPO theo $\beta_{KL}$.</p>
+          <label class="sim-ctrl">
+            <span>Nhiệt độ Entropy SAC $\alpha$: <strong id="val-w8-alpha">0.25</strong></span>
+            <input type="range" id="sl-w8-alpha" min="0.03" max="1.50" step="0.02" value="0.25" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ chênh lệch đỉnh phụ $\Delta Q_{\text{sub}}$: <strong id="val-w8-dq">0.85</strong></span>
+            <input type="range" id="sl-w8-dq" min="0.20" max="1.00" step="0.05" value="0.85" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số phạt KL trong RLHF/DPO $\beta_{KL}$: <strong id="val-w8-beta">0.50</strong></span>
+            <input type="range" id="sl-w8-beta" min="0.05" max="2.00" step="0.05" value="0.50" oninput="updateW8Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w8"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w8" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 10. SIM-TO-REAL ROBOTICS PHYSICS ==================== -->
+    <div class="sim-panel" id="panel-sim2real_physics">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🤖 Sim-to-Real: Tích Phân Euler vs. RK4, Độ Cứng $K_p$ &amp; Ma Sát $\mu$</h3>
+          <p class="sim-desc">Kiểm chứng tại sao chọn sai bước thời gian $\Delta t$ lớn kết hợp với bộ điều khiển khớp cứng $K_p$ làm Explicit Euler nổ tung (Numerical Explosion), trong khi RK4 giữ vững ổn định vật lý!</p>
+          <label class="sim-ctrl">
+            <span>Bước thời gian mô phỏng $\Delta t$ (`max_step_size`): <strong id="val-sim-dt">0.025 s</strong></span>
+            <input type="range" id="sl-sim-dt" min="0.005" max="0.065" step="0.002" value="0.025" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ cứng lò xo ảo PD $K_p$ (`stiffness`): <strong id="val-sim-kp">65</strong></span>
+            <input type="range" id="sl-sim-kp" min="15" max="140" step="5" value="65" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số cản nhớt $K_d$ (`damping`): <strong id="val-sim-kd">8.0</strong></span>
+            <input type="range" id="sl-sim-kd" min="1.0" max="25.0" step="0.5" value="8.0" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số ma sát mặt sàn $\mu$ (giới hạn lực bám $\mu mg$): <strong id="val-sim-mu">0.60</strong></span>
+            <input type="range" id="sl-sim-mu" min="0.10" max="1.20" step="0.05" value="0.60" oninput="updateSim2RealLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-sim2real"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-sim2real" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sim-lab-wrapper {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 14px;
+    margin: 1.2rem 0 2.2rem;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .sim-lab-header {
+    padding: 1.15rem 1.35rem 0.75rem;
+    background: linear-gradient(180deg, rgba(88, 166, 255, 0.10), transparent);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sim-lab-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .sim-lab-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    background: var(--accent-primary);
+    color: #fff;
+    margin-bottom: 0.35rem;
+  }
+  .sim-lab-heading {
+    margin: 0 0 0.25rem 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 1.28rem !important;
+    color: var(--text-primary) !important;
+  }
+  .sim-lab-subtitle {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+  }
+  .sim-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.95rem;
+  }
+  .sim-tab {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.38rem 0.68rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .sim-tab:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+  }
+  .sim-tab.active {
+    background: var(--accent-primary);
+    color: #ffffff;
+    border-color: var(--accent-primary);
+  }
+  .sim-lab-body {
+    padding: 1.25rem 1.35rem;
+  }
+  .sim-panel {
+    display: none;
+  }
+  .sim-panel.active {
+    display: block;
+  }
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+  }
+  .sim-controls h3 {
+    margin: 0 0 0.4rem 0 !important;
+    font-size: 1.02rem !important;
+    color: var(--accent-primary);
+  }
+  .sim-desc {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.85rem 0;
+    line-height: 1.5;
+  }
+  .sim-ctrl {
+    display: block;
+    margin-bottom: 0.65rem;
+    font-size: 0.82rem;
+  }
+  .sim-ctrl span {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+  }
+  .sim-ctrl input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+  }
+  .sim-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.65rem 0;
+  }
+  .btn-sim {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-sim:hover {
+    opacity: 0.9;
+  }
+  .btn-sim-sec {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-metrics {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.8rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.77rem;
+    line-height: 1.55;
+  }
+  .sim-canvas-box {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .sim-canvas-box canvas {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 6px;
+  }
+  @media (max-width: 980px) {
+    .sim-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  function getColors() {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      bg: isLight ? '#ffffff' : '#0d1117',
+      grid: isLight ? '#e5e7eb' : '#21262d',
+      text: isLight ? '#1f2328' : '#e6edf3',
+      muted: isLight ? '#57606a' : '#8b949e',
+      blue: isLight ? '#0969da' : '#58a6ff',
+      green: isLight ? '#1a7f37' : '#3fb950',
+      purple: isLight ? '#8250df' : '#d2a8ff',
+      orange: isLight ? '#bc4c00' : '#f0883e',
+      red: isLight ? '#cf222e' : '#ff7b72'
+    };
+  }
+
+  window.toggleSimLabCollapse = function() {
+    const body = document.getElementById('sim-lab-body');
+    body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+  };
+
+  window.switchSimTab = function(tabId) {
+    document.querySelectorAll('.sim-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.sim-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + tabId);
+    });
+    renderActiveTab(tabId);
+  };
+
+  function renderActiveTab(tabId) {
+    if (tabId === 'math_eigen') updateMathLab();
+    else if (tabId === 'bandit_ucb') updateW1Lab();
+    else if (tabId === 'mdp_bellman') updateW2Lab();
+    else if (tabId === 'dqn_bias') updateW3Lab();
+    else if (tabId === 'pg_variance') updateW4Lab();
+    else if (tabId === 'ppo_gae') updateW5Lab();
+    else if (tabId === 'es_mirror') updateW6Lab();
+    else if (tabId === 'mbrl_mpc') updateW7Lab();
+    else if (tabId === 'sac_dpo') updateW8Lab();
+    else if (tabId === 'sim2real_physics') updateSim2RealLab();
+  }
+
+  // ==================== 1. MATH LAB: 2D CLOUD & EIGEN ====================
+  const basePts = [];
+  for (let i = 0; i < 120; i++) {
+    // Box-Muller
+    const u1 = (i + 1) / 121.0;
+    const u2 = ((i * 73) % 119 + 1) / 120.0;
+    const r = Math.sqrt(-2.0 * Math.log(u1));
+    const th = 2.0 * Math.PI * u2;
+    basePts.push([r * Math.cos(th), r * Math.sin(th)]);
+  }
+
+  window.updateMathLab = function() {
+    const s1 = parseFloat(document.getElementById('sl-math-s1').value);
+    const s2 = parseFloat(document.getElementById('sl-math-s2').value);
+    const angDeg = parseFloat(document.getElementById('sl-math-ang').value);
+    const outVal = parseFloat(document.getElementById('sl-math-out').value);
+    document.getElementById('val-math-s1').textContent = s1.toFixed(2);
+    document.getElementById('val-math-s2').textContent = s2.toFixed(2);
+    document.getElementById('val-math-ang').textContent = angDeg + '°';
+    document.getElementById('val-math-out').textContent = outVal.toFixed(1);
+
+    const rad = angDeg * Math.PI / 180.0;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    const l1 = s1 * s1, l2 = s2 * s2;
+    const sigXX = l1 * c * c + l2 * s * s;
+    const sigYY = l1 * s * s + l2 * c * c;
+    const sigXY = (l1 - l2) * c * s;
+
+    // Norms with outlier
+    const baseErrs = [0.2, -0.3, 0.4, -0.1, 0.25];
+    const errs = baseErrs.concat([outVal]);
+    const l1Norm = errs.reduce((a, b) => a + Math.abs(b), 0) / errs.length;
+    const l2Norm = Math.sqrt(errs.reduce((a, b) => a + b * b, 0) / errs.length);
+    const lInfNorm = Math.max(...errs.map(Math.abs));
+
+    document.getElementById('metrics-math').innerHTML =
+      `Ma trận Hiệp phương sai Σ = [[${sigXX.toFixed(2)}, ${sigXY.toFixed(2)}], [${sigXY.toFixed(2)}, ${sigYY.toFixed(2)}]]<br>` +
+      `Trị riêng: <strong>λ₁ = ${l1.toFixed(2)}</strong>, <strong>λ₂ = ${l2.toFixed(2)}</strong> | Số điều kiện κ = ${(Math.max(l1,l2)/Math.min(l1,l2)).toFixed(1)}<br>` +
+      `Chuẩn sai số khi Outlier=${outVal.toFixed(1)}: L₁=${l1Norm.toFixed(2)} | L₂=${l2Norm.toFixed(2)} | L∞=${lInfNorm.toFixed(2)}`;
+
+    const cv = document.getElementById('cv-math');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 210, cy = 180, scale = 48;
+    // Grid
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, cy); ctx.lineTo(400, cy);
+    ctx.moveTo(cx, 20); ctx.lineTo(cx, 340);
+    ctx.stroke();
+
+    // Cloud points
+    ctx.fillStyle = col.blue;
+    ctx.globalAlpha = 0.65;
+    basePts.forEach(([z1, z2]) => {
+      const x0 = z1 * s1, y0 = z2 * s2;
+      const x = x0 * c - y0 * s;
+      const y = x0 * s + y0 * c;
+      ctx.beginPath();
+      ctx.arc(cx + x * scale, cy - y * scale, 3, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+
+    // Eigenvector 1 & 2 arrows
+    function drawArrow(x1, y1, x2, y2, color, label) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 9 * Math.cos(ang - 0.4), y2 - 9 * Math.sin(ang - 0.4));
+      ctx.lineTo(x2 - 9 * Math.cos(ang + 0.4), y2 - 9 * Math.sin(ang + 0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.fillText(label, x2 + 6, y2 - 4);
+    }
+    drawArrow(cx, cy, cx + c * s1 * 1.6 * scale, cy - s * s1 * 1.6 * scale, col.orange, `v₁ (√λ₁=${s1.toFixed(2)})`);
+    drawArrow(cx, cy, cx - s * s2 * 1.6 * scale, cy - c * s2 * 1.6 * scale, col.green, `v₂ (√λ₂=${s2.toFixed(2)})`);
+
+    // Right side: Norm comparison bar chart
+    const bx = 435, bw = 36, baseB = 315;
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Độ nhạy Chuẩn vs Outlier', 425, 38);
+    const norms = [
+      { name: 'L₁ (Bền)', val: l1Norm, color: col.green },
+      { name: 'L₂ (MSE)', val: l2Norm, color: col.blue },
+      { name: 'L∞ (Max)', val: lInfNorm, color: col.red }
+    ];
+    norms.forEach((n, idx) => {
+      const x = bx + idx * 52;
+      const h = Math.min(240, n.val * 16);
+      ctx.fillStyle = n.color;
+      ctx.fillRect(x, baseB - h, bw, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(n.val.toFixed(1), x + 4, baseB - h - 6);
+      ctx.fillText(n.name, x - 2, baseB + 16);
+    });
+  };
+
+  // ==================== 2. WEEK 1: BANDIT & UCB1 ====================
+  const trueMeans = [0.2, 0.55, 0.85, 0.40, 0.65];
+  let w1State = {
+    t: 5,
+    N: [1, 1, 1, 1, 1],
+    Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+    regretUCB: [0],
+    regretEps: [0],
+    cumUCB: 0,
+    cumEps: 0
+  };
+
+  window.resetW1Bandit = function() {
+    w1State = {
+      t: 5,
+      N: [1, 1, 1, 1, 1],
+      Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+      regretUCB: [0],
+      regretEps: [0],
+      cumUCB: 0,
+      cumEps: 0
+    };
+    updateW1Lab();
+  };
+
+  window.stepW1Bandit = function(steps) {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    const bestMean = 0.85;
+
+    for (let s = 0; s < steps; s++) {
+      w1State.t += 1;
+      // UCB selection
+      let bestArm = 0, bestScore = -1e9;
+      for (let a = 0; a < 5; a++) {
+        const ucb = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+        if (ucb > bestScore) { bestScore = ucb; bestArm = a; }
+      }
+      const reward = trueMeans[bestArm] + (Math.random() - 0.5) * 0.4;
+      w1State.N[bestArm] += 1;
+      w1State.Q[bestArm] += alpha * (reward - w1State.Q[bestArm]);
+      w1State.cumUCB += (bestMean - trueMeans[bestArm]);
+      w1State.regretUCB.push(w1State.cumUCB);
+
+      // Eps-greedy regret simulation
+      let epsArm = 2;
+      if (Math.random() < eps) epsArm = Math.floor(Math.random() * 5);
+      w1State.cumEps += (bestMean - trueMeans[epsArm]);
+      w1State.regretEps.push(w1State.cumEps);
+    }
+    updateW1Lab();
+  };
+
+  window.updateW1Lab = function() {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    document.getElementById('val-w1-c').textContent = c.toFixed(2);
+    document.getElementById('val-w1-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w1-alpha').textContent = alpha.toFixed(2);
+
+    let nextArm = 0, maxU = -1e9;
+    for (let a = 0; a < 5; a++) {
+      const score = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      if (score > maxU) { maxU = score; nextArm = a; }
+    }
+
+    document.getElementById('metrics-w1').innerHTML =
+      `Tổng số bước t = <strong>${w1State.t}</strong> | Cánh tay tối ưu thật: <strong>Arm #3 (q*=0.85)</strong><br>` +
+      `Hành động UCB chọn kế tiếp: <strong>Arm #${nextArm + 1}</strong> (Điểm UCB = ${maxU.toFixed(2)})<br>` +
+      `Hối tiếc tích lũy (Regret): UCB1 = <strong>${w1State.cumUCB.toFixed(2)}</strong> vs ε-Greedy = <strong>${w1State.cumEps.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w1');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: 5 Arms Q_t(a) + Bonus U_t(a)
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Ước lượng Q_t(a) (Xanh) + Bán kính UCB (Cam)', 20, 26);
+
+    const baseY = 310, scaleH = 110;
+    for (let a = 0; a < 5; a++) {
+      const x = 30 + a * 58;
+      const qH = Math.max(5, w1State.Q[a] * scaleH);
+      const bonus = c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      const bH = Math.min(160, bonus * scaleH);
+
+      ctx.fillStyle = col.blue;
+      ctx.fillRect(x, baseY - qH, 38, qH);
+      ctx.fillStyle = col.orange;
+      ctx.fillRect(x, baseY - qH - bH, 38, bH);
+
+      // True mean marker
+      const trueY = baseY - trueMeans[a] * scaleH;
+      ctx.strokeStyle = col.green;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x - 4, trueY); ctx.lineTo(x + 42, trueY);
+      ctx.stroke();
+
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(`Arm ${a + 1}`, x + 3, baseY + 16);
+      ctx.fillStyle = col.muted;
+      ctx.fillText(`N=${w1State.N[a]}`, x + 4, baseY + 30);
+    }
+
+    // Right: Regret curves
+    const rx = 345, ry = 45, rw = 235, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Hối tiếc tích lũy L_T (Thấp = Tốt)', rx + 10, 26);
+
+    function drawCurve(arr, color) {
+      if (arr.length < 2) return;
+      const maxVal = Math.max(5, w1State.cumEps, w1State.cumUCB);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      arr.forEach((v, i) => {
+        const px = rx + (i / (arr.length - 1)) * rw;
+        const py = ry + rh - (v / maxVal) * (rh - 15);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+    drawCurve(w1State.regretEps, col.red);
+    drawCurve(w1State.regretUCB, col.green);
+    ctx.fillStyle = col.green; ctx.fillText('▬ UCB1 O(ln T)', rx + 12, ry + 22);
+    ctx.fillStyle = col.red; ctx.fillText('▬ ε-Greedy O(T)', rx + 12, ry + 40);
+  };
+
+  // ==================== 3. WEEK 2: MDP BELLMAN GRID ====================
+  const holes = new Set([5, 7, 11, 12]);
+  const goalCell = 15;
+
+  window.updateW2Lab = function() {
+    const gamma = parseFloat(document.getElementById('sl-w2-gamma').value);
+    const slip = parseFloat(document.getElementById('sl-w2-slip').value);
+    const iters = parseInt(document.getElementById('sl-w2-iter').value, 10);
+    document.getElementById('val-w2-gamma').textContent = gamma.toFixed(2);
+    document.getElementById('val-w2-slip').textContent = slip.toFixed(2);
+    document.getElementById('val-w2-iter').textContent = iters;
+
+    let V = new Array(16).fill(0);
+    let policy = new Array(16).fill(0);
+    const dirs = [
+      [0, -1], // Left
+      [1, 0],  // Down
+      [0, 1],  // Right
+      [-1, 0]  // Up
+    ];
+    const arrows = ['←', '↓', '→', '↑'];
+
+    function stepState(s, a) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const nr = Math.min(3, Math.max(0, r + dirs[a][0]));
+      const nc = Math.min(3, Math.max(0, c + dirs[a][1]));
+      return nr * 4 + nc;
+    }
+
+    for (let k = 0; k < iters; k++) {
+      const nextV = V.slice();
+      for (let s = 0; s < 16; s++) {
+        if (s === goalCell) { nextV[s] = 1.0; continue; }
+        if (holes.has(s)) { nextV[s] = -1.0; continue; }
+        let bestQ = -1e9, bestA = 0;
+        for (let a = 0; a < 4; a++) {
+          const pMain = 1.0 - slip;
+          const pSide = slip / 2.0;
+          const aLeft = (a + 3) % 4;
+          const aRight = (a + 1) % 4;
+          const transitions = [
+            [pMain, stepState(s, a)],
+            [pSide, stepState(s, aLeft)],
+            [pSide, stepState(s, aRight)]
+          ];
+          let q = 0;
+          transitions.forEach(([prob, sNext]) => {
+            const rew = (sNext === goalCell) ? 1.0 : (holes.has(sNext) ? -0.5 : -0.01);
+            const vNext = (sNext === goalCell || holes.has(sNext)) ? 0.0 : V[sNext];
+            q += prob * (rew + gamma * vNext);
+          });
+          if (q > bestQ) { bestQ = q; bestA = a; }
+        }
+        nextV[s] = bestQ;
+        policy[s] = bestA;
+      }
+      V = nextV;
+    }
+
+    document.getElementById('metrics-w2').innerHTML =
+      `Giá trị tại Ô xuất phát V*(0) = <strong>${V[0].toFixed(3)}</strong> | Hệ số co Banach γ^k = <strong>${Math.pow(gamma, iters).toFixed(4)}</strong><br>` +
+      `Hướng đi tối ưu tại Ô 0: <strong>${arrows[policy[0]]}</strong> | Tại Ô 14 (sát đích): <strong>V*(14) = ${V[14].toFixed(3)} (${arrows[policy[14]]})</strong>`;
+
+    const cv = document.getElementById('cv-w2');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cellS = 76, ox = 145, oy = 28;
+    for (let s = 0; s < 16; s++) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const x = ox + c * cellS, y = oy + r * cellS;
+      if (s === goalCell) {
+        ctx.fillStyle = 'rgba(63, 185, 80, 0.35)';
+      } else if (holes.has(s)) {
+        ctx.fillStyle = 'rgba(255, 123, 114, 0.32)';
+      } else {
+        const norm = Math.max(0, Math.min(1, (V[s] + 0.3) / 1.3));
+        ctx.fillStyle = `rgba(88, 166, 255, ${(0.08 + norm * 0.45).toFixed(2)})`;
+      }
+      ctx.fillRect(x, y, cellS - 4, cellS - 4);
+      ctx.strokeStyle = col.grid;
+      ctx.strokeRect(x, y, cellS - 4, cellS - 4);
+
+      ctx.fillStyle = col.text;
+      ctx.font = 'bold 12px Inter, sans-serif';
+      if (s === goalCell) {
+        ctx.fillText('🏆 GOAL', x + 10, y + 32);
+        ctx.fillText('+1.00', x + 18, y + 52);
+      } else if (holes.has(s)) {
+        ctx.fillText('🕳️ HOLE', x + 10, y + 32);
+        ctx.fillText('-0.50', x + 18, y + 52);
+      } else {
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.fillStyle = col.orange;
+        ctx.fillText(arrows[policy[s]], x + 28, y + 34);
+        ctx.font = '11px JetBrains Mono, monospace';
+        ctx.fillStyle = col.text;
+        ctx.fillText(V[s].toFixed(2), x + 18, y + 58);
+      }
+    }
+  };
+
+  // ==================== 4. WEEK 3: DOUBLE DQN BIAS ====================
+  window.updateW3Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w3-sigma').value);
+    const nAct = parseInt(document.getElementById('sl-w3-nact').value, 10);
+    const gamma = parseFloat(document.getElementById('sl-w3-gamma').value);
+    document.getElementById('val-w3-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w3-nact').textContent = nAct;
+    document.getElementById('val-w3-gamma').textContent = gamma.toFixed(2);
+
+    const trials = 400;
+    let sumDQN = 0, sumDDQN = 0;
+    const actionSampleQ1 = new Array(nAct).fill(0);
+    const actionSampleQ2 = new Array(nAct).fill(0);
+
+    function randn() {
+      const u1 = Math.max(1e-7, Math.random());
+      const u2 = Math.random();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    for (let t = 0; t < trials; t++) {
+      let maxQ1 = -1e9, argMax1 = 0;
+      const q1 = [], q2 = [];
+      for (let a = 0; a < nAct; a++) {
+        const v1 = randn() * sigma;
+        const v2 = randn() * sigma;
+        q1.push(v1); q2.push(v2);
+        if (v1 > maxQ1) { maxQ1 = v1; argMax1 = a; }
+        if (t === 0) { actionSampleQ1[a] = v1; actionSampleQ2[a] = v2; }
+      }
+      sumDQN += maxQ1;
+      sumDDQN += q2[argMax1];
+    }
+
+    const avgDQN = sumDQN / trials;
+    const avgDDQN = sumDDQN / trials;
+    const asympDQN = avgDQN / (1.0 - gamma);
+
+    document.getElementById('metrics-w3').innerHTML =
+      `Giá trị thật Q*(s,a) = <strong>0.00</strong> | Kỳ vọng DQN thường E[max Q] = <strong style="color:#ff7b72">+${avgDQN.toFixed(3)}</strong> (Bị thổi phồng!)<br>` +
+      `Kỳ vọng Double DQN E[Q₂(argmax Q₁)] = <strong style="color:#3fb950">${avgDDQN.toFixed(3)}</strong> (Không chệch ≈ 0)<br>` +
+      `Sai số tích lũy qua chuỗi Bellman 1/(1-γ): DQN nổ lên tới <strong>+${asympDQN.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w3');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Draw comparison bars & single sample action noises
+    const midY = 195;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath();
+    ctx.moveTo(25, midY); ctx.lineTo(360, midY);
+    ctx.stroke();
+
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Mẫu nhiễu Q(s, a; θ) trên ${nAct} hành động (1 lượt)`, 25, 28);
+
+    const wBar = Math.max(6, Math.floor(310 / nAct) - 4);
+    let maxIdx = 0;
+    for (let a = 1; a < nAct; a++) if (actionSampleQ1[a] > actionSampleQ1[maxIdx]) maxIdx = a;
+
+    for (let a = 0; a < nAct; a++) {
+      const x = 30 + a * (wBar + 4);
+      const h = actionSampleQ1[a] * 38;
+      ctx.fillStyle = (a === maxIdx) ? col.red : col.blue;
+      if (h >= 0) ctx.fillRect(x, midY - h, wBar, h);
+      else ctx.fillRect(x, midY, wBar, -h);
+    }
+
+    // Right: Summary bias bars
+    ctx.fillStyle = col.text;
+    ctx.fillText('Độ chệch trung bình (400 mẫu)', 390, 28);
+    const b1H = Math.min(140, avgDQN * 55);
+    ctx.fillStyle = col.red;
+    ctx.fillRect(415, midY - b1H, 60, b1H);
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DQN: +${avgDQN.toFixed(2)}`, 405, midY - b1H - 8);
+
+    const b2H = avgDDQN * 55;
+    ctx.fillStyle = col.green;
+    ctx.fillRect(505, midY - Math.max(3, Math.abs(b2H)), 60, Math.max(4, Math.abs(b2H)));
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DDQN: ${avgDDQN.toFixed(2)}`, 498, midY - 12);
+  };
+
+  // ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ====================
+  window.updateW4Lab = function() {
+    const roff = parseFloat(document.getElementById('sl-w4-roff').value);
+    const baseFrac = parseFloat(document.getElementById('sl-w4-base').value);
+    const beta = parseFloat(document.getElementById('sl-w4-ent').value);
+    document.getElementById('val-w4-roff').textContent = roff.toFixed(0);
+    document.getElementById('val-w4-base').textContent = baseFrac.toFixed(2);
+    document.getElementById('val-w4-ent').textContent = beta.toFixed(2);
+
+    // Raw returns around roff + [-4, +2, -1, +5]
+    const advs = [-4.0, 2.0, -1.5, 5.0];
+    const baseline = baseFrac * roff;
+    const signals = advs.map(a => (roff + a) - baseline);
+    const meanSig = signals.reduce((a, b) => a + b, 0) / signals.length;
+    const variance = signals.reduce((a, b) => a + Math.pow(b, 2), 0) / signals.length;
+
+    // Softmax policy with temperature / entropy weight beta
+    const logits = [1.8, 0.9, 0.2, -0.4].map(l => l / Math.max(0.08, beta * 3.5));
+    const maxL = Math.max(...logits);
+    const exps = logits.map(l => Math.exp(l - maxL));
+    const sumE = exps.reduce((a, b) => a + b, 0);
+    const probs = exps.map(e => e / sumE);
+    const entropy = -probs.reduce((acc, p) => acc + (p > 1e-9 ? p * Math.log(p) : 0), 0);
+
+    document.getElementById('metrics-w4').innerHTML =
+      `Bình phương độ lớn Gradient E[(G_t - b)²]: <strong>${variance.toFixed(1)}</strong> (Khi b=V(s), giảm từ ${(roff*roff + 11.5).toFixed(0)} về 11.6!)<br>` +
+      `Shannon Entropy H(π) = <strong>${entropy.toFixed(3)} nats</strong> (Max = ln(4) ≈ 1.386)<br>` +
+      `Phân phối π(a|s): [${probs.map(p => (p*100).toFixed(1)+'%').join(', ')}]`;
+
+    const cv = document.getElementById('cv-w4');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Signals G_t - b(s) for 4 sampled actions
+    const midY = 190;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath(); ctx.moveTo(20, midY); ctx.lineTo(300, midY); ctx.stroke();
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Tín hiệu đẩy Gradient (G_t - b) trên 4 mẫu', 20, 28);
+
+    signals.forEach((sig, i) => {
+      const x = 35 + i * 64;
+      const h = Math.max(-135, Math.min(135, sig * 2.2));
+      ctx.fillStyle = sig >= 0 ? col.green : col.red;
+      if (h >= 0) ctx.fillRect(x, midY - h, 42, h);
+      else ctx.fillRect(x, midY, 42, -h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((sig >= 0 ? '+' : '') + sig.toFixed(1), x + 4, h >= 0 ? midY - h - 6 : midY - h + 14);
+      ctx.fillText(`Mẫu ${i+1}`, x + 4, 340);
+    });
+
+    // Right: Policy distribution pi(a|s) under Entropy Bonus
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Phân phối π(a|s) (Entropy H = ${entropy.toFixed(2)})`, 335, 28);
+    const baseB = 315;
+    probs.forEach((p, i) => {
+      const x = 350 + i * 58;
+      const h = p * 230;
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(x, baseB - h, 40, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((p * 100).toFixed(0) + '%', x + 6, baseB - h - 6);
+      ctx.fillText(`a_${i+1}`, x + 12, baseB + 18);
+    });
+  };
+
+  // ==================== 6. WEEK 5: PPO CLIP & GAE ====================
+  window.updateW5Lab = function() {
+    const eps = parseFloat(document.getElementById('sl-w5-eps').value);
+    const adv = parseFloat(document.getElementById('sl-w5-adv').value);
+    const lam = parseFloat(document.getElementById('sl-w5-lam').value);
+    const gam = parseFloat(document.getElementById('sl-w5-gam').value);
+
+    document.getElementById('val-w5-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w5-adv').textContent = (adv >= 0 ? '+' : '') + adv.toFixed(2);
+    document.getElementById('val-w5-lam').textContent = lam.toFixed(2);
+    document.getElementById('val-w5-gam').textContent = gam.toFixed(3);
+
+    const gaeFactor = gam * lam;
+    const effHorizon = 1.0 / Math.max(1e-4, 1.0 - gaeFactor);
+
+    document.getElementById('metrics-w5').innerHTML =
+      `Vùng tin cậy tỷ số r_t(θ): <strong>[${(1 - eps).toFixed(2)}, ${(1 + eps).toFixed(2)}]</strong> | Khi vượt ngưỡng: <strong>∇_θ L^CLIP = 0</strong><br>` +
+      `Hệ số suy giảm GAE (γλ) = <strong>${gaeFactor.toFixed(4)}</strong> | Tầm nhìn hiệu dụng H_adv ≈ <strong>${effHorizon.toFixed(1)} bước</strong>`;
+
+    const cv = document.getElementById('cv-w5');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left Plot: PPO Clip Objective vs r_t in [0.2, 2.0]
+    const lx = 35, ly = 42, lw = 250, lh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Đồ thị L^CLIP(r_t) theo tỷ số r_t', lx, 26);
+
+    const midY = ly + lh / 2;
+    ctx.beginPath(); ctx.moveTo(lx, midY); ctx.lineTo(lx + lw, midY); ctx.stroke();
+
+    // Vertical lines at 1-eps, 1, 1+eps
+    function rToX(r) { return lx + ((r - 0.2) / 1.8) * lw; }
+    function valToY(v) { return midY - v * 28; }
+
+    [1 - eps, 1.0, 1 + eps].forEach((rVal, idx) => {
+      const px = rToX(rVal);
+      ctx.strokeStyle = idx === 1 ? col.muted : col.orange;
+      ctx.setLineDash(idx === 1 ? [3, 3] : [4, 4]);
+      ctx.beginPath(); ctx.moveTo(px, ly); ctx.lineTo(px, ly + lh); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = col.muted;
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(rVal.toFixed(2), px - 12, ly + lh + 14);
+    });
+
+    // Unclipped r*A (dashed blue)
+    ctx.strokeStyle = col.blue;
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.03) {
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(r * adv)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Clipped min(r*A, clip(r)*A) (solid green)
+    ctx.strokeStyle = col.green;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.02) {
+      const rClip = Math.max(1 - eps, Math.min(1 + eps, r));
+      const obj = Math.min(r * adv, rClip * adv);
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(obj)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Right Plot: GAE weights (gamma*lambda)^l for l=0..24
+    const rx = 325, ry = 42, rw = 250, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Trọng số (γλ)^l của sai số TD δ_{t+l}', rx, 26);
+
+    for (let l = 0; l < 20; l++) {
+      const w = Math.pow(gaeFactor, l);
+      const bx = rx + 8 + l * 12;
+      const bh = w * (rh - 25);
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(bx, ry + rh - bh, 8, bh);
+    }
+    ctx.fillStyle = col.muted;
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Bước tương lai l = 0 → 20', rx + 55, ry + rh + 16);
+  };
+
+  // ==================== 7. WEEK 6: EVOLUTION STRATEGIES ====================
+  let esTheta = [-1.4, -1.1];
+  window.resetW6ES = function() {
+    esTheta = [-1.4, -1.1];
+    updateW6Lab();
+  };
+
+  window.stepW6ES = function() {
+    const gEst = window._lastESGrad || [0, 0];
+    esTheta[0] += 0.22 * gEst[0];
+    esTheta[1] += 0.22 * gEst[1];
+    updateW6Lab();
+  };
+
+  window.updateW6Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w6-sigma').value);
+    const nPop = parseInt(document.getElementById('sl-w6-npop').value, 10);
+    const mirrored = parseInt(document.getElementById('sl-w6-mirror').value, 10) === 1;
+    document.getElementById('val-w6-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w6-npop').textContent = nPop;
+    document.getElementById('val-w6-mirror').textContent = mirrored ? 'Đối xứng ±ε' : '1 phía +ε';
+
+    // Objective F(x,y) = - (x^2 + 2*y^2) - 0.3*(x^3 + y^2*x) (has curvature so 1-sided has bias/noise)
+    function F(x, y) {
+      return -(x * x + 1.8 * y * y) + 0.25 * (x * x * x + x * y * y);
+    }
+    const trueGrad = [
+      -2 * esTheta[0] + 0.75 * esTheta[0] * esTheta[0] + 0.25 * esTheta[1] * esTheta[1],
+      -3.6 * esTheta[1] + 0.5 * esTheta[0] * esTheta[1]
+    ];
+
+    let gx = 0, gy = 0;
+    const samples = [];
+    for (let i = 0; i < nPop; i++) {
+      const ang = (2 * Math.PI * i) / nPop + 0.3;
+      const ex = Math.cos(ang) * 1.15, ey = Math.sin(ang) * 0.9;
+      const fPos = F(esTheta[0] + sigma * ex, esTheta[1] + sigma * ey);
+      samples.push([esTheta[0] + sigma * ex, esTheta[1] + sigma * ey, true]);
+      if (mirrored) {
+        const fNeg = F(esTheta[0] - sigma * ex, esTheta[1] - sigma * ey);
+        samples.push([esTheta[0] - sigma * ex, esTheta[1] - sigma * ey, false]);
+        gx += ((fPos - fNeg) / (2 * sigma)) * ex;
+        gy += ((fPos - fNeg) / (2 * sigma)) * ey;
+      } else {
+        // Without baseline, F(theta) term adds huge noise
+        gx += (fPos / sigma) * ex;
+        gy += (fPos / sigma) * ey;
+      }
+    }
+    gx /= nPop; gy /= nPop;
+    window._lastESGrad = [gx, gy];
+
+    const normTrue = Math.hypot(trueGrad[0], trueGrad[1]) + 1e-8;
+    const normEst = Math.hypot(gx, gy) + 1e-8;
+    const cosSim = (trueGrad[0] * gx + trueGrad[1] * gy) / (normTrue * normEst);
+
+    document.getElementById('metrics-w6').innerHTML =
+      `Tâm tham số hiện tại θ = [${esTheta[0].toFixed(2)}, ${esTheta[1].toFixed(2)}] | Đích tối ưu: [0.00, 0.00]<br>` +
+      `Độ tương đồng Cosine(∇F thật, ĝ ES) = <strong>${cosSim.toFixed(4)}</strong> (Mirrored ±ε khử sạch số hạng bậc chẵn F(θ) và Hessian!)`;
+
+    const cv = document.getElementById('cv-w6');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 300, cy = 180, scale = 95;
+    // Draw contour ellipses around (0,0)
+    for (let r = 0.35; r <= 2.2; r += 0.35) {
+      ctx.strokeStyle = col.grid;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * scale, (r / Math.sqrt(1.8)) * scale, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    // Optimum star
+    ctx.fillStyle = col.green;
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText('★ Đích θ*=(0,0)', cx + 6, cy - 6);
+
+    // Samples
+    samples.forEach(([sx, sy, isPos]) => {
+      ctx.fillStyle = isPos ? col.blue : col.purple;
+      ctx.beginPath();
+      ctx.arc(cx + sx * scale, cy - sy * scale, 3.5, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    // Current theta
+    const tx = cx + esTheta[0] * scale, ty = cy - esTheta[1] * scale;
+    ctx.fillStyle = col.orange;
+    ctx.beginPath(); ctx.arc(tx, ty, 6, 0, 2 * Math.PI); ctx.fill();
+
+    // True gradient vs ES gradient arrows
+    function drawVec(vx, vy, color, label) {
+      const len = Math.hypot(vx, vy);
+      if (len < 1e-4) return;
+      const ux = (vx / len) * 55, uy = (vy / len) * 55;
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + ux, ty - uy); ctx.stroke();
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.fillText(label, tx + ux + 5, ty - uy);
+    }
+    drawVec(trueGrad[0], trueGrad[1], col.green, '∇F thật');
+    drawVec(gx, gy, col.orange, 'ĝ ES');
+  };
+
+  // ==================== 8. WEEK 7: MODEL-BASED RL & MPC ====================
+  window.updateW7Lab = function() {
+    const H = parseInt(document.getElementById('sl-w7-h').value, 10);
+    const rawLip = parseFloat(document.getElementById('sl-w7-lip').value);
+    const tik = parseFloat(document.getElementById('sl-w7-tik').value);
+    document.getElementById('val-w7-h').textContent = H;
+    document.getElementById('val-w7-lip').textContent = rawLip.toFixed(2);
+    document.getElementById('val-w7-tik').textContent = tik.toFixed(2);
+
+    // Tikhonov input noise regularizes the effective Lipschitz constant
+    const effLip = Math.max(0.85, rawLip - tik * 0.9);
+    const eps1 = 0.04;
+    const trueTraj = [], predTraj = [], errBars = [];
+
+    let errAcc = 0;
+    for (let k = 0; k <= H; k++) {
+      const sTrue = Math.sin(k * 0.32);
+      trueTraj.push(sTrue);
+      if (k > 0) errAcc = errAcc * effLip + eps1;
+      predTraj.push(sTrue + errAcc * (k % 2 === 0 ? 1 : 0.85));
+      errBars.push(errAcc);
+    }
+
+    document.getElementById('metrics-w7').innerHTML =
+      `Độ dốc hiệu dụng sau làm trơn Tikhonov: <strong>L_eff = ${effLip.toFixed(3)}</strong><br>` +
+      `Sai số dự đoán ở bước cuối H=${H}: <strong>||ŝ_{t+H} - s_{t+H}|| = ${errAcc.toFixed(3)}</strong> (Gấp ${(errAcc / eps1).toFixed(1)} lần sai số 1 bước!)`;
+
+    const cv = document.getElementById('cv-w7');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 30, w = 525, h = 290, midY = oy + h / 2;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function stepToX(k) { return ox + (k / H) * w; }
+    function sToY(val) { return midY - val * 65; }
+
+    // Error fan shaded area
+    ctx.fillStyle = 'rgba(255, 123, 114, 0.16)';
+    ctx.beginPath();
+    for (let k = 0; k <= H; k++) {
+      const x = stepToX(k), y = sToY(trueTraj[k] + errBars[k]);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    for (let k = H; k >= 0; k--) {
+      const x = stepToX(k), y = sToY(trueTraj[k] - errBars[k]);
+      ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // True trajectory (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    trueTraj.forEach((v, k) => {
+      const x = stepToX(k), y = sToY(v);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Hallucinated rollout (red dashed)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    predTraj.forEach((v, k) => {
+      const x = stepToX(k), y = Math.max(oy + 5, Math.min(oy + h - 5, sToY(v)));
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Quỹ đạo thật s_{t+k}', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('--- Mô hình tưởng tượng ŝ_{t+k} (Vùng đỏ = Bùng nổ sai số O(L^H ε))', ox + 175, oy + 22);
+  };
+
+  // ==================== 9. WEEK 8: SAC & DPO ====================
+  window.updateW8Lab = function() {
+    const alpha = parseFloat(document.getElementById('sl-w8-alpha').value);
+    const dq = parseFloat(document.getElementById('sl-w8-dq').value);
+    const beta = parseFloat(document.getElementById('sl-w8-beta').value);
+    document.getElementById('val-w8-alpha').textContent = alpha.toFixed(2);
+    document.getElementById('val-w8-dq').textContent = dq.toFixed(2);
+    document.getElementById('val-w8-beta').textContent = beta.toFixed(2);
+
+    const N = 80;
+    const actions = [], qVals = [], probs = [];
+    let maxScaled = -1e9;
+    for (let i = 0; i < N; i++) {
+      const a = -1.0 + (2.0 * i) / (N - 1);
+      actions.push(a);
+      // Bimodal Q landscape: peak 1 at a=-0.45 (height 1.0), peak 2 at a=+0.50 (height dq)
+      const q = Math.exp(-Math.pow((a + 0.45) / 0.25, 2)) + dq * Math.exp(-Math.pow((a - 0.50) / 0.25, 2));
+      qVals.push(q);
+      if (q / alpha > maxScaled) maxScaled = q / alpha;
+    }
+    let sumExp = 0;
+    const rawExps = qVals.map(q => {
+      const e = Math.exp(q / alpha - maxScaled);
+      sumExp += e;
+      return e;
+    });
+    rawExps.forEach(e => probs.push(e / sumExp));
+
+    document.getElementById('metrics-w8').innerHTML =
+      `Khi α = ${alpha.toFixed(2)}: Policy SAC ${alpha < 0.08 ? 'co cụm thành Greedy (chỉ chọn đỉnh 1)' : (alpha > 0.8 ? 'phẳng dần về Uniform' : 'khám phá Đa Mốt (giữ cả 2 đỉnh!)')}<br>` +
+      `Trong DPO (β_KL = ${beta.toFixed(2)}): Độ dốc Sigmoid σ(β·Δlog(π/π_ref)) tỉ lệ thuận với β_KL.`;
+
+    const cv = document.getElementById('cv-w8');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Bimodal Q(s,a) and Boltzmann pi*(a|s)
+    const lx = 30, ly = 40, lw = 255, lh = 270;
+    ctx.strokeStyle = col.grid; ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Q(s,a) 2 đỉnh (Xanh) & π*(a|s) (Cam)', lx, 26);
+
+    // Q curve
+    ctx.strokeStyle = col.blue; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    qVals.forEach((q, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (q / 1.3) * (lh - 20);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Policy density curve
+    const maxP = Math.max(...probs) + 1e-6;
+    ctx.strokeStyle = col.orange; ctx.lineWidth = 3;
+    ctx.beginPath();
+    probs.forEach((p, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (p / maxP) * (lh - 30);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Right: DPO Sigmoid Loss & Preference Probability
+    const rx = 320, ry = 40, rw = 255, rh = 270;
+    ctx.strokeStyle = col.grid; ctx.lineWidth = 1; ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.fillText('DPO: Xác suất P(y_w ≻ y_l) = σ(β·Δ)', rx, 26);
+
+    ctx.strokeStyle = col.purple; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let i = 0; i <= 80; i++) {
+      const delta = -4.0 + (8.0 * i) / 80;
+      const prob = 1.0 / (1.0 + Math.exp(-beta * delta));
+      const px = rx + (i / 80) * rw;
+      const py = ry + lh - prob * (lh - 20) - 10;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  };
+
+  // ==================== 10. SIM-TO-REAL PHYSICS LAB ====================
+  window.updateSim2RealLab = function() {
+    const dt = parseFloat(document.getElementById('sl-sim-dt').value);
+    const kp = parseFloat(document.getElementById('sl-sim-kp').value);
+    const kd = parseFloat(document.getElementById('sl-sim-kd').value);
+    const mu = parseFloat(document.getElementById('sl-sim-mu').value);
+    document.getElementById('val-sim-dt').textContent = dt.toFixed(3) + ' s';
+    document.getElementById('val-sim-kp').textContent = kp.toFixed(0);
+    document.getElementById('val-sim-kd').textContent = kd.toFixed(1);
+    document.getElementById('val-sim-mu').textContent = mu.toFixed(2);
+
+    const mass = 1.0, g = 9.81, targetX = 1.0;
+    const maxForce = mu * mass * g; // Friction traction limit
+
+    function accel(x, v) {
+      const rawF = kp * (targetX - x) - kd * v;
+      const clampedF = Math.max(-maxForce, Math.min(maxForce, rawF));
+      return clampedF / mass;
+    }
+
+    const totalTime = 1.6;
+    const steps = Math.max(8, Math.floor(totalTime / dt));
+    const eulerTraj = [[0, 0]], rk4Traj = [[0, 0]];
+    let xe = 0, ve = 0, xr = 0, vr = 0;
+    let eulerExploded = false;
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i * dt;
+      // Explicit Euler
+      const ae = accel(xe, ve);
+      xe = xe + dt * ve;
+      ve = ve + dt * ae;
+      if (Math.abs(xe) > 3.5) eulerExploded = true;
+      eulerTraj.push([t, Math.max(-2.5, Math.min(2.8, xe))]);
+
+      // RK4
+      const k1x = vr, k1v = accel(xr, vr);
+      const k2x = vr + 0.5 * dt * k1v, k2v = accel(xr + 0.5 * dt * k1x, vr + 0.5 * dt * k1v);
+      const k3x = vr + 0.5 * dt * k2v, k3v = accel(xr + 0.5 * dt * k2x, vr + 0.5 * dt * k2v);
+      const k4x = vr + dt * k3v, k4v = accel(xr + dt * k3x, vr + dt * k3v);
+      xr += (dt / 6.0) * (k1x + 2 * k2x + 2 * k3x + k4x);
+      vr += (dt / 6.0) * (k1v + 2 * k2v + 2 * k3v + k4v);
+      rk4Traj.push([t, Math.max(-2.5, Math.min(2.8, xr))]);
+    }
+
+    document.getElementById('metrics-sim2real').innerHTML =
+      `Giới hạn lực bám ma sát F_max = μ·m·g = <strong>${maxForce.toFixed(2)} N</strong> | Tích số ổn định Δt·K_p = <strong>${(dt * kp).toFixed(2)}</strong><br>` +
+      `Trạng thái Explicit Euler: <strong style="color:${eulerExploded ? '#ff7b72' : '#3fb950'}">${eulerExploded ? '💥 MẤT ỔN ĐỊNH SỐ (NỔ QUỸ ĐẠO!)' : '✅ Hội tụ ổn định'}</strong> | RK4: <strong style="color:#3fb950">✅ Luôn ổn định vật lý</strong>`;
+
+    const cv = document.getElementById('cv-sim2real');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 32, w = 525, h = 290;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function tToX(t) { return ox + (t / totalTime) * w; }
+    function xToY(xVal) { return oy + h * 0.68 - xVal * 85; }
+
+    // Target line x = 1.0
+    const ty = xToY(1.0);
+    ctx.strokeStyle = col.muted; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(ox, ty); ctx.lineTo(ox + w, ty); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col.muted; ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Đích x_target = 1.0 m', ox + w - 125, ty - 6);
+
+    // Draw Euler (red)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    eulerTraj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Draw RK4 (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    rk4Traj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Runge-Kutta bậc 4 (RK4 - Chuẩn xác)', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('▬ Explicit Euler (Dễ nổ khi Δt hoặc K_p lớn)', ox + 265, oy + 22);
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    switchSimTab('ppo_gae');
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          const activeBtn = document.querySelector('.sim-tab.active');
+          if (activeBtn) renderActiveTab(activeBtn.getAttribute('data-tab'));
+        }, 20);
+      });
+    }
+  });
+})();
+</script>
+
+      <article class="markdown-body">
+        <h1 id="kien-thuc-chi-tiet-theo-tung-phan-cua-repo-kem-oi-chieu-code">Kiến thức chi tiết theo từng phần của repo (kèm đối chiếu code)<a class="headerlink" href="#kien-thuc-chi-tiet-theo-tung-phan-cua-repo-kem-oi-chieu-code" title="Liên kết tới mục này">&para;</a></h1>
+<p>Tài liệu này bổ sung cho <a href="KIEN_THUC_CAN_HOC.html">KIEN_THUC_CAN_HOC.md</a>. Mỗi tuần gồm: <strong>lý thuyết cốt lõi → ánh xạ vào code → lỗi/điểm cần lưu ý đã kiểm tra → bài tập → cập nhật cho thư viện mới</strong>.</p>
+<blockquote class="callout">
+<p>Các nhận xét về lỗi bên dưới là kết quả đọc code, chưa chạy thực nghiệm (repo viết cho Gym cũ). Chúng được đánh dấu <strong>[Lỗi]</strong> (sai thật sự), <strong>[Lưu ý]</strong> (khác chuẩn/giảm chất lượng) hoặc <strong>[Cũ]</strong> (API lỗi thời).</p>
+</blockquote>
+<h2 id="muc-luc">Mục lục<a class="headerlink" href="#muc-luc" title="Liên kết tới mục này">&para;</a></h2>
+<ol start="0">
+<li><a href="#0-ký-hiệu-và-công-thức-tổng-hợp">Ký hiệu và công thức tổng hợp</a></li>
+<li><a href="#1-week-1--giới-thiệu">Week 1 – Giới thiệu</a></li>
+<li><a href="#2-week-2--q-learning-tabular">Week 2 – Q-learning tabular</a></li>
+<li><a href="#3-week-3--dqn-và-biến-thể">Week 3 – DQN và biến thể</a></li>
+<li><a href="#4-week-4--policy-gradient-và-a2c">Week 4 – Policy Gradient và A2C</a></li>
+<li><a href="#5-week-5--ppo">Week 5 – PPO</a></li>
+<li><a href="#6-week-6--evolution-strategies">Week 6 – Evolution Strategies</a></li>
+<li><a href="#7-week-7--model-based-rl">Week 7 – Model-Based RL</a></li>
+<li><a href="#8-week-8--chủ-đề-nâng-cao">Week 8 – Chủ đề nâng cao</a></li>
+<li><a href="#9-bảng-tổng-hợp-lỗi-và-cách-sửa">Bảng tổng hợp lỗi và cách sửa</a></li>
+<li><a href="#10-chuyển-sang-thư-viện-hiện-đại">Chuyển sang thư viện hiện đại</a></li>
+<li><a href="#11-cách-tự-kiểm-tra-mức-độ-hiểu">Cách tự kiểm tra mức độ hiểu</a></li>
+</ol>
+<hr />
+<h2 id="0-ky-hieu-va-cong-thuc-tong-hop">0. Ký hiệu và công thức tổng hợp<a class="headerlink" href="#0-ky-hieu-va-cong-thuc-tong-hop" title="Liên kết tới mục này">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Ký hiệu</th>
+<th>Ý nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="math-inline">$s, a, r$</span></td>
+<td>trạng thái, hành động, phần thưởng</td>
+</tr>
+<tr>
+<td><span class="math-inline">$\pi_\theta(a\mid s)$</span></td>
+<td>policy tham số hoá bởi <span class="math-inline">$\theta$</span></td>
+</tr>
+<tr>
+<td><span class="math-inline">$G_t=\sum_{k\ge 0}\gamma^k r_{t+k}$</span></td>
+<td>return chiết khấu</td>
+</tr>
+<tr>
+<td><span class="math-inline">$V^\pi(s)=\mathbb E_\pi[G_t\mid s]$</span></td>
+<td>hàm giá trị trạng thái</td>
+</tr>
+<tr>
+<td><span class="math-inline">$Q^\pi(s,a)=\mathbb E_\pi[G_t\mid s,a]$</span></td>
+<td>hàm giá trị hành động</td>
+</tr>
+<tr>
+<td><span class="math-inline">$A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s)$</span></td>
+<td>advantage: hành động tốt hơn trung bình bao nhiêu</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Các công thức xuyên suốt</strong></p>
+<ul>
+<li>Bellman expectation: <span class="math-inline">$V^\pi(s)=\sum_a\pi(a|s)\sum_{s&#x27;}P(s&#x27;|s,a)\,[r+\gamma V^\pi(s&#x27;)]$</span></li>
+<li>Bellman optimality: <span class="math-inline">$Q^*(s,a)=\mathbb E[r+\gamma\max_{a&#x27;}Q^*(s&#x27;,a&#x27;)]$</span></li>
+<li>TD error: <span class="math-inline">$\delta_t=r_t+\gamma V(s_{t+1})-V(s_t)$</span></li>
+<li>Policy gradient: <span class="math-inline">$\nabla_\theta J=\mathbb E[\nabla_\theta\log\pi_\theta(a|s)\,\Psi_t]$</span>, với <span class="math-inline">$\Psi_t\in\{G_t,\ G_t-b(s),\ A_t,\ \delta_t\}$</span> (càng về sau càng ít phương sai, càng nhiều bias).</li>
+<li>GAE: <span class="math-inline">$\hat A_t=\sum_{l\ge0}(\gamma\lambda)^l\delta_{t+l}$</span></li>
+</ul>
+<p><strong>Phân loại thuật toán trong repo</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tuần</th>
+<th>Thuật toán</th>
+<th>Value-based?</th>
+<th>Policy-based?</th>
+<th>On/Off-policy</th>
+<th>Hành động</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>Q-learning</td>
+<td>có</td>
+<td>ngầm (greedy)</td>
+<td>off</td>
+<td>rời rạc</td>
+</tr>
+<tr>
+<td>3</td>
+<td>DQN (+Double/Dueling/Noisy/N-step)</td>
+<td>có</td>
+<td>ngầm</td>
+<td>off</td>
+<td>rời rạc</td>
+</tr>
+<tr>
+<td>4</td>
+<td>REINFORCE, A2C</td>
+<td>critic</td>
+<td>có</td>
+<td>on</td>
+<td>rời rạc</td>
+</tr>
+<tr>
+<td>5</td>
+<td>PPO</td>
+<td>critic</td>
+<td>có</td>
+<td>on (tái dùng ít epoch)</td>
+<td>liên tục</td>
+</tr>
+<tr>
+<td>6</td>
+<td>ES</td>
+<td>không</td>
+<td>trực tiếp trên tham số</td>
+<td>– (hộp đen)</td>
+<td>liên tục</td>
+</tr>
+<tr>
+<td>7</td>
+<td>MB-MF (shooting MPC)</td>
+<td>model</td>
+<td>planning</td>
+<td>–</td>
+<td>liên tục</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-week-1-gioi-thieu">1. Week 1 – Giới thiệu<a class="headerlink" href="#1-week-1-gioi-thieu" title="Liên kết tới mục này">&para;</a></h2>
+<p>Repo không có code cho tuần này; nội dung là bài đọc/video.</p>
+<p><strong>Kiến thức cần nắm</strong></p>
+<ul>
+<li>Vòng lặp tương tác: agent quan sát <span class="math-inline">$s_t$</span> → chọn <span class="math-inline">$a_t$</span> → môi trường trả <span class="math-inline">$r_t, s_{t+1}$</span>.</li>
+<li>Vì sao RL khác học có giám sát: dữ liệu do chính agent sinh ra (không i.i.d.), nhãn đúng không có sẵn, phần thưởng trễ (<em>credit assignment</em>), cần cân bằng khám phá/khai thác.</li>
+<li><em>Pong from Pixels</em> (Karpathy): policy gradient tối giản bằng NumPy, hiểu "tăng log-prob của hành động dẫn đến thắng".</li>
+<li>Phân loại: model-free/model-based, value-based/policy-based, on/off-policy.</li>
+</ul>
+<p><strong>Bài tập đề xuất</strong></p>
+<ol>
+<li>Cài Gymnasium, chạy <code>CartPole-v1</code> với agent ngẫu nhiên, đo reward trung bình (~20).</li>
+<li>Viết agent luật cứng (<code>action = obs[2] &gt; 0</code>) để thấy baseline ~40–50.</li>
+<li>Đọc Sutton &amp; Barto chương 1 và trả lời: vì sao tic-tac-toe học được bằng TD mà không cần mô hình đối thủ?</li>
+</ol>
+<hr />
+<h2 id="2-week-2-q-learning-tabular">2. Week 2 – Q-learning tabular<a class="headerlink" href="#2-week-2-q-learning-tabular" title="Liên kết tới mục này">&para;</a></h2>
+<p>File: <a href="Week2/frozenlake_Qlearning.ipynb"><code>Week2/frozenlake_Qlearning.ipynb</code></a></p>
+<h3 id="21-ly-thuyet">2.1 Lý thuyết<a class="headerlink" href="#21-ly-thuyet" title="Liên kết tới mục này">&para;</a></h3>
+<p>Q-learning cập nhật bảng Q bằng mục tiêu TD off-policy:</p>
+<p><div class="math-block">$$Q(s,a)\leftarrow Q(s,a)+\alpha\,[\,r+\gamma\max_{a&#x27;}Q(s&#x27;,a&#x27;)-Q(s,a)\,]$$</div></p>
+<ul>
+<li><strong>Off-policy</strong>: hành động chọn ε-greedy để khám phá, nhưng mục tiêu dùng <span class="math-inline">$\max$</span> (policy greedy). SARSA thay <span class="math-inline">$\max$</span> bằng <span class="math-inline">$Q(s&#x27;,a&#x27;)$</span> với <span class="math-inline">$a&#x27;$</span> thực sự được chọn (on-policy).</li>
+<li><strong>Hội tụ</strong> về <span class="math-inline">$Q^*$</span> nếu mọi cặp (s,a) được thăm vô hạn lần và <span class="math-inline">$\alpha$</span> giảm đúng lịch (trong thực tế dùng <span class="math-inline">$\alpha$</span> hằng).</li>
+<li><strong>ε-greedy + decay</strong>: <span class="math-inline">$\epsilon\leftarrow\epsilon\cdot 0.9993$</span> sau mỗi episode (xem ô "MAIN PROCEDURE"); sau 15000 episode <span class="math-inline">$\epsilon\approx 3\times10^{-5}$</span>.</li>
+</ul>
+<h3 id="22-anh-xa-vao-notebook">2.2 Ánh xạ vào notebook<a class="headerlink" href="#22-anh-xa-vao-notebook" title="Liên kết tới mục này">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Hàm/biến</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bảng Q</td>
+<td><code>table = defaultdict(float)</code> khoá <code>(state, action)</code></td>
+</tr>
+<tr>
+<td>Chọn hành động</td>
+<td><code>select_eps_greedy_action</code>, <code>select_greedy_action</code></td>
+</tr>
+<tr>
+<td>Cập nhật</td>
+<td><code>Q_learning(table, obs0, obs1, reward, action)</code></td>
+</tr>
+<tr>
+<td>Siêu tham số</td>
+<td><code>GAMMA=0.95</code>, <code>LEARNING_RATE=0.8</code>, <code>EPS_DECAY_RATE=0.9993</code></td>
+</tr>
+<tr>
+<td>Đánh giá</td>
+<td><code>test_game</code> (greedy, 100 episode)</td>
+</tr>
+</tbody>
+</table>
+<p><code>FrozenLake-v0</code> mặc định <strong>trơn trượt</strong> (<code>is_slippery=True</code>): hành động chỉ đi đúng hướng với xác suất 1/3, nên môi trường ngẫu nhiên; vì vậy dùng <span class="math-inline">$\alpha$</span> lớn 0.8 vẫn học được nhưng nhiễu. Reward chỉ bằng 1 khi tới đích, còn lại 0 (reward thưa).</p>
+<h3 id="23-iem-can-luu-y">2.3 Điểm cần lưu ý<a class="headerlink" href="#23-iem-can-luu-y" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li><strong>[Lưu ý]</strong> <code>best_action_value</code> khởi tạo <code>max_value = 0</code> và chỉ chọn khi <code>Q &gt; max_value</code>. Q âm bị bỏ qua và khi mọi Q bằng 0 luôn trả action 0. Với FrozenLake reward không âm nên vẫn chạy, nhưng sai nếu môi trường có reward âm (ví dụ Taxi). Cách đúng: <code>max(range(n), key=lambda a: table[(s,a)])</code>.</li>
+<li><strong>[Lưu ý]</strong> Không xử lý terminal tường minh: target đúng ở trạng thái kết thúc là <span class="math-inline">$r$</span> (không cộng <span class="math-inline">$\gamma\max Q$</span>). Ở đây ổn vì bảng Q của trạng thái kết thúc không bao giờ được cập nhật nên luôn bằng 0.</li>
+<li><strong>[Lưu ý]</strong> Bài toán chỉ giải được cho không gian trạng thái rời rạc, nhỏ. Với không gian liên tục phải lượng tử hoá hoặc dùng mạng nơ-ron (Week 3).</li>
+</ul>
+<h3 id="24-bai-tap">2.4 Bài tập<a class="headerlink" href="#24-bai-tap" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li>Đổi sang SARSA (chọn <span class="math-inline">$a&#x27;$</span> ε-greedy trước khi cập nhật), so sánh đường học.</li>
+<li>Thử <code>is_slippery=False</code>, chứng minh Q hội tụ trong vài trăm episode.</li>
+<li>Vẽ heatmap <span class="math-inline">$\max_a Q(s,a)$</span> trên lưới 4×4 và quan sát giá trị lan ngược từ đích.</li>
+<li>Thử <span class="math-inline">$\alpha\in\{0.05,0.2,0.8\}$</span> và <span class="math-inline">$\gamma\in\{0.9,0.99\}$</span>.</li>
+</ol>
+<hr />
+<h2 id="3-week-3-dqn-va-bien-the">3. Week 3 – DQN và biến thể<a class="headerlink" href="#3-week-3-dqn-va-bien-the" title="Liên kết tới mục này">&para;</a></h2>
+<p>Các file: <a href="Week3/main.py"><code>main.py</code></a> · <a href="Week3/agent.py"><code>agent.py</code></a> · <a href="Week3/central_control.py"><code>central_control.py</code></a> · <a href="Week3/neural_net.py"><code>neural_net.py</code></a> · <a href="Week3/buffers.py"><code>buffers.py</code></a> · <a href="Week3/atari_wrappers.py"><code>atari_wrappers.py</code></a></p>
+<h3 id="31-ly-thuyet">3.1 Lý thuyết<a class="headerlink" href="#31-ly-thuyet" title="Liên kết tới mục này">&para;</a></h3>
+<p><strong>Vì sao cần DQN</strong>: với ảnh Atari không thể dùng bảng Q, ta xấp xỉ <span class="math-inline">$Q(s,a;\theta)$</span> bằng CNN. Kết hợp <em>function approximation + bootstrapping + off-policy</em> ("deadly triad") dễ phân kỳ, nên DQN thêm hai thủ thuật:</p>
+<ol>
+<li><strong>Experience replay</strong>: lưu <span class="math-inline">$(s,a,r,s&#x27;,done)$</span>, lấy mẫu ngẫu nhiên để phá tương quan thời gian và tái dùng dữ liệu.</li>
+<li><strong>Target network</strong> <span class="math-inline">$\theta^-$</span> (cập nhật chậm): mục tiêu <span class="math-inline">$y=r+\gamma\max_{a&#x27;}Q(s&#x27;,a&#x27;;\theta^-)$</span> không "chạy trốn" theo mạng đang học. Loss: <span class="math-inline">$L=\mathbb E[(y-Q(s,a;\theta))^2]$</span>.</li>
+</ol>
+<p><strong>Các biến thể (gói trong Rainbow)</strong></p>
+<table>
+<thead>
+<tr>
+<th>Biến thể</th>
+<th>Ý tưởng</th>
+<th>Công thức/điểm chính</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Double DQN</td>
+<td>Tránh đánh giá quá cao do <span class="math-inline">$\max$</span> trên ước lượng nhiễu</td>
+<td><span class="math-inline">$y=r+\gamma\,Q(s&#x27;,\arg\max_{a&#x27;}Q(s&#x27;,a&#x27;;\theta);\theta^-)$</span> (chọn bằng mạng học, đánh giá bằng mạng đích)</td>
+</tr>
+<tr>
+<td>Dueling</td>
+<td>Tách <span class="math-inline">$V(s)$</span> và advantage</td>
+<td><span class="math-inline">$Q=V+A-\overline{A}$</span> (trừ trung bình để định danh được)</td>
+</tr>
+<tr>
+<td>Multi-step (n-step)</td>
+<td>Cân bằng bias/variance</td>
+<td><span class="math-inline">$y=\sum_{k=0}^{n-1}\gamma^k r_{t+k}+\gamma^nQ(s_{t+n},\cdot)$</span></td>
+</tr>
+<tr>
+<td>Noisy Nets</td>
+<td>Khám phá bằng nhiễu có tham số học</td>
+<td><span class="math-inline">$w=\mu+\sigma\odot\varepsilon$</span> thay ε-greedy</td>
+</tr>
+<tr>
+<td>(Chưa cài) PER, Distributional</td>
+<td>Ưu tiên mẫu có TD error lớn; học phân phối return</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-anh-xa-vao-code">3.2 Ánh xạ vào code<a class="headerlink" href="#32-anh-xa-vao-code" title="Liên kết tới mục này">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>Vị trí</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tiền xử lý Atari: lặp hành động 4 frame và lấy max của 2 frame cuối, FireReset, resize 84×84 xám, stack 4 frame, scale [0,1]</td>
+<td><a href="Week3/atari_wrappers.py#L160-L169"><code>atari_wrappers.py</code></a> (<code>MaxAndSkipEnv</code>, <code>FireResetEnv</code>, <code>WarpFrame</code>, <code>ImageToPyTorch</code>, <code>FrameStack</code>, <code>ScaledFloatFrame</code>)</td>
+</tr>
+<tr>
+<td>CNN theo Nature-DQN</td>
+<td><code>DQN</code> trong <a href="Week3/neural_net.py#L105-L149"><code>neural_net.py</code></a></td>
+</tr>
+<tr>
+<td>Hình dạng chuẩn của Nature-DQN: 4×84×84 → conv8/4 → 20×20 → conv4/2 → 9×9 → conv3/1 → 7×7×64 = <strong>3136</strong> → FC 512 → số hành động. (Xem lưu ý 8 bên dưới: code này thực tế khác chuẩn.)</td>
+<td><code>_get_conv_out</code></td>
+</tr>
+<tr>
+<td>Dueling</td>
+<td><code>DuelingDQN</code> (<a href="Week3/neural_net.py#L58-L102"><code>neural_net.py</code></a>)</td>
+</tr>
+<tr>
+<td>ε giảm tuyến tính 1.0→0.02 qua <span class="math-inline">$10^5$</span> bước</td>
+<td><a href="Week3/agent.py#L94"><code>agent.py</code></a></td>
+</tr>
+<tr>
+<td>N-step lookahead, dừng khi gặp <code>done</code></td>
+<td><a href="Week3/buffers.py#L24-L64"><code>buffers.py</code></a></td>
+</tr>
+<tr>
+<td>Loss, Double DQN, Bellman</td>
+<td><a href="Week3/central_control.py#L70-L105"><code>central_control.py</code></a></td>
+</tr>
+<tr>
+<td>Vòng lặp: act → step → lưu → sample → tối ưu</td>
+<td><a href="Week3/main.py#L70-L94"><code>main.py</code></a></td>
+</tr>
+</tbody>
+</table>
+<p>Siêu tham số mặc định: <code>gamma=0.99</code>, <code>lr=5e-5</code>, <code>batch=32</code>, <code>buffer_capacity=15000</code> (bài báo gốc dùng 1.000.000), <code>target update=1000</code> bước, <code>n_multi_step=2</code>.</p>
+<h3 id="33-loi-va-iem-can-luu-y-quan-trong">3.3 Lỗi và điểm cần lưu ý (quan trọng)<a class="headerlink" href="#33-loi-va-iem-can-luu-y-quan-trong" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li><strong>[Lỗi] Mạng đích bị gộp với mạng học.</strong> <a href="Week3/central_control.py#L50-L55"><code>update_target</code></a> chạy <code>load_state_dict(...)</code> rồi gán <code>self.target_nn = self.moving_nn</code>. Sau lần cập nhật đầu tiên hai biến trỏ cùng một object, nên mục tiêu thay đổi theo mạng đang học và mất tác dụng ổn định hoá. Sửa: chỉ giữ dòng <code>load_state_dict</code>, bỏ dòng gán.</li>
+<li>
+<p><strong>[Lỗi] Không che trạng thái kết thúc.</strong> <a href="Week3/central_control.py#L83"><code>done_t</code></a> được tạo nhưng không dùng. Công thức đúng:
+   <code>expected = rewards + gamma**n * next_state_values * (1 - done)</code>. Nếu thiếu, giá trị của trạng thái kết thúc bị bootstrap sai.</p>
+</li>
+<li>
+<p><strong>[Lỗi đã được tác giả ghi chú] NoisyLinear không hoạt động</strong> (<a href="Week3/neural_net.py#L13"><code>neural_net.py</code></a>): epsilon sinh bằng <code>.data.normal_()</code> tại chỗ và chưa dùng factorised noise của bài báo. Ngoài ra khi <code>noisy_net=True</code> agent luôn greedy, dù nhiễu chưa được đặt/đánh giá đúng cách.</p>
+</li>
+<li><strong>[Lưu ý]</strong> Có <code>BatchNorm2d</code> (không có trong bài báo) và mạng đích không chuyển <code>eval()</code>, nên thống kê BN lệch giữa lúc chọn hành động (batch=1) và lúc học (batch=32).</li>
+<li><strong>[Lưu ý]</strong> <code>np.random.choice(..., replace=False)</code> trên deque và lookahead qua <code>self.buffer[i+n]</code> (deque truy cập giữa chừng chậm, <span class="math-inline">$O(n)$</span>). Với buffer lớn nên dùng mảng NumPy vòng.</li>
+<li><strong>[Cũ]</strong> <code>namedtuple(..., verbose=False)</code> bị xoá từ Python 3.7; <code>gym.wrappers.Monitor</code> bị xoá khỏi Gym mới.</li>
+<li><strong>[Lưu ý]</strong> <code>MAX_N_GAMES=3000</code> và <code>buffer=15000</code> nhỏ, nhưng README cho biết ~120 game đã học tốt với ε giảm nhanh.</li>
+<li><strong>[Lưu ý] Thứ tự wrapper làm 4 frame ghép ngang thay vì xếp theo kênh.</strong> Trong <a href="Week3/atari_wrappers.py#L160-L169"><code>make_env</code></a>, <code>ImageToPyTorch</code> (đổi sang CxHxW = 1×84×84) chạy <strong>trước</strong> <code>FrameStack</code>, mà <code>LazyFrames</code> nối theo <code>axis=2</code> (chiều rộng). Kết quả suy ra từ code: quan sát là 1×84×336 (4 frame cạnh nhau, 1 kênh) và <code>input_shape[0]=1</code>, chứ không phải 4×84×84. Mạng vẫn chạy (đầu ra conv khoảng 64×7×38) nhưng mất cấu trúc "4 kênh thời gian" của bài báo. Chuẩn của baselines là <code>WarpFrame → FrameStack → ImageToPyTorch</code>. Đây là suy luận từ đọc code, chưa chạy kiểm chứng: hãy <code>print(env.reset().shape)</code> để xác nhận.</li>
+</ol>
+<h3 id="34-bai-tap">3.4 Bài tập<a class="headerlink" href="#34-bai-tap" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li>Sửa lỗi 1 và 2, so sánh đường reward trước/sau (kỳ vọng ổn định hơn).</li>
+<li>Bật từng biến thể (Double → Dueling → N-step) và vẽ so sánh trên cùng seed.</li>
+<li>Tự cài Prioritized Experience Replay (sum-tree) hoặc sửa NoisyLinear theo factorised Gaussian.</li>
+<li>Đo Q trung bình theo thời gian để phát hiện overestimation (Double DQN nên thấp hơn).</li>
+</ol>
+<hr />
+<h2 id="4-week-4-policy-gradient-va-a2c">4. Week 4 – Policy Gradient và A2C<a class="headerlink" href="#4-week-4-policy-gradient-va-a2c" title="Liên kết tới mục này">&para;</a></h2>
+<p>Các file: <a href="Week4/PolicyGradient.ipynb"><code>PolicyGradient.ipynb</code></a> · <a href="Week4/A2C.ipynb"><code>A2C.ipynb</code></a></p>
+<h3 id="41-ly-thuyet">4.1 Lý thuyết<a class="headerlink" href="#41-ly-thuyet" title="Liên kết tới mục này">&para;</a></h3>
+<p><strong>Mục tiêu</strong>: tối đa hoá <span class="math-inline">$J(\theta)=\mathbb E_{\tau\sim\pi_\theta}[G_0]$</span>. Định lý policy gradient:</p>
+<p><div class="math-block">$$\nabla_\theta J=\mathbb E\Big[\sum_t\nabla_\theta\log\pi_\theta(a_t|s_t)\,\Psi_t\Big]$$</div></p>
+<ul>
+<li><strong>REINFORCE</strong>: <span class="math-inline">$\Psi_t=G_t$</span> (Monte Carlo, không bias, <strong>phương sai cao</strong>).</li>
+<li><strong>Baseline</strong> <span class="math-inline">$b(s)$</span>: trừ đi giá trị không phụ thuộc hành động để giảm phương sai mà không thêm bias. Notebook dùng baseline là trung bình return trong deque (không phụ thuộc state).</li>
+<li><strong>Actor-Critic</strong>: critic <span class="math-inline">$V_\phi(s)$</span> ước lượng baseline, <span class="math-inline">$\Psi_t=\hat A_t=R_t-V_\phi(s_t)$</span> (n-step). <strong>A2C</strong> chạy nhiều môi trường đồng bộ để có batch đa dạng.</li>
+<li><strong>Entropy bonus</strong> <span class="math-inline">$H(\pi)=-\sum_a\pi\log\pi$</span>: thêm <span class="math-inline">$+\beta H$</span> vào mục tiêu để chống policy suy biến quá sớm.</li>
+<li>Loss tổng của A2C (cực tiểu hoá): <span class="math-inline">$L=-\log\pi(a|s)\hat A+c_v\,(R-V)^2-\beta H$</span>.</li>
+</ul>
+<h3 id="42-anh-xa-vao-code">4.2 Ánh xạ vào code<a class="headerlink" href="#42-anh-xa-vao-code" title="Liên kết tới mục này">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>PolicyGradient</th>
+<th>A2C</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mạng</td>
+<td><code>PG_nn</code> (policy 64 ẩn)</td>
+<td><code>A2C_nn</code> chia sẻ thân, 2 đầu policy/value</td>
+</tr>
+<tr>
+<td>Return</td>
+<td><code>discounted_rewards</code></td>
+<td><code>Env.discounted_rewards</code> (bootstrap bằng <span class="math-inline">$V(s_{last})$</span> nếu chưa kết thúc)</td>
+</tr>
+<tr>
+<td>Lấy mẫu hành động</td>
+<td>softmax + <code>np.random.choice</code></td>
+<td>như vậy, <code>N_ENVS=40</code> môi trường</td>
+</tr>
+<tr>
+<td>Ổn định</td>
+<td>baseline trung bình</td>
+<td><code>clip_grad_norm_(…, 0.1)</code>, Adam <code>eps=1e-3</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-loi-tim-thay-giai-thich-hien-tuong-bug-alert-cua-tac-gia">4.3 Lỗi tìm thấy (giải thích hiện tượng "Bug Alert" của tác giả)<a class="headerlink" href="#43-loi-tim-thay-giai-thich-hien-tuong-bug-alert-cua-tac-gia" title="Liên kết tới mục này">&para;</a></h3>
+<p>Tác giả ghi README rằng "A2C cho kết quả lạ" (loss giảm rất nhanh, agent luôn chọn một hành động). Đối chiếu code cho thấy <strong>ít nhất hai lỗi</strong> có thể giải thích điều này:</p>
+<ol>
+<li>
+<p><strong>[Lỗi] Lấy log-prob sai chiều.</strong>
+   <code>python
+   act_log_softmax = F.log_softmax(log_val[0], dim=1)[:, np.array([m.action for m in memories])]</code>
+   Với <code>[:, idx]</code> kết quả có shape <code>[N, N]</code> (mọi hàng × mọi hành động đã chọn) thay vì <code>[N]</code>. Khi nhân với <code>adv</code>/<code>disc_rewards</code>, phép broadcast ghép sai return của bước <span class="math-inline">$j$</span> với log-prob của bước <span class="math-inline">$t$</span>. Dùng <code>gather</code>:
+   <code>python
+   logp = F.log_softmax(logits, dim=1).gather(1, actions[:, None]).squeeze(1)</code>
+   Lỗi tương tự có ở <code>PolicyGradient.ipynb</code> (<code>game_act_log_softmax_t</code>). Ở A2C, <code>adv = rewards - value</code> còn có shape <code>[N,1]-[N]</code>→<code>[N,N]</code> vì <code>value</code> có chiều thừa. Cần <code>value.squeeze(-1)</code>.</p>
+</li>
+<li>
+<p><strong>[Lỗi] Sai dấu entropy trong A2C.</strong> <code>entropy_loss = β·mean(Σ p log p) = −β·H</code>, rồi <code>loss = pg + vl − entropy_loss = pg + vl + βH</code>. Cực tiểu hoá loss lúc này <strong>làm giảm entropy</strong>, tức đẩy policy về tất định (phù hợp với hiện tượng luôn chọn một hành động). Đúng phải là <code>loss = pg + vl - β·H</code> (tức <code>+ entropy_loss</code>). Notebook PolicyGradient dùng <code>loss + l_entropy</code> (đúng dấu).</p>
+</li>
+<li><strong>[Lưu ý]</strong> Critic và actor dùng chung thân và chung learning rate; <code>CLIP_GRAD=0.1</code> rất nhỏ nên giới hạn cập nhật; <code>N_ENVS=40</code> và <code>n_steps=1</code> làm advantage chỉ là TD(0) một bước.</li>
+<li><strong>[Lưu ý]</strong> PG: baseline lấy trung bình toàn bộ deque nên bị lệch khi policy thay đổi; chuẩn hoá advantage (chia std) thường ổn định hơn.</li>
+<li><strong>[Cũ]</strong> <code>F.softmax(pol_val[0])</code> không có <code>dim</code>; <code>CartPole-v0</code> giới hạn 200 bước, còn <code>v1</code> là 500.</li>
+</ol>
+<h3 id="44-bai-tap">4.4 Bài tập<a class="headerlink" href="#44-bai-tap" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li>Sửa lỗi 1 và 2 rồi chạy lại A2C; CartPole phải đạt ~195+ (v0).</li>
+<li>Vẽ entropy theo thời gian trước/sau khi sửa dấu.</li>
+<li>Cài A3C (đa tiến trình) hoặc GAE cho A2C.</li>
+<li>Giải thích bằng toán: vì sao trừ baseline không đổi kỳ vọng gradient (<span class="math-inline">$\mathbb E[\nabla\log\pi\cdot b(s)]=0$</span>).</li>
+</ol>
+<hr />
+<h2 id="5-week-5-ppo">5. Week 5 – PPO<a class="headerlink" href="#5-week-5-ppo" title="Liên kết tới mục này">&para;</a></h2>
+<p>File: <a href="Week5/PPO.py"><code>Week5/PPO.py</code></a> (BipedalWalker, hành động liên tục)</p>
+<h3 id="51-ly-thuyet">5.1 Lý thuyết<a class="headerlink" href="#51-ly-thuyet" title="Liên kết tới mục này">&para;</a></h3>
+<p><strong>Vấn đề</strong>: bước cập nhật policy gradient quá lớn có thể làm tụt hiệu năng không phục hồi được. TRPO ràng buộc <span class="math-inline">$KL(\pi_{old}\|\pi_\theta)\le\delta$</span> (cần đạo hàm bậc hai/conjugate gradient). <strong>PPO</strong> xấp xỉ bằng cách cắt tỉ lệ xác suất:</p>
+<p><div class="math-block">$$r_t(\theta)=\frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)},\qquad L^{CLIP}=\mathbb E\big[\min(r_t\hat A_t,\ \mathrm{clip}(r_t,1-\epsilon,1+\epsilon)\hat A_t)\big]$$</div></p>
+<ul>
+<li>Tỉ lệ này là <strong>importance sampling</strong>, cho phép dùng lại cùng một batch dữ liệu cho nhiều epoch.</li>
+<li><strong>GAE</strong> cân bằng bias/variance bằng <span class="math-inline">$\lambda$</span> (<span class="math-inline">$\lambda=0$</span>: TD(0); <span class="math-inline">$\lambda=1$</span>: Monte Carlo).</li>
+<li><strong>Policy Gaussian</strong> cho hành động liên tục: <span class="math-inline">$a\sim\mathcal N(\mu_\theta(s),\sigma^2)$</span> với <span class="math-inline">$\log\sigma$</span> là tham số học <code>logstd</code>.</li>
+<li>Mục tiêu critic: <span class="math-inline">$V\to\hat A+V_{old}$</span> (λ-return).</li>
+</ul>
+<h3 id="52-anh-xa-vao-code">5.2 Ánh xạ vào code<a class="headerlink" href="#52-anh-xa-vao-code" title="Liên kết tới mục này">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>Vị trí</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Policy (mean tanh) và <code>logstd</code> độc lập state</td>
+<td><code>A2C_policy</code> (<a href="Week5/PPO.py#L16-L39">PPO.py</a>)</td>
+</tr>
+<tr>
+<td>Critic riêng</td>
+<td><code>A2C_value</code></td>
+</tr>
+<tr>
+<td>Thu thập quỹ đạo <code>TRAJECTORY_SIZE=2049</code></td>
+<td><code>Env.steps</code></td>
+</tr>
+<tr>
+<td>GAE ngược thời gian</td>
+<td><code>generalized_advantage_estimation</code> (<a href="Week5/PPO.py#L131-L149">L131-L149</a>)</td>
+</tr>
+<tr>
+<td>Log-prob Gaussian</td>
+<td><code>log_policy_prob</code> (<a href="Week5/PPO.py#L152-L155">L152-L155</a>)</td>
+</tr>
+<tr>
+<td>Loss cắt + value loss</td>
+<td><code>clipped_PPO_loss</code> (<a href="Week5/PPO.py#L169-L187">L169-L187</a>)</td>
+</tr>
+<tr>
+<td>7 epoch, minibatch 64, Adam lr policy 4e-4, value 1e-3, ε=0.2, γ=0.99, λ=0.95</td>
+<td>vòng lặp chính</td>
+</tr>
+<tr>
+<td>Chuẩn hoá advantage</td>
+<td><a href="Week5/PPO.py#L292-L295">L292-L295</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-loi-va-iem-can-luu-y">5.3 Lỗi và điểm cần lưu ý<a class="headerlink" href="#53-loi-va-iem-can-luu-y" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li><strong>[Lỗi/Lưu ý] Log-prob không khớp phân phối lấy mẫu.</strong> Lấy mẫu dùng độ lệch chuẩn <span class="math-inline">$\sigma=e^{\text{logstd}}$</span> (<a href="Week5/PPO.py#L97">L97</a>), nhưng <code>log_policy_prob</code> coi <span class="math-inline">$e^{\text{logstd}}$</span> là <strong>phương sai</strong> (<span class="math-inline">$\sigma^2$</span>). Tỉ lệ <span class="math-inline">$r_t$</span> vẫn nhất quán giữa old/new nên thuật toán chạy, nhưng đó không phải log-likelihood thật, làm ý nghĩa của ε-clip và gradient của <code>logstd</code> sai lệch. Chuẩn: <span class="math-inline">$\log\pi=-\frac{(a-\mu)^2}{2\sigma^2}-\log\sigma-\frac12\log 2\pi$</span> (hoặc dùng <code>torch.distributions.Normal</code>).</li>
+<li><strong>[Lưu ý] Mất tín hiệu terminal.</strong> Khi <code>done</code>, reward bị ghi đè bằng 0 (<a href="Week5/PPO.py#L107-L109">L107-L109</a>). Trong BipedalWalker, ngã cho −100, nên tín hiệu "ngã là xấu" bị bỏ qua, chỉ còn giá trị V ngầm. Hơn nữa không phân biệt <code>terminated</code> với <code>truncated</code> (hết giờ cần bootstrap).</li>
+<li><strong>[Lưu ý] Bước cuối bị bỏ và không bootstrap.</strong> Vòng GAE chạy <code>range(len-1)</code> và khởi tạo <code>run_add=0</code> ở cuối quỹ đạo, tức bỏ bước cuối và bỏ <span class="math-inline">$V(s_T)$</span>, gây bias nhẹ. Cần thêm <code>last_value</code> để bootstrap.</li>
+<li><strong>[Lưu ý] Minibatch không xáo trộn</strong>: cắt tuần tự <code>batch[mb:mb+64]</code> nên các mẫu liên tiếp tương quan. Nên <code>np.random.permutation</code> mỗi epoch.</li>
+<li><strong>[Lưu ý]</strong> <code>CLIP_GRADIENT=0.2</code> được khai báo và <code>clip_grad_norm_</code> được import nhưng <strong>không được dùng</strong>. Không có entropy bonus. <code>var_l</code> định nghĩa mà không dùng.</li>
+<li><strong>[Lưu ý]</strong> <code>compute_log_policy_prob</code> dùng biến toàn cục <code>agent_policy</code> thay vì tham số <code>nn_policy</code>.</li>
+<li><strong>[Cũ]</strong> <code>BipedalWalker-v2</code>, <code>Monitor</code>, <code>F.tanh</code> đã lỗi thời. Giá trị thành công: 300 điểm trung bình 100 episode.</li>
+</ol>
+<h3 id="54-bai-tap">5.4 Bài tập<a class="headerlink" href="#54-bai-tap" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li>Sửa log-prob bằng <code>torch.distributions.Normal(mean, exp(logstd))</code> và so sánh.</li>
+<li>Thêm xáo trộn minibatch, entropy bonus, và bootstrap giá trị cuối.</li>
+<li>Vẽ phân phối <span class="math-inline">$r_t$</span> qua các epoch để thấy clip hoạt động; theo dõi "clip fraction" và KL xấp xỉ.</li>
+<li>Thử giá trị ε∈{0.1,0.2,0.3} và <code>PPO_EPOCHS</code>∈{3,7,15}.</li>
+</ol>
+<hr />
+<h2 id="6-week-6-evolution-strategies">6. Week 6 – Evolution Strategies<a class="headerlink" href="#6-week-6-evolution-strategies" title="Liên kết tới mục này">&para;</a></h2>
+<p>File: <a href="Week6/ES.py"><code>Week6/ES.py</code></a> (LunarLanderContinuous)</p>
+<h3 id="61-ly-thuyet">6.1 Lý thuyết<a class="headerlink" href="#61-ly-thuyet" title="Liên kết tới mục này">&para;</a></h3>
+<p>ES là tối ưu hộp đen không cần backprop qua môi trường. Xấp xỉ gradient của hàm kỳ vọng làm trơn:</p>
+<p><div class="math-block">$$\nabla_\theta\,\mathbb E_{\varepsilon\sim\mathcal N(0,I)}[F(\theta+\sigma\varepsilon)]\approx\frac{1}{n\sigma}\sum_{i=1}^n F(\theta+\sigma\varepsilon_i)\,\varepsilon_i$$</div></p>
+<p>Các kỹ thuật trong bài báo OpenAI (Salimans et al., 2017) được cài:</p>
+<ul>
+<li><strong>Mirrored (antithetic) sampling</strong>: đánh giá cả <span class="math-inline">$+\varepsilon$</span> và <span class="math-inline">$-\varepsilon$</span> để giảm phương sai.</li>
+<li><strong>Chuẩn hoá theo hạng (fitness shaping)</strong>: thay reward bằng thứ hạng đã chuẩn hoá về <span class="math-inline">$[-0.5,0.5]$</span> để chống outlier và bất biến theo tỉ lệ reward.</li>
+<li><strong>Common random numbers</strong>: worker chỉ gửi về <em>seed</em> và reward; máy chủ tái tạo nhiễu từ seed, nên truyền thông chỉ vài byte/worker (cho phép mở rộng lên hàng nghìn CPU).</li>
+</ul>
+<p>Ưu điểm: song song hoá cực tốt, không cần credit assignment theo thời gian, bền với reward thưa. Nhược điểm: cần nhiều mẫu hơn RL gradient (10–100×).</p>
+<h3 id="62-anh-xa-vao-code">6.2 Ánh xạ vào code<a class="headerlink" href="#62-anh-xa-vao-code" title="Liên kết tới mục này">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>Vị trí</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mạng chính sách tất định (tanh)</td>
+<td><code>NeuralNetwork</code> (<a href="Week6/ES.py#L17-L40">ES.py</a>)</td>
+</tr>
+<tr>
+<td>Nhiễu cho mọi tham số</td>
+<td><code>sample_noise</code></td>
+</tr>
+<tr>
+<td>Đánh giá tác nhân bị nhiễu rồi khôi phục tham số</td>
+<td><code>evaluate_noisy_net</code></td>
+</tr>
+<tr>
+<td>Worker + mirrored</td>
+<td><code>worker</code> (<a href="Week6/ES.py#L92-L120">L92-L120</a>)</td>
+</tr>
+<tr>
+<td>Rank chuẩn hoá</td>
+<td><code>normalized_rank</code> (<a href="Week6/ES.py#L123-L130">L123-L130</a>)</td>
+</tr>
+<tr>
+<td>Cập nhật: <span class="math-inline">$\sum r\cdot\varepsilon$</span> đưa vào <code>p.grad</code> (dấu âm) rồi Adam</td>
+<td><a href="Week6/ES.py#L210-L225">L210-L225</a></td>
+</tr>
+<tr>
+<td>Siêu tham số: σ=0.05, 100 cặp/lần lặp, lr=0.01, 4 worker</td>
+<td>đầu file</td>
+</tr>
+</tbody>
+</table>
+<h3 id="63-luu-y">6.3 Lưu ý<a class="headerlink" href="#63-luu-y" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li><strong>[Lưu ý]</strong> Mỗi lần lặp đánh giá <span class="math-inline">$2\times100=200$</span> episode (mỗi worker chạy <span class="math-inline">$+\varepsilon$</span> và <span class="math-inline">$-\varepsilon$</span>), nên 650 lần lặp ≈ 130.000 episode, không phải 65.000 như README ghi.</li>
+<li><strong>[Lưu ý]</strong> Phép chia <code>BATCH_SIZE*STD_NOISE</code> chỉ là hằng số tỉ lệ (có 2·BATCH_SIZE mẫu), được Adam hấp thụ phần lớn. Dùng Adam trên gradient ES là lựa chọn của bài báo.</li>
+<li><strong>[Lưu ý]</strong> <code>var_l</code> và <code>logstd</code> bị nhiễu hoá dù không ảnh hưởng đầu ra (lãng phí chiều tìm kiếm).</li>
+<li><strong>[Lưu ý]</strong> <code>np.array(nn_noise)</code> tạo mảng không đều (dtype object); chạy được ở NumPy cũ, NumPy ≥1.24 sẽ báo lỗi. Dùng <code>list</code>.</li>
+<li><strong>[Lưu ý]</strong> Truyền <code>state_dict()</code> qua Queue mỗi lần là tốn kém; ES chuẩn truyền tham số một lần mỗi vòng cho mỗi worker.</li>
+</ul>
+<h3 id="64-bai-tap">6.4 Bài tập<a class="headerlink" href="#64-bai-tap" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li>Vẽ so sánh có/không rank-normalization và có/không mirrored sampling.</li>
+<li>Thử σ∈{0.02,0.05,0.1}: σ quá nhỏ làm gradient nhiễu, quá lớn làm xấp xỉ sai.</li>
+<li>Đọc <em>Deep Neuroevolution</em> (GA) và cài GA đơn giản (chọn lọc + đột biến) trên cùng mạng.</li>
+</ol>
+<hr />
+<h2 id="7-week-7-model-based-rl">7. Week 7 – Model-Based RL<a class="headerlink" href="#7-week-7-model-based-rl" title="Liên kết tới mục này">&para;</a></h2>
+<p>File: <a href="Week7/model_based.py"><code>Week7/model_based.py</code></a> (RoboschoolAnt, theo Nagabandi et al. 2018)</p>
+<h3 id="71-ly-thuyet">7.1 Lý thuyết<a class="headerlink" href="#71-ly-thuyet" title="Liên kết tới mục này">&para;</a></h3>
+<p>Model-free học thẳng <span class="math-inline">$\pi$</span> hoặc <span class="math-inline">$Q$</span> từ tương tác. Model-based học mô hình động học <span class="math-inline">$\hat f_\phi(s,a)\approx s&#x27;$</span> (và reward <span class="math-inline">$\hat r_\phi(s,a)$</span>) rồi <strong>lập kế hoạch</strong> trên mô hình đó, nên hiệu quả mẫu cao hơn nhiều.</p>
+<p>Quy trình trong code (pseudocode ở <a href="Week7/imgs/pseudocode.png"><code>Week7/imgs/pseudocode.png</code></a>):</p>
+<ol>
+<li>Thu thập dữ liệu ngẫu nhiên <span class="math-inline">$\mathcal D_{rand}$</span> (1000 quỹ đạo).</li>
+<li>Huấn luyện MLP học <strong>hiệu</strong> <span class="math-inline">$\Delta s=s&#x27;-s$</span> (dễ học hơn <span class="math-inline">$s&#x27;$</span>) và MLP reward, với dữ liệu đã chuẩn hoá (StandardScaler) và thêm nhiễu Gauss nhỏ.</li>
+<li><strong>MPC bằng random shooting</strong>: tại mỗi bước, lấy 20000 chuỗi hành động ngẫu nhiên dài <span class="math-inline">$H=10$</span>, mô phỏng bằng mô hình, chọn chuỗi có tổng reward dự đoán lớn nhất và <strong>chỉ thực thi hành động đầu tiên</strong>, rồi lập kế hoạch lại.</li>
+<li><strong>Data aggregation</strong> (giống DAgger): thêm dữ liệu từ controller vào tập huấn luyện, huấn luyện lại (3 vòng × 20000 bước).</li>
+</ol>
+<p>Hạn chế: sai số mô hình tích luỹ theo horizon (<em>compounding error</em>); random shooting không tối ưu cho chiều hành động lớn; mô hình MLP tất định khó diễn tả tính ngẫu nhiên. Cải tiến: ensemble mô hình (PETS), CEM/MPPI thay cho random shooting, fine-tune bằng model-free (đoạn "MF" của MB-MF; <strong>repo chỉ cài phần model-based</strong>).</p>
+<h3 id="72-anh-xa-vao-code">7.2 Ánh xạ vào code<a class="headerlink" href="#72-anh-xa-vao-code" title="Liên kết tới mục này">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Khái niệm</th>
+<th>Vị trí</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hai mô hình</td>
+<td><code>NNDynamicModel</code>, <code>NNRewardModel</code> (<a href="Week7/model_based.py#L26-L65">model_based.py</a>)</td>
+</tr>
+<tr>
+<td>Thu dữ liệu ngẫu nhiên</td>
+<td><code>gather_random_trajectories</code></td>
+</tr>
+<tr>
+<td>Huấn luyện có chuẩn hoá và validation</td>
+<td><code>train_dyna_model</code></td>
+</tr>
+<tr>
+<td>MPC random shooting (batch hoá 20000 chuỗi)</td>
+<td><code>multi_model_based_control</code> (<a href="Week7/model_based.py#L252-L305">L252-L305</a>)</td>
+</tr>
+<tr>
+<td>Vòng aggregation</td>
+<td><a href="Week7/model_based.py#L358-L411">L358-L411</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="73-luu-y">7.3 Lưu ý<a class="headerlink" href="#73-luu-y" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li><strong>[Lưu ý]</strong> <a href="Week7/model_based.py#L180-L184">L180-L184</a> dùng biến toàn cục <code>BATCH_SIZE</code> thay vì tham số <code>batch_size</code> (cùng giá trị 512 nên chưa lỗi).</li>
+<li><strong>[Lưu ý]</strong> <code>X_mb += noise</code> là phép cộng tại chỗ trên một <em>view</em> của <code>X_train</code>, nên nhiễu bị cộng dồn vĩnh viễn vào dữ liệu qua các epoch (độ lệch chuẩn tích luỹ ≈ 0.001·√55). Nên dùng <code>X_mb = X_mb + noise</code>. Comment ghi "variance 0.0001" nhưng <code>scale=0.001</code> là độ lệch chuẩn.</li>
+<li><strong>[Lưu ý]</strong> Vòng cuối <code>while num_examples_added &lt; STEPS_PER_AGGR</code> kết thúc theo episode nên vượt 20000 bước một chút; reward model không dự đoán việc kết thúc episode.</li>
+<li><strong>[Lưu ý]</strong> <code>device='cuda'</code> cố định, 20000 chuỗi × 10 bước mỗi lần hành động → chậm (cần GPU).</li>
+<li><strong>[Cũ]</strong> Roboschool đã ngừng phát triển; thay bằng <code>Ant-v4/v5</code> của MuJoCo (Gymnasium).</li>
+</ul>
+<h3 id="74-bai-tap">7.4 Bài tập<a class="headerlink" href="#74-bai-tap" title="Liên kết tới mục này">&para;</a></h3>
+<ol>
+<li>Vẽ lỗi dự đoán <span class="math-inline">$\|\hat s_{t+k}-s_{t+k}\|$</span> theo <span class="math-inline">$k$</span> để thấy compounding error.</li>
+<li>Thay random shooting bằng CEM (lặp: lấy mẫu → giữ top-k → cập nhật phân phối).</li>
+<li>So sánh số mẫu môi trường cần để đạt cùng reward giữa MB và PPO (Week 5).</li>
+</ol>
+<hr />
+<h2 id="8-week-8-chu-e-nang-cao">8. Week 8 – Chủ đề nâng cao<a class="headerlink" href="#8-week-8-chu-e-nang-cao" title="Liên kết tới mục này">&para;</a></h2>
+<p>Không có code trong repo; đây là các chủ đề để chọn đồ án.</p>
+<table>
+<thead>
+<tr>
+<th>Chủ đề</th>
+<th>Ý chính</th>
+<th>Gợi ý đọc</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inference &amp; Control (MaxEnt RL)</td>
+<td>Coi điều khiển tối ưu như suy luận xác suất; tối đa hoá reward + entropy</td>
+<td>Soft Q-learning, SAC</td>
+</tr>
+<tr>
+<td>Inverse RL / Imitation</td>
+<td>Suy ra reward từ chuyên gia; DAgger sửa lệch phân phối của behavior cloning</td>
+<td>GAIL, DAgger</td>
+</tr>
+<tr>
+<td>Exploration</td>
+<td>Reward thưa cần khám phá có chủ đích: count-based, curiosity (ICM), RND</td>
+<td>Bellemare 2016; Pathak 2017</td>
+</tr>
+<tr>
+<td>Transfer, Multi-task, Meta-RL</td>
+<td>Tái dùng kỹ năng; học cách học</td>
+<td>MAML, RL²</td>
+</tr>
+<tr>
+<td>Offline RL</td>
+<td>Học từ dữ liệu cố định, không tương tác</td>
+<td>CQL, IQL</td>
+</tr>
+<tr>
+<td>Trò chơi cổ điển</td>
+<td>AlphaGo Zero = MCTS + self-play + mạng policy/value</td>
+<td>David Silver "Classic Games"</td>
+</tr>
+<tr>
+<td>Multi-agent</td>
+<td>Pommerman, Dota 2 (OpenAI Five dùng PPO quy mô lớn)</td>
+<td>MADDPG, MAPPO</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Đề xuất đồ án theo độ khó</strong>: (dễ) sửa các lỗi trong bảng mục 9 và chứng minh bằng thực nghiệm; (vừa) chuyển DQN/PPO sang Gymnasium với CleanRL làm tham chiếu; (khó) SAC hoặc PETS trên MuJoCo.</p>
+<hr />
+<h2 id="9-bang-tong-hop-loi-va-cach-sua">9. Bảng tổng hợp lỗi và cách sửa<a class="headerlink" href="#9-bang-tong-hop-loi-va-cach-sua" title="Liên kết tới mục này">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Vị trí</th>
+<th>Loại</th>
+<th>Vấn đề</th>
+<th>Cách sửa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><a href="Week3/central_control.py#L50-L55">central_control.py L54-L55</a></td>
+<td>Lỗi</td>
+<td>Target net bị gán bằng moving net</td>
+<td>Bỏ dòng <code>self.target_nn = self.moving_nn</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td><a href="Week3/central_control.py#L83">central_control.py L83, L103</a></td>
+<td>Lỗi</td>
+<td><code>done</code> không che bootstrap</td>
+<td>Nhân <code>(1-done)</code> vào số hạng bootstrap</td>
+</tr>
+<tr>
+<td>3</td>
+<td><a href="Week3/neural_net.py#L9-L55">neural_net.py L9-L55</a></td>
+<td>Lỗi</td>
+<td>NoisyLinear sai (in-place, không factorised)</td>
+<td>Cài theo bài báo, dùng <code>register_buffer</code> và cập nhật ngoài graph</td>
+</tr>
+<tr>
+<td>4</td>
+<td>A2C.ipynb <code>calculate_loss</code></td>
+<td>Lỗi</td>
+<td><code>[:, actions]</code> → <code>[N,N]</code>, <code>adv</code> broadcast <code>[N,N]</code></td>
+<td><code>gather(1, a[:,None]).squeeze(1)</code>; <code>value.squeeze(-1)</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>A2C.ipynb <code>calculate_loss</code></td>
+<td>Lỗi</td>
+<td>Dấu entropy đảo ngược</td>
+<td><code>loss = pg + vl + entropy_loss</code> (với <code>entropy_loss=β·Σp log p</code>)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>PolicyGradient.ipynb</td>
+<td>Lỗi</td>
+<td>Cùng lỗi indexing như #4</td>
+<td>Dùng <code>gather</code></td>
+</tr>
+<tr>
+<td>7</td>
+<td><a href="Week5/PPO.py#L152-L155">PPO.py L152-L155</a></td>
+<td>Lưu ý</td>
+<td>σ vs σ² không khớp giữa sampling và log-prob</td>
+<td>Dùng <code>Normal(mean, exp(logstd))</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td><a href="Week5/PPO.py#L107-L111">PPO.py L107-L111, L138</a></td>
+<td>Lưu ý</td>
+<td>Reward terminal bị xoá; không bootstrap bước cuối</td>
+<td>Giữ reward thật, truyền <code>last_value</code>, tách terminated/truncated</td>
+</tr>
+<tr>
+<td>9</td>
+<td><a href="Week5/PPO.py#L304">PPO.py L304</a></td>
+<td>Lưu ý</td>
+<td>Minibatch không xáo trộn</td>
+<td>Hoán vị chỉ số mỗi epoch</td>
+</tr>
+<tr>
+<td>10</td>
+<td><a href="Week6/ES.py#L43-L51">ES.py L51</a></td>
+<td>Lưu ý</td>
+<td><code>np.array</code> ragged</td>
+<td>Trả về <code>list</code></td>
+</tr>
+<tr>
+<td>11</td>
+<td><a href="Week7/model_based.py#L187">model_based.py L187</a></td>
+<td>Lưu ý</td>
+<td>Nhiễu cộng dồn tại chỗ vào <code>X_train</code></td>
+<td><code>X_mb = X_mb + noise</code></td>
+</tr>
+<tr>
+<td>12</td>
+<td>Week2 <code>best_action_value</code></td>
+<td>Lưu ý</td>
+<td><code>max_value=0</code> bỏ qua Q âm</td>
+<td>Dùng <code>max</code> với <code>key</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-chuyen-sang-thu-vien-hien-ai">10. Chuyển sang thư viện hiện đại<a class="headerlink" href="#10-chuyen-sang-thu-vien-hien-ai" title="Liên kết tới mục này">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Cũ trong repo</th>
+<th>Mới</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>import gym</code></td>
+<td><code>import gymnasium as gym</code></td>
+</tr>
+<tr>
+<td><code>obs = env.reset()</code></td>
+<td><code>obs, info = env.reset(seed=…)</code></td>
+</tr>
+<tr>
+<td><code>obs, r, done, info = env.step(a)</code></td>
+<td><code>obs, r, terminated, truncated, info = env.step(a)</code>; <code>done = terminated or truncated</code></td>
+</tr>
+<tr>
+<td><code>gym.wrappers.Monitor</code></td>
+<td><code>gym.wrappers.RecordVideo</code></td>
+</tr>
+<tr>
+<td><code>FrozenLake-v0</code>, <code>CartPole-v0</code></td>
+<td><code>FrozenLake-v1</code>, <code>CartPole-v1</code></td>
+</tr>
+<tr>
+<td><code>BipedalWalker-v2</code>, <code>LunarLanderContinuous-v2</code></td>
+<td><code>BipedalWalker-v3</code>, <code>LunarLander-v3</code> với <code>continuous=True</code></td>
+</tr>
+<tr>
+<td><code>PongNoFrameskip-v4</code></td>
+<td>cần <code>ale-py</code> (ROM đi kèm); <code>gym.wrappers.AtariPreprocessing</code> + <code>FrameStackObservation</code> thay wrapper tự viết</td>
+</tr>
+<tr>
+<td><code>roboschool</code></td>
+<td><code>mujoco</code> (<code>Ant-v4/v5</code>)</td>
+</tr>
+<tr>
+<td><code>namedtuple(verbose=…)</code></td>
+<td>bỏ tham số <code>verbose</code></td>
+</tr>
+<tr>
+<td><code>F.tanh</code>, <code>F.softmax(x)</code> không <code>dim</code></td>
+<td><code>torch.tanh</code>, <code>F.softmax(x, dim=-1)</code></td>
+</tr>
+<tr>
+<td><code>tensorboardX</code></td>
+<td><code>torch.utils.tensorboard.SummaryWriter</code></td>
+</tr>
+</tbody>
+</table>
+<p>Quan trọng khi chuyển: với <code>truncated=True</code> (hết thời gian), <strong>vẫn phải bootstrap</strong> <span class="math-inline">$V(s&#x27;)$</span>; chỉ <code>terminated=True</code> mới đặt mục tiêu bằng <span class="math-inline">$r$</span>. Đây là nguồn bug phổ biến nhất của code RL cũ.</p>
+<hr />
+<h2 id="11-cach-tu-kiem-tra-muc-o-hieu">11. Cách tự kiểm tra mức độ hiểu<a class="headerlink" href="#11-cach-tu-kiem-tra-muc-o-hieu" title="Liên kết tới mục này">&para;</a></h2>
+<p>Nếu trả lời được những câu hỏi sau mà không nhìn tài liệu, bạn đã nắm phần đó:</p>
+<ul>
+<li><strong>Week 2</strong>: Vì sao Q-learning là off-policy còn SARSA là on-policy? Điều gì xảy ra nếu ε=0 ngay từ đầu?</li>
+<li><strong>Week 3</strong>: Vì sao cần target network? Double DQN sửa vấn đề gì? Vì sao replay buffer làm DQN không dùng được cho on-policy?</li>
+<li><strong>Week 4</strong>: Vì sao trừ baseline không làm lệch gradient? Entropy bonus có dấu như thế nào trong loss?</li>
+<li><strong>Week 5</strong>: Điều gì xảy ra khi <span class="math-inline">$r_t&gt;1+\epsilon$</span> và <span class="math-inline">$\hat A_t&gt;0$</span>? Còn khi <span class="math-inline">$\hat A_t&lt;0$</span>? Vai trò của λ trong GAE?</li>
+<li><strong>Week 6</strong>: Vì sao ES chỉ cần gửi seed + reward? Rank normalization giải quyết vấn đề gì?</li>
+<li><strong>Week 7</strong>: Vì sao chỉ thực thi hành động đầu của chuỗi tối ưu? Compounding error là gì và giảm nó thế nào?</li>
+<li><strong>Tổng quát</strong>: khác biệt giữa <code>terminated</code> và <code>truncated</code> ảnh hưởng thế nào đến mục tiêu TD?</li>
+</ul>
+      </article>
+      <nav class="doc-pager"><a class="pager-card pager-prev" href="KIEN_THUC_CAN_HOC.html"><span class="pager-label">← Bài trước</span><span class="pager-title">4. Lộ Trình Kiến Thức Cần Học</span></a><a class="pager-card pager-next" href="HUONG_DAN_MOI_TRUONG_VA_CHAY_CODE.html"><span class="pager-label">Bài tiếp theo →</span><span class="pager-title">6. Hướng Dẫn Môi Trường (.venv), Chạy Code &amp; ROS 2</span></a></nav>
+    </main>
+
+    <aside class="sidebar-right">
+      <div class="toc-header">📑 Mục lục trên trang này</div>
+      <nav class="toc-nav">
+        <a class="toc-link toc-l2" href="#muc-luc">Mục lục</a>
+<a class="toc-link toc-l2" href="#0-ky-hieu-va-cong-thuc-tong-hop">0. Ký hiệu và công thức tổng hợp</a>
+<a class="toc-link toc-l2" href="#1-week-1-gioi-thieu">1. Week 1 – Giới thiệu</a>
+<a class="toc-link toc-l2" href="#2-week-2-q-learning-tabular">2. Week 2 – Q-learning tabular</a>
+<a class="toc-link toc-l3" href="#21-ly-thuyet">2.1 Lý thuyết</a>
+<a class="toc-link toc-l3" href="#22-anh-xa-vao-notebook">2.2 Ánh xạ vào notebook</a>
+<a class="toc-link toc-l3" href="#23-iem-can-luu-y">2.3 Điểm cần lưu ý</a>
+<a class="toc-link toc-l3" href="#24-bai-tap">2.4 Bài tập</a>
+<a class="toc-link toc-l2" href="#3-week-3-dqn-va-bien-the">3. Week 3 – DQN và biến thể</a>
+<a class="toc-link toc-l3" href="#31-ly-thuyet">3.1 Lý thuyết</a>
+<a class="toc-link toc-l3" href="#32-anh-xa-vao-code">3.2 Ánh xạ vào code</a>
+<a class="toc-link toc-l3" href="#33-loi-va-iem-can-luu-y-quan-trong">3.3 Lỗi và điểm cần lưu ý (quan trọng)</a>
+<a class="toc-link toc-l3" href="#34-bai-tap">3.4 Bài tập</a>
+<a class="toc-link toc-l2" href="#4-week-4-policy-gradient-va-a2c">4. Week 4 – Policy Gradient và A2C</a>
+<a class="toc-link toc-l3" href="#41-ly-thuyet">4.1 Lý thuyết</a>
+<a class="toc-link toc-l3" href="#42-anh-xa-vao-code">4.2 Ánh xạ vào code</a>
+<a class="toc-link toc-l3" href="#43-loi-tim-thay-giai-thich-hien-tuong-bug-alert-cua-tac-gia">4.3 Lỗi tìm thấy (giải thích hiện tượng "Bug Alert" của tác giả)</a>
+<a class="toc-link toc-l3" href="#44-bai-tap">4.4 Bài tập</a>
+<a class="toc-link toc-l2" href="#5-week-5-ppo">5. Week 5 – PPO</a>
+<a class="toc-link toc-l3" href="#51-ly-thuyet">5.1 Lý thuyết</a>
+<a class="toc-link toc-l3" href="#52-anh-xa-vao-code">5.2 Ánh xạ vào code</a>
+<a class="toc-link toc-l3" href="#53-loi-va-iem-can-luu-y">5.3 Lỗi và điểm cần lưu ý</a>
+<a class="toc-link toc-l3" href="#54-bai-tap">5.4 Bài tập</a>
+<a class="toc-link toc-l2" href="#6-week-6-evolution-strategies">6. Week 6 – Evolution Strategies</a>
+<a class="toc-link toc-l3" href="#61-ly-thuyet">6.1 Lý thuyết</a>
+<a class="toc-link toc-l3" href="#62-anh-xa-vao-code">6.2 Ánh xạ vào code</a>
+<a class="toc-link toc-l3" href="#63-luu-y">6.3 Lưu ý</a>
+<a class="toc-link toc-l3" href="#64-bai-tap">6.4 Bài tập</a>
+<a class="toc-link toc-l2" href="#7-week-7-model-based-rl">7. Week 7 – Model-Based RL</a>
+<a class="toc-link toc-l3" href="#71-ly-thuyet">7.1 Lý thuyết</a>
+<a class="toc-link toc-l3" href="#72-anh-xa-vao-code">7.2 Ánh xạ vào code</a>
+<a class="toc-link toc-l3" href="#73-luu-y">7.3 Lưu ý</a>
+<a class="toc-link toc-l3" href="#74-bai-tap">7.4 Bài tập</a>
+<a class="toc-link toc-l2" href="#8-week-8-chu-e-nang-cao">8. Week 8 – Chủ đề nâng cao</a>
+<a class="toc-link toc-l2" href="#9-bang-tong-hop-loi-va-cach-sua">9. Bảng tổng hợp lỗi và cách sửa</a>
+<a class="toc-link toc-l2" href="#10-chuyen-sang-thu-vien-hien-ai">10. Chuyển sang thư viện hiện đại</a>
+<a class="toc-link toc-l2" href="#11-cach-tu-kiem-tra-muc-o-hieu">11. Cách tự kiểm tra mức độ hiểu</a>
+      </nav>
+    </aside>
+  </div>
+
+  <script>
+    // Khởi tạo giao diện Sáng/Tối từ localStorage
+    (function() {
+      const saved = localStorage.getItem('rl_docs_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('rl_docs_theme', next);
+    }
+
+    function filterSidebar(query) {
+      const q = query.trim().toLowerCase();
+      const items = document.querySelectorAll('#sidebar-nav .nav-item');
+      items.forEach(item => {
+        const title = item.getAttribute('data-title') || '';
+        item.style.display = (!q || title.includes(q)) ? 'flex' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.hljs) {
+        hljs.highlightAll();
+      }
+    });
+  </script>
+</body>
+</html>

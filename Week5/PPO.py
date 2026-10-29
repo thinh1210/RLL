@@ -3,6 +3,7 @@ import gym
 from tensorboardX import SummaryWriter
 
 import datetime
+import os
 from collections import namedtuple
 from collections import deque
 import math
@@ -36,7 +37,7 @@ class A2C_policy(nn.Module):
 
     def forward(self, x):
         ot_n = self.lp(x.float())
-        return F.tanh(self.mean_l(ot_n))
+        return torch.tanh(self.mean_l(ot_n))
 
 class A2C_value(nn.Module):
     '''
@@ -215,7 +216,7 @@ def test_game(tst_env, agent_policy, test_episodes):
     return np.mean(reward_games), np.mean(steps_games)
 
 
-Memory = namedtuple('Memory', ['obs', 'action', 'new_obs', 'reward', 'done', 'value', 'adv'], verbose=False, rename=False)
+Memory = namedtuple('Memory', ['obs', 'action', 'new_obs', 'reward', 'done', 'value', 'adv'], rename=False)
 
 # Hyperparameters
 ENV_NAME = 'BipedalWalker-v2'
@@ -334,6 +335,7 @@ if __name__ == '__main__':
             print(' > Testing..', n_iter,test_rews, test_stps)
             # if it achieve the best results so far, save the models
             if test_rews > best_test_result:
+                os.makedirs('checkpoints', exist_ok=True)
                 torch.save({
                     'agent_policy': agent_policy.state_dict(),
                     'agent_value': agent_value.state_dict(),

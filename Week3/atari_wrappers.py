@@ -26,7 +26,7 @@ class LazyFrames(object):
             self._frames = None
         return self._out
 
-    def __array__(self, dtype=None):
+    def __array__(self, dtype=None, copy=None):
         out = self._force()
         if dtype is not None:
             out = out.astype(dtype)

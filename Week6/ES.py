@@ -48,7 +48,7 @@ def sample_noise(neural_net):
     for n in neural_net.parameters():
         noise = np.random.normal(size=n.data.numpy().shape)
         nn_noise.append(noise)
-    return np.array(nn_noise)
+    return np.array(nn_noise, dtype=object)
 
 def evaluate_neuralnet(nn, env):
     '''
@@ -100,12 +100,12 @@ def worker(params_queue, output_queue):
     while True:
         # get the new actor's params
         act_params = params_queue.get()
-        if act_params != None:
+        if act_params is not None:
             # load the actor params
             actor.load_state_dict(act_params)
 
             # get a random seed
-            seed = np.random.randint(1e6)
+            seed = np.random.randint(int(1e6))
             # set the new seed
             np.random.seed(seed)
 

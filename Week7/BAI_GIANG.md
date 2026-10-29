@@ -3,7 +3,7 @@
 > Mục tiêu: hiểu cách **học mô hình môi trường** rồi **lập kế hoạch** trên mô hình; tại sao model-based tiết kiệm mẫu, chứng minh toán học **Bổ đề mô phỏng (Simulation Lemma)** giải thích sai số tích luỹ $O(H^2 \varepsilon)$, chứng minh cơ chế làm trơn Tikhonov của nhiễu đầu vào, MPC và random shooting hoạt động ra sao, và đọc hiểu [`model_based.py`](model_based.py) (RoboschoolAnt, theo Nagabandi et al. 2018).  
 > 📖 **Quy ước ký hiệu toàn khoá**: Đối chiếu toàn bộ ký hiệu giải tích, không gian và toán tử tại [BẢNG KÝ HIỆU TOÁN HỌC CHUẨN TẮC](../BANG_KY_HIEU_TOAN_HOC.md).
 
-Tài liệu đi kèm: [`README.md`](README.md), sơ đồ thuật toán [`imgs/pseudocode.png`](imgs/pseudocode.png).
+Mã nguồn thực hành đi kèm: [`model_based.py`](model_based.py), sơ đồ thuật toán [`imgs/pseudocode.png`](imgs/pseudocode.png).
 
 **Lộ trình**: §1 Model-free vs model-based → §2 Học mô hình động học (kèm chứng minh Tikhonov) → §3 Học mô hình reward → §4 Sai số tích luỹ & Chứng minh Simulation Lemma → §5 Lệch phân phối và aggregation → §6 Lập kế hoạch (MPC, shooting) → §7 Thuật toán trong repo → §8 Đọc code & Phân tích tham số → §9 Lưu ý → §10 Ví dụ số → §11 Mở rộng → §12 Bài tập.
 

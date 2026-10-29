@@ -1,6 +1,6 @@
 # Week 1 – Giới thiệu Reinforcement Learning
 
-> Tuần này repo chỉ có bài đọc/video (xem [README chính](../README.md#week-1---introduction)), **không có code**. Tài liệu này biến phần đó thành kiến thức có hệ thống: bài toán RL, bài toán bandit (RL tối giản), khám phá–khai thác, và phép toán đằng sau *Pong from Pixels* của Karpathy.  
+> Tuần mở đầu xây dựng nền tảng lý thuyết cốt lõi cho toàn khóa học: bài toán RL, bài toán Multi-Armed Bandit (RL tối giản), cân bằng Khám phá–Khai thác (Exploration–Exploitation), và phép toán vi tích phân đằng sau *Pong from Pixels* của Karpathy.  
 > 📖 **Quy ước ký hiệu toàn khoá**: Đối chiếu toàn bộ ký hiệu giải tích, không gian và toán tử tại [BẢNG KÝ HIỆU TOÁN HỌC CHUẨN TẮC](../BANG_KY_HIEU_TOAN_HOC.md).
 
 **Lộ trình**: §1 RL là gì → §2 Các thành phần → §3 Phân loại thuật toán → §4 Bandit và khám phá–khai thác (kèm chứng minh toán học) → §5 Pong from Pixels bằng toán (kèm vi tích phân) → §6 Phân tích chuyên sâu các tham số → §7 Thử thách đặc trưng của RL → §8 Bài tập.

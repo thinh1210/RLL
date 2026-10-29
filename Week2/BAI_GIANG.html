@@ -1,0 +1,2724 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Week 2: MDP, Bellman, Co Banach &amp; Q-Learning — Deep RL & Sim-to-Real Robotics</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <!-- Highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- MathJax 3 for full LaTeX support (\boxed, \cancel, \underbrace, aligned) -->
+  <script>
+    window.MathJax = {
+      loader: { load: ['[tex]/cancel', '[tex]/ams', '[tex]/boldsymbol'] },
+      tex: {
+        packages: { '[+]': ['cancel', 'ams', 'boldsymbol'] },
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      options: {
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <style>
+    :root[data-theme="dark"] {
+      --bg-primary: #0d1117;
+      --bg-secondary: #161b22;
+      --bg-tertiary: #21262d;
+      --bg-card: #131921;
+      --text-primary: #e6edf3;
+      --text-secondary: #9198a1;
+      --text-muted: #6e7681;
+      --border-color: #30363d;
+      --accent-primary: #58a6ff;
+      --accent-secondary: #3fb950;
+      --accent-purple: #d2a8ff;
+      --accent-amber: #f0883e;
+      --callout-sub-bg: rgba(210, 168, 255, 0.08);
+      --callout-sub-border: #a371f7;
+      --callout-logic-bg: rgba(88, 166, 255, 0.08);
+      --callout-logic-border: #58a6ff;
+      --callout-sample-bg: rgba(63, 185, 80, 0.08);
+      --callout-sample-border: #3fb950;
+      --table-row-alt: rgba(255, 255, 255, 0.025);
+      --code-bg: #090d13;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+    :root[data-theme="light"] {
+      --bg-primary: #ffffff;
+      --bg-secondary: #f6f8fa;
+      --bg-tertiary: #eaeef2;
+      --bg-card: #f8fafc;
+      --text-primary: #1f2328;
+      --text-secondary: #57606a;
+      --text-muted: #6e7781;
+      --border-color: #d0d7de;
+      --accent-primary: #0969da;
+      --accent-secondary: #1a7f37;
+      --accent-purple: #8250df;
+      --accent-amber: #bc4c00;
+      --callout-sub-bg: #fbefff;
+      --callout-sub-border: #8250df;
+      --callout-logic-bg: #ddf4ff;
+      --callout-logic-border: #0969da;
+      --callout-sample-bg: #dafbe1;
+      --callout-sample-border: #1a7f37;
+      --table-row-alt: #f6f8fa;
+      --code-bg: #1e242c;
+      --shadow: 0 6px 18px rgba(31, 35, 40, 0.08);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.72;
+      font-size: 16px;
+    }
+    /* Top Navbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      height: 60px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.25rem;
+      backdrop-filter: blur(10px);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+    .brand-link {
+      color: var(--text-primary);
+      text-decoration: none;
+      font-weight: 800;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .brand-pill {
+      background: linear-gradient(135deg, #238636, #1f6feb);
+      color: #fff;
+      font-size: 0.72rem;
+      padding: 0.18rem 0.55rem;
+      border-radius: 999px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+    .btn-action {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 0.4rem 0.8rem;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.15s ease;
+    }
+    .btn-action:hover {
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+    /* 3-Column Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr) 260px;
+      max-width: 1720px;
+      margin: 0 auto;
+    }
+    /* Left Sidebar */
+    .sidebar-left {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      padding: 1rem 0.85rem 2rem;
+    }
+    .search-box {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-size: 0.86rem;
+      margin-bottom: 1rem;
+      outline: none;
+    }
+    .search-box:focus {
+      border-color: var(--accent-primary);
+    }
+    .nav-group {
+      margin-bottom: 1.15rem;
+    }
+    .nav-group-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      padding: 0.35rem 0.5rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      padding: 0.46rem 0.6rem;
+      margin: 2px 0;
+      border-radius: 7px;
+      color: var(--text-primary);
+      text-decoration: none;
+      font-size: 0.86rem;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-item:hover {
+      background: var(--bg-tertiary);
+      color: var(--accent-primary);
+    }
+    .nav-item.active {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--accent-primary);
+      font-weight: 700;
+      border-left: 3px solid var(--accent-primary);
+    }
+    .nav-badge {
+      font-size: 0.68rem;
+      padding: 0.1rem 0.42rem;
+      border-radius: 99px;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    /* Main Content Area */
+    .main-content {
+      min-width: 0;
+      padding: 2.2rem 3rem 4rem;
+      max-width: 1020px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    .doc-meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+    .doc-meta-bar code {
+      background: var(--bg-tertiary);
+      padding: 0.15rem 0.45rem;
+      border-radius: 5px;
+      color: var(--accent-primary);
+    }
+    /* Typography */
+    .markdown-body h1 {
+      font-size: 2.05rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-top: 0.5rem;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.65rem;
+      border-bottom: 2px solid var(--border-color);
+    }
+    .markdown-body h2 {
+      font-size: 1.48rem;
+      font-weight: 700;
+      margin-top: 2.4rem;
+      margin-bottom: 0.9rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--accent-primary);
+    }
+    .markdown-body h3 {
+      font-size: 1.18rem;
+      font-weight: 700;
+      margin-top: 1.75rem;
+      margin-bottom: 0.65rem;
+    }
+    .markdown-body h4 {
+      font-size: 1.02rem;
+      font-weight: 600;
+      margin-top: 1.35rem;
+      margin-bottom: 0.45rem;
+      color: var(--accent-purple);
+    }
+    .markdown-body .headerlink {
+      opacity: 0;
+      margin-left: 0.4rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.85em;
+      transition: opacity 0.15s;
+    }
+    .markdown-body h1:hover .headerlink,
+    .markdown-body h2:hover .headerlink,
+    .markdown-body h3:hover .headerlink,
+    .markdown-body h4:hover .headerlink {
+      opacity: 1;
+    }
+    .markdown-body a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .markdown-body a:hover {
+      text-decoration: underline;
+    }
+    .markdown-body hr {
+      border: 0;
+      border-top: 1px solid var(--border-color);
+      margin: 2rem 0;
+    }
+    .markdown-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      margin: 0.75rem 0;
+    }
+    /* Code & Pre */
+    .markdown-body code {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.87em;
+      background: var(--bg-tertiary);
+      padding: 0.16em 0.42em;
+      border-radius: 5px;
+    }
+    .markdown-body pre {
+      background: var(--code-bg);
+      color: #e6edf3;
+      padding: 1.1rem 1.25rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+      margin: 1.15rem 0;
+    }
+    .markdown-body pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: 0.86rem;
+      line-height: 1.55;
+    }
+    /* Tables */
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.35rem 0;
+      font-size: 0.92rem;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      display: block;
+      overflow-x: auto;
+    }
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid var(--border-color);
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    .markdown-body th {
+      background: var(--bg-secondary);
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    .markdown-body tr:nth-child(even) {
+      background: var(--table-row-alt);
+    }
+    /* Math Blocks */
+    .math-block {
+      overflow-x: auto;
+      padding: 0.65rem 0.9rem;
+      margin: 0.9rem 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+    }
+    /* Callout Blockquotes */
+    .callout {
+      margin: 1.35rem 0;
+      padding: 1rem 1.25rem;
+      border-left: 4px solid var(--accent-primary);
+      background: var(--bg-secondary);
+      border-radius: 0 10px 10px 0;
+    }
+    .callout > :first-child {
+      margin-top: 0;
+    }
+    .callout > :last-child {
+      margin-bottom: 0;
+    }
+    .callout-substitution {
+      background: var(--callout-sub-bg);
+      border-left: 4px solid var(--callout-sub-border);
+      box-shadow: 0 4px 14px rgba(163, 113, 247, 0.08);
+    }
+    .callout-logic {
+      background: var(--callout-logic-bg);
+      border-left: 4px solid var(--callout-logic-border);
+    }
+    .callout-sample {
+      background: var(--callout-sample-bg);
+      border-left: 4px solid var(--callout-sample-border);
+    }
+    .callout-warning {
+      background: rgba(240, 136, 62, 0.1);
+      border-left: 4px solid var(--accent-amber);
+    }
+    /* Right TOC Sidebar */
+    .sidebar-right {
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+      padding: 1.25rem 1rem 2rem;
+      border-left: 1px solid var(--border-color);
+      font-size: 0.82rem;
+    }
+    .toc-header {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-secondary);
+      margin-bottom: 0.75rem;
+      font-size: 0.75rem;
+    }
+    .toc-link {
+      display: block;
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 0.28rem 0.45rem;
+      border-radius: 5px;
+      line-height: 1.4;
+      margin-bottom: 2px;
+      transition: color 0.15s, background 0.15s;
+    }
+    .toc-link:hover {
+      color: var(--accent-primary);
+      background: var(--bg-secondary);
+    }
+    .toc-l3 {
+      padding-left: 1.15rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    /* Pager */
+    .doc-pager {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-color);
+    }
+    .pager-card {
+      display: flex;
+      flex-direction: column;
+      padding: 0.9rem 1.1rem;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--bg-secondary);
+      text-decoration: none;
+      color: var(--text-primary);
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .pager-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+    .pager-next {
+      text-align: right;
+    }
+    .pager-label {
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .pager-title {
+      font-size: 0.94rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+    }
+    /* Responsive */
+    @media (max-width: 1240px) {
+      .layout {
+        grid-template-columns: 280px minmax(0, 1fr);
+      }
+      .sidebar-right {
+        display: none;
+      }
+    }
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .sidebar-left {
+        position: static;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .main-content {
+        padding: 1.5rem 1.15rem 3rem;
+      }
+      .doc-pager {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <a class="brand-link" href="../index.html">
+        <span>🚀 Deep RL & Sim-to-Real Portal</span>
+        <span class="brand-pill">LOCAL DOCS</span>
+      </a>
+    </div>
+    <div class="topbar-actions">
+      <a class="btn-action" href="#interactive-simulator-lab" title="Mở phòng thí nghiệm mô phỏng tương tác">🎛️ Mô phỏng &amp; Tham số</a>
+      <a class="btn-action" href="BAI_GIANG.md" title="Xem file Markdown gốc">📄 File .md gốc</a>
+      <button class="btn-action" id="theme-toggle" onclick="toggleTheme()">🌗 Đổi giao diện Sáng/Tối</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar-left">
+      <input
+        type="text"
+        id="doc-search"
+        class="search-box"
+        placeholder="🔍 Tìm nhanh bài giảng, chủ đề..."
+        oninput="filterSidebar(this.value)"
+      />
+      <nav id="sidebar-nav">
+        <div class="nav-group"><div class="nav-group-title">🏠 Tổng Quan Hệ Thống</div>
+<a class="nav-item" href="../index.html" data-title="trang chủ &amp; bản đồ toàn khóa"><span class="nav-item-text">Trang Chủ &amp; Bản Đồ Toàn Khóa</span><span class="nav-badge">Portal</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">📐 Toán Học &amp; Cẩm Nang Tham Số</div>
+<a class="nav-item" href="../BANG_KY_HIEU_TOAN_HOC.html" data-title="1. bảng ký hiệu toán học chuẩn tắc"><span class="nav-item-text">1. Bảng Ký Hiệu Toán Học Chuẩn Tắc</span><span class="nav-badge">Ký hiệu</span></a>
+<a class="nav-item" href="../TONG_HOP_TOAN_HOC_XSTK_DSTT_RL.html" data-title="2. tổng hợp xstk, đstt &amp; các bước thế hàm"><span class="nav-item-text">2. Tổng Hợp XSTK, ĐSTT &amp; Các Bước Thế Hàm</span><span class="nav-badge">Toán cốt lõi</span></a>
+<a class="nav-item" href="../CAM_NANG_THAM_SO_RL.html" data-title="3. cẩm nang toàn diện về tham số rl"><span class="nav-item-text">3. Cẩm Nang Toàn Diện Về Tham Số RL</span><span class="nav-badge">Tham số</span></a>
+<a class="nav-item" href="../KIEN_THUC_CAN_HOC.html" data-title="4. lộ trình kiến thức cần học"><span class="nav-item-text">4. Lộ Trình Kiến Thức Cần Học</span><span class="nav-badge">Lộ trình</span></a>
+<a class="nav-item" href="../KIEN_THUC_CHI_TIET_TUNG_TUAN.html" data-title="5. tổng hợp kiến thức &amp; đối chiếu code 8 tuần"><span class="nav-item-text">5. Tổng Hợp Kiến Thức &amp; Đối Chiếu Code 8 Tuần</span><span class="nav-badge">Tổng hợp</span></a>
+<a class="nav-item" href="../HUONG_DAN_MOI_TRUONG_VA_CHAY_CODE.html" data-title="6. hướng dẫn môi trường (.venv), chạy code &amp; ros 2"><span class="nav-item-text">6. Hướng Dẫn Môi Trường (.venv), Chạy Code &amp; ROS 2</span><span class="nav-badge">Môi trường</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🎓 Bài Giảng Chuyên Sâu 8 Tuần</div>
+<a class="nav-item" href="../Week1/BAI_GIANG.html" data-title="week 1: giới thiệu rl, bandit (ucb1) &amp; pong"><span class="nav-item-text">Week 1: Giới Thiệu RL, Bandit (UCB1) &amp; Pong</span><span class="nav-badge">Tuần 1</span></a>
+<a class="nav-item active" href="BAI_GIANG.html" data-title="week 2: mdp, bellman, co banach &amp; q-learning"><span class="nav-item-text">Week 2: MDP, Bellman, Co Banach &amp; Q-Learning</span><span class="nav-badge">Tuần 2</span></a>
+<a class="nav-item" href="../Week3/BAI_GIANG.html" data-title="week 3: deep q-networks (dqn, double, dueling)"><span class="nav-item-text">Week 3: Deep Q-Networks (DQN, Double, Dueling)</span><span class="nav-badge">Tuần 3</span></a>
+<a class="nav-item" href="../Week4/BAI_GIANG.html" data-title="week 4: policy gradient, reinforce &amp; a2c"><span class="nav-item-text">Week 4: Policy Gradient, REINFORCE &amp; A2C</span><span class="nav-badge">Tuần 4</span></a>
+<a class="nav-item" href="../Week5/BAI_GIANG.html" data-title="week 5: trpo, ppo-clip &amp; chuỗi gae"><span class="nav-item-text">Week 5: TRPO, PPO-Clip &amp; Chuỗi GAE</span><span class="nav-badge">Tuần 5</span></a>
+<a class="nav-item" href="../Week6/BAI_GIANG.html" data-title="week 6: evolution strategies (es) &amp; ga"><span class="nav-item-text">Week 6: Evolution Strategies (ES) &amp; GA</span><span class="nav-badge">Tuần 6</span></a>
+<a class="nav-item" href="../Week7/BAI_GIANG.html" data-title="week 7: model-based rl, tikhonov &amp; mpc"><span class="nav-item-text">Week 7: Model-Based RL, Tikhonov &amp; MPC</span><span class="nav-badge">Tuần 7</span></a>
+<a class="nav-item" href="../Week8/BAI_GIANG.html" data-title="week 8: sac, irl, rnd, alphazero, rlhf &amp; dpo"><span class="nav-item-text">Week 8: SAC, IRL, RND, AlphaZero, RLHF &amp; DPO</span><span class="nav-badge">Tuần 8</span></a>
+</div>
+<div class="nav-group"><div class="nav-group-title">🤖 Simulation &amp; Sim-to-Real Robotics</div>
+<a class="nav-item" href="../HUONG_DAN_SIMULATION_VA_VAT_LY_ROBOT.html" data-title="cẩm nang simulation &amp; cấu hình vật lý robot"><span class="nav-item-text">Cẩm Nang Simulation &amp; Cấu Hình Vật Lý Robot</span><span class="nav-badge">Simulation</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/README.html" data-title="tổng quan kiến trúc 7 tầng sim-to-real"><span class="nav-item-text">Tổng Quan Kiến Trúc 7 Tầng Sim-to-Real</span><span class="nav-badge">7 Tầng</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part1_Physical_Modeling_URDF_MJCF.html" data-title="phần 1 (tầng 1): mô tả cơ học urdf/mjcf"><span class="nav-item-text">Phần 1 (Tầng 1): Mô Tả Cơ Học URDF/MJCF</span><span class="nav-badge">Tầng 1</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part2_Physics_Engine_And_Sensors.html" data-title="phần 2 (tầng 2): bộ giải động lực học &amp; cảm biến"><span class="nav-item-text">Phần 2 (Tầng 2): Bộ Giải Động Lực Học &amp; Cảm Biến</span><span class="nav-badge">Tầng 2</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part3_RL_Training_Environment_And_Rewards.html" data-title="phần 3 (tầng 3): môi trường rl &amp; domain randomization"><span class="nav-item-text">Phần 3 (Tầng 3): Môi Trường RL &amp; Domain Randomization</span><span class="nav-badge">Tầng 3</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part4_Code_Only_Physical_Verification.html" data-title="phần 4 (tầng 4): 7 bài kiểm định vật lý bằng code"><span class="nav-item-text">Phần 4 (Tầng 4): 7 Bài Kiểm Định Vật Lý Bằng Code</span><span class="nav-badge">Tầng 4</span></a>
+<a class="nav-item" href="../Sim2Real_Robotics/Part5_ROS2_Gazebo_And_Real_Robot_Bridge.html" data-title="phần 5 (tầng 5–7): cầu nối ros 2 &amp; robot thật"><span class="nav-item-text">Phần 5 (Tầng 5–7): Cầu Nối ROS 2 &amp; Robot Thật</span><span class="nav-badge">Tầng 5-7</span></a>
+</div>
+      </nav>
+    </aside>
+
+    <main class="main-content">
+      <div class="doc-meta-bar">
+        <div>📚 <strong>Tài liệu:</strong> Week 2: MDP, Bellman, Co Banach &amp; Q-Learning</div>
+        <div>📂 Đường dẫn gốc: <code>Week2/BAI_GIANG.md</code></div>
+      </div>
+      
+<section class="sim-lab-wrapper" id="interactive-simulator-lab">
+  <div class="sim-lab-header">
+    <div class="sim-lab-title-row">
+      <div>
+        <span class="sim-lab-badge">🎛️ INTERACTIVE SIMULATION LAB</span>
+        <h2 class="sim-lab-heading">Phòng Thí Nghiệm Mô Phỏng &amp; Tinh Chỉnh Tham Số Trực Quan</h2>
+        <p class="sim-lab-subtitle">
+          Kéo các thanh trượt (Sliders) bên dưới để thay đổi tham số toán học — đồ thị, quỹ đạo và phương trình sẽ phản hồi ngay lập tức theo thời gian thực.
+        </p>
+      </div>
+      <button class="btn-action" onclick="toggleSimLabCollapse()" id="sim-collapse-btn">Thu gọn / Mở rộng Lab</button>
+    </div>
+
+    <div class="sim-tabs" role="tablist">
+      <button class="sim-tab" data-tab="math_eigen" onclick="switchSimTab('math_eigen')">📐 Toán: Σ &amp; Trị riêng</button>
+      <button class="sim-tab" data-tab="bandit_ucb" onclick="switchSimTab('bandit_ucb')">🎰 W1: Bandit &amp; UCB1</button>
+      <button class="sim-tab" data-tab="mdp_bellman" onclick="switchSimTab('mdp_bellman')">🧭 W2: Bellman &amp; Q-Grid</button>
+      <button class="sim-tab" data-tab="dqn_bias" onclick="switchSimTab('dqn_bias')">🎯 W3: Double DQN Bias</button>
+      <button class="sim-tab" data-tab="pg_variance" onclick="switchSimTab('pg_variance')">📉 W4: PG Baseline &amp; Entropy</button>
+      <button class="sim-tab" data-tab="ppo_gae" onclick="switchSimTab('ppo_gae')">🛡️ W5: PPO Clip &amp; GAE</button>
+      <button class="sim-tab" data-tab="es_mirror" onclick="switchSimTab('es_mirror')">🧬 W6: ES Mirrored ±ε</button>
+      <button class="sim-tab" data-tab="mbrl_mpc" onclick="switchSimTab('mbrl_mpc')">🔮 W7: Model Error &amp; MPC</button>
+      <button class="sim-tab" data-tab="sac_dpo" onclick="switchSimTab('sac_dpo')">🔥 W8: SAC α &amp; DPO β</button>
+      <button class="sim-tab" data-tab="sim2real_physics" onclick="switchSimTab('sim2real_physics')">🤖 Sim2Real: Euler vs RK4</button>
+    </div>
+  </div>
+
+  <div class="sim-lab-body" id="sim-lab-body">
+    <!-- ==================== 1. MATH: COVARIANCE & EIGEN ==================== -->
+    <div class="sim-panel" id="panel-math_eigen">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📐 Đám Mây Mẫu 2D, Ma trận Σ &amp; Trị Riêng (λ₁, λ₂)</h3>
+          <p class="sim-desc">Quan sát cách độ lệch chuẩn $\sigma_x, \sigma_y$ và góc xoay tương quan $\theta$ biến đổi đám mây mẫu và 2 trục Vector riêng trực giao $\mathbf{v}_1, \mathbf{v}_2$.</p>
+          <label class="sim-ctrl">
+            <span>Độ trải trục chính $\sigma_1$: <strong id="val-math-s1">1.80</strong></span>
+            <input type="range" id="sl-math-s1" min="0.3" max="2.5" step="0.05" value="1.80" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ trải trục phụ $\sigma_2$: <strong id="val-math-s2">0.55</strong></span>
+            <input type="range" id="sl-math-s2" min="0.15" max="2.0" step="0.05" value="0.55" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Góc xoay tương quan $\theta$: <strong id="val-math-ang">35°</strong></span>
+            <input type="range" id="sl-math-ang" min="-85" max="85" step="1" value="35" oninput="updateMathLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Biên độ mẫu nhiễu dị biệt (Outlier $e_N$): <strong id="val-math-out">0.0</strong></span>
+            <input type="range" id="sl-math-out" min="0" max="15" step="0.5" value="0" oninput="updateMathLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-math"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-math" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 2. WEEK 1: BANDIT & UCB1 ==================== -->
+    <div class="sim-panel" id="panel-bandit_ucb">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎰 Multi-Armed Bandit: UCB1 vs. ε-Greedy</h3>
+          <p class="sim-desc">Công thức UCB1: $a_t = \arg\max_a \big[Q_t(a) + c\sqrt{\ln t / N_t(a)}\big]$. Kéo $c$ để xem bán kính tin cậy màu cam thúc đẩy khám phá có định hướng.</p>
+          <label class="sim-ctrl">
+            <span>Hệ số tự tin UCB $c$: <strong id="val-w1-c">1.41</strong></span>
+            <input type="range" id="sl-w1-c" min="0.0" max="4.0" step="0.05" value="1.41" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Tỉ lệ khám phá $\epsilon$ (cho $\epsilon$-greedy): <strong id="val-w1-eps">0.15</strong></span>
+            <input type="range" id="sl-w1-eps" min="0.0" max="0.6" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Bước học cập nhật $\alpha$: <strong id="val-w1-alpha">0.15</strong></span>
+            <input type="range" id="sl-w1-alpha" min="0.02" max="0.8" step="0.02" value="0.15" oninput="updateW1Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW1Bandit(1)">+1 Bước kéo</button>
+            <button class="btn-sim" onclick="stepW1Bandit(25)">+25 Bước</button>
+            <button class="btn-sim" onclick="stepW1Bandit(200)">+200 Bước</button>
+            <button class="btn-sim-sec" onclick="resetW1Bandit()">🔄 Reset</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w1"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w1" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 3. WEEK 2: MDP BELLMAN & Q-LEARNING ==================== -->
+    <div class="sim-panel" id="panel-mdp_bellman">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧭 FrozenLake 4×4: Toán tử Co Bellman &amp; Hệ số $\gamma$</h3>
+          <p class="sim-desc">Phương trình Bellman tối ưu: $V^*(s) = \max_a \sum_{s'} P(s'|s,a)[r + \gamma V^*(s')]$. Kéo $\gamma$ và xác suất trượt băng để xem giá trị lan truyền từ Đích (ô 15, +1) và né Hố băng (H, -1)!</p>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w2-gamma">0.92</strong></span>
+            <input type="range" id="sl-w2-gamma" min="0.10" max="0.99" step="0.01" value="0.92" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Xác suất trượt chân sang bên (`slip_prob`): <strong id="val-w2-slip">0.20</strong></span>
+            <input type="range" id="sl-w2-slip" min="0.0" max="0.60" step="0.05" value="0.20" oninput="updateW2Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số vòng lặp Value Iteration $k$: <strong id="val-w2-iter">15</strong></span>
+            <input type="range" id="sl-w2-iter" min="1" max="40" step="1" value="15" oninput="updateW2Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w2"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w2" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 4. WEEK 3: DOUBLE DQN BIAS ==================== -->
+    <div class="sim-panel" id="panel-dqn_bias">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🎯 Thiên Lệch Cực Đại Hóa (Maximization Bias) &amp; Double DQN</h3>
+          <p class="sim-desc">Mọi hành động đều có giá trị thật $Q^*(s,a) = 0$, nhưng ước lượng mạng bị nhiễu $\mathcal{N}(0, \sigma^2)$. DQN thường lấy $\max_a Q(s,a;\theta^-)$ nên bị thổi phồng dương, trong khi Double DQN tách chọn &amp; định giá nên khử sạch bias!</p>
+          <label class="sim-ctrl">
+            <span>Độ lệch chuẩn nhiễu ước lượng $\sigma$: <strong id="val-w3-sigma">1.20</strong></span>
+            <input type="range" id="sl-w3-sigma" min="0.1" max="3.0" step="0.1" value="1.20" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số lượng hành động $|\mathcal{A}|$: <strong id="val-w3-nact">8</strong></span>
+            <input type="range" id="sl-w3-nact" min="2" max="30" step="1" value="8" oninput="updateW3Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$ (tích lũy qua $1/(1-\gamma)$): <strong id="val-w3-gamma">0.90</strong></span>
+            <input type="range" id="sl-w3-gamma" min="0.50" max="0.98" step="0.02" value="0.90" oninput="updateW3Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="updateW3Lab()">🎲 Lấy mẫu Monte Carlo mới (500 lần)</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w3"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w3" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ==================== -->
+    <div class="sim-panel" id="panel-pg_variance">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>📉 Policy Gradient: Baseline $b(s)$ &amp; Entropy Bonus $\beta\mathcal{H}(\pi)$</h3>
+          <p class="sim-desc">Quan sát cách trừ Baseline $b(s) = V(s)$ cắt giảm phương sai mẫu của đạo hàm $\nabla_\theta J$, và cách hệ số Entropy $\beta$ chống sụp đổ chính sách sớm (Premature Collapse).</p>
+          <label class="sim-ctrl">
+            <span>Mức thưởng nền trung bình (Reward Offset): <strong id="val-w4-roff">50</strong></span>
+            <input type="range" id="sl-w4-roff" min="0" max="100" step="5" value="50" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chuẩn hóa Baseline ($0 = \text{Tắt}, 1 = V(s)$): <strong id="val-w4-base">1.00</strong></span>
+            <input type="range" id="sl-w4-base" min="0.0" max="1.0" step="0.05" value="1.00" oninput="updateW4Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Trọng số Entropy Bonus $\beta$: <strong id="val-w4-ent">0.15</strong></span>
+            <input type="range" id="sl-w4-ent" min="0.01" max="1.50" step="0.02" value="0.15" oninput="updateW4Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w4"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w4" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 6. WEEK 5: PPO CLIP & GAE ==================== -->
+    <div class="sim-panel" id="panel-ppo_gae">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🛡️ PPO-Clip Objective &amp; Trọng Số Suy Giảm GAE($\gamma, \lambda$)</h3>
+          <p class="sim-desc">Trái: Hàm mục tiêu $L^{\text{CLIP}}(r_t) = \min\big(r_t \hat{A}_t, \text{clip}(r_t, 1-\epsilon, 1+\epsilon)\hat{A}_t\big)$. Phải: Trọng số $(\gamma\lambda)^l$ của sai số TD $\delta_{t+l}^V$ theo bước tương lai $l$.</p>
+          <label class="sim-ctrl">
+            <span>Ngưỡng kẹp PPO $\epsilon$ (`CLIP_EPS`): <strong id="val-w5-eps">0.20</strong></span>
+            <input type="range" id="sl-w5-eps" min="0.05" max="0.50" step="0.01" value="0.20" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Giá trị Lợi thế $\hat{A}_t$ (Dương = Tốt, Âm = Xấu): <strong id="val-w5-adv">+1.50</strong></span>
+            <input type="range" id="sl-w5-adv" min="-2.5" max="2.5" step="0.1" value="1.5" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số GAE $\lambda$ (`GAE_LAMBDA`): <strong id="val-w5-lam">0.95</strong></span>
+            <input type="range" id="sl-w5-lam" min="0.0" max="1.0" step="0.01" value="0.95" oninput="updateW5Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số chiết khấu $\gamma$: <strong id="val-w5-gam">0.99</strong></span>
+            <input type="range" id="sl-w5-gam" min="0.80" max="0.999" step="0.005" value="0.99" oninput="updateW5Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w5"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w5" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 7. WEEK 6: EVOLUTION STRATEGIES ==================== -->
+    <div class="sim-panel" id="panel-es_mirror">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🧬 Evolution Strategies: Làm Trơn Gaussian &amp; Mirrored Sampling $\pm\varepsilon$</h3>
+          <p class="sim-desc">Mũi tên xanh lá là Gradient thật $\nabla F(\theta)$, mũi tên cam là ước lượng ES $\hat{g}$. Bật/tắt lấy mẫu đối xứng $\pm\varepsilon$ để thấy cách nó khử sạch sai số bậc chẵn!</p>
+          <label class="sim-ctrl">
+            <span>Bán kính nhiễu thăm dò $\sigma$ (`STD_NOISE`): <strong id="val-w6-sigma">0.35</strong></span>
+            <input type="range" id="sl-w6-sigma" min="0.05" max="1.00" step="0.05" value="0.35" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Số cặp cá thể quần thể $n$ (`BATCH_SIZE`): <strong id="val-w6-npop">12</strong></span>
+            <input type="range" id="sl-w6-npop" min="2" max="50" step="1" value="12" oninput="updateW6Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Chế độ lấy mẫu (0 = 1 phía $+\varepsilon$, 1 = Đối xứng $\pm\varepsilon$): <strong id="val-w6-mirror">Đối xứng ±ε</strong></span>
+            <input type="range" id="sl-w6-mirror" min="0" max="1" step="1" value="1" oninput="updateW6Lab()" />
+          </label>
+          <div class="sim-btn-row">
+            <button class="btn-sim" onclick="stepW6ES()">🚀 Bước nhảy cập nhật θ ← θ + α·ĝ</button>
+            <button class="btn-sim-sec" onclick="resetW6ES()">🔄 Đặt lại vị trí θ</button>
+          </div>
+          <div class="sim-metrics" id="metrics-w6"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w6" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 8. WEEK 7: MODEL-BASED RL & MPC ==================== -->
+    <div class="sim-panel" id="panel-mbrl_mpc">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔮 Model-Based RL: Sai Số Tích Lũy $\mathcal{O}(L_f^H \varepsilon)$ &amp; Làm Trơn Tikhonov</h3>
+          <p class="sim-desc">Đường xanh là quỹ đạo thật $s_{t+k}$, đường đứt nét đỏ là quỹ đạo tưởng tượng $\hat{s}_{t+k}$ khi cuộn mô hình $H$ bước. Khi hằng số Lipschitz $L_f &gt; 1$, sai số phình to theo cấp số nhân!</p>
+          <label class="sim-ctrl">
+            <span>Tầm nhìn quy hoạch $H$ (`HORIZON_LENGTH`): <strong id="val-w7-h">12</strong></span>
+            <input type="range" id="sl-w7-h" min="2" max="25" step="1" value="12" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ dốc Jacobian mô hình $L_f = \|\nabla_s \hat{f}\|$: <strong id="val-w7-lip">1.14</strong></span>
+            <input type="range" id="sl-w7-lip" min="0.85" max="1.30" step="0.01" value="1.14" oninput="updateW7Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Nhiễu đầu vào Tikhonov $\sigma_\xi$ (phạt $\|J_f\|_F^2$): <strong id="val-w7-tik">0.00</strong></span>
+            <input type="range" id="sl-w7-tik" min="0.00" max="0.25" step="0.01" value="0.00" oninput="updateW7Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w7"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w7" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 9. WEEK 8: SAC MAXENT & RLHF/DPO ==================== -->
+    <div class="sim-panel" id="panel-sac_dpo">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🔥 SAC Soft-Bellman Temperature $\alpha$ &amp; RLHF/DPO $\beta_{KL}$</h3>
+          <p class="sim-desc">Trái: Địa hình $Q(s,a)$ có 2 đỉnh cực đại và phân phối Boltzmann $\pi^*(a|s) \propto \exp(Q(s,a)/\alpha)$. Phải: Đường cong xác suất thắng Bradley-Terry / DPO theo $\beta_{KL}$.</p>
+          <label class="sim-ctrl">
+            <span>Nhiệt độ Entropy SAC $\alpha$: <strong id="val-w8-alpha">0.25</strong></span>
+            <input type="range" id="sl-w8-alpha" min="0.03" max="1.50" step="0.02" value="0.25" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ chênh lệch đỉnh phụ $\Delta Q_{\text{sub}}$: <strong id="val-w8-dq">0.85</strong></span>
+            <input type="range" id="sl-w8-dq" min="0.20" max="1.00" step="0.05" value="0.85" oninput="updateW8Lab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số phạt KL trong RLHF/DPO $\beta_{KL}$: <strong id="val-w8-beta">0.50</strong></span>
+            <input type="range" id="sl-w8-beta" min="0.05" max="2.00" step="0.05" value="0.50" oninput="updateW8Lab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-w8"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-w8" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 10. SIM-TO-REAL ROBOTICS PHYSICS ==================== -->
+    <div class="sim-panel" id="panel-sim2real_physics">
+      <div class="sim-grid">
+        <div class="sim-controls">
+          <h3>🤖 Sim-to-Real: Tích Phân Euler vs. RK4, Độ Cứng $K_p$ &amp; Ma Sát $\mu$</h3>
+          <p class="sim-desc">Kiểm chứng tại sao chọn sai bước thời gian $\Delta t$ lớn kết hợp với bộ điều khiển khớp cứng $K_p$ làm Explicit Euler nổ tung (Numerical Explosion), trong khi RK4 giữ vững ổn định vật lý!</p>
+          <label class="sim-ctrl">
+            <span>Bước thời gian mô phỏng $\Delta t$ (`max_step_size`): <strong id="val-sim-dt">0.025 s</strong></span>
+            <input type="range" id="sl-sim-dt" min="0.005" max="0.065" step="0.002" value="0.025" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Độ cứng lò xo ảo PD $K_p$ (`stiffness`): <strong id="val-sim-kp">65</strong></span>
+            <input type="range" id="sl-sim-kp" min="15" max="140" step="5" value="65" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số cản nhớt $K_d$ (`damping`): <strong id="val-sim-kd">8.0</strong></span>
+            <input type="range" id="sl-sim-kd" min="1.0" max="25.0" step="0.5" value="8.0" oninput="updateSim2RealLab()" />
+          </label>
+          <label class="sim-ctrl">
+            <span>Hệ số ma sát mặt sàn $\mu$ (giới hạn lực bám $\mu mg$): <strong id="val-sim-mu">0.60</strong></span>
+            <input type="range" id="sl-sim-mu" min="0.10" max="1.20" step="0.05" value="0.60" oninput="updateSim2RealLab()" />
+          </label>
+          <div class="sim-metrics" id="metrics-sim2real"></div>
+        </div>
+        <div class="sim-canvas-box">
+          <canvas id="cv-sim2real" width="600" height="360"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .sim-lab-wrapper {
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent-primary);
+    border-radius: 14px;
+    margin: 1.2rem 0 2.2rem;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .sim-lab-header {
+    padding: 1.15rem 1.35rem 0.75rem;
+    background: linear-gradient(180deg, rgba(88, 166, 255, 0.10), transparent);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sim-lab-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .sim-lab-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 99px;
+    background: var(--accent-primary);
+    color: #fff;
+    margin-bottom: 0.35rem;
+  }
+  .sim-lab-heading {
+    margin: 0 0 0.25rem 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    font-size: 1.28rem !important;
+    color: var(--text-primary) !important;
+  }
+  .sim-lab-subtitle {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-secondary);
+  }
+  .sim-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.95rem;
+  }
+  .sim-tab {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.38rem 0.68rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .sim-tab:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+  }
+  .sim-tab.active {
+    background: var(--accent-primary);
+    color: #ffffff;
+    border-color: var(--accent-primary);
+  }
+  .sim-lab-body {
+    padding: 1.25rem 1.35rem;
+  }
+  .sim-panel {
+    display: none;
+  }
+  .sim-panel.active {
+    display: block;
+  }
+  .sim-grid {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: center;
+  }
+  .sim-controls h3 {
+    margin: 0 0 0.4rem 0 !important;
+    font-size: 1.02rem !important;
+    color: var(--accent-primary);
+  }
+  .sim-desc {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.85rem 0;
+    line-height: 1.5;
+  }
+  .sim-ctrl {
+    display: block;
+    margin-bottom: 0.65rem;
+    font-size: 0.82rem;
+  }
+  .sim-ctrl span {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.2rem;
+  }
+  .sim-ctrl input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent-primary);
+    cursor: pointer;
+  }
+  .sim-btn-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0.65rem 0;
+  }
+  .btn-sim {
+    background: var(--accent-primary);
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-sim:hover {
+    opacity: 0.9;
+  }
+  .btn-sim-sec {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    padding: 0.42rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-metrics {
+    margin-top: 0.75rem;
+    padding: 0.65rem 0.8rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.77rem;
+    line-height: 1.55;
+  }
+  .sim-canvas-box {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .sim-canvas-box canvas {
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    border-radius: 6px;
+  }
+  @media (max-width: 980px) {
+    .sim-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+(function() {
+  function getColors() {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    return {
+      bg: isLight ? '#ffffff' : '#0d1117',
+      grid: isLight ? '#e5e7eb' : '#21262d',
+      text: isLight ? '#1f2328' : '#e6edf3',
+      muted: isLight ? '#57606a' : '#8b949e',
+      blue: isLight ? '#0969da' : '#58a6ff',
+      green: isLight ? '#1a7f37' : '#3fb950',
+      purple: isLight ? '#8250df' : '#d2a8ff',
+      orange: isLight ? '#bc4c00' : '#f0883e',
+      red: isLight ? '#cf222e' : '#ff7b72'
+    };
+  }
+
+  window.toggleSimLabCollapse = function() {
+    const body = document.getElementById('sim-lab-body');
+    body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+  };
+
+  window.switchSimTab = function(tabId) {
+    document.querySelectorAll('.sim-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabId);
+    });
+    document.querySelectorAll('.sim-panel').forEach(p => {
+      p.classList.toggle('active', p.id === 'panel-' + tabId);
+    });
+    renderActiveTab(tabId);
+  };
+
+  function renderActiveTab(tabId) {
+    if (tabId === 'math_eigen') updateMathLab();
+    else if (tabId === 'bandit_ucb') updateW1Lab();
+    else if (tabId === 'mdp_bellman') updateW2Lab();
+    else if (tabId === 'dqn_bias') updateW3Lab();
+    else if (tabId === 'pg_variance') updateW4Lab();
+    else if (tabId === 'ppo_gae') updateW5Lab();
+    else if (tabId === 'es_mirror') updateW6Lab();
+    else if (tabId === 'mbrl_mpc') updateW7Lab();
+    else if (tabId === 'sac_dpo') updateW8Lab();
+    else if (tabId === 'sim2real_physics') updateSim2RealLab();
+  }
+
+  // ==================== 1. MATH LAB: 2D CLOUD & EIGEN ====================
+  const basePts = [];
+  for (let i = 0; i < 120; i++) {
+    // Box-Muller
+    const u1 = (i + 1) / 121.0;
+    const u2 = ((i * 73) % 119 + 1) / 120.0;
+    const r = Math.sqrt(-2.0 * Math.log(u1));
+    const th = 2.0 * Math.PI * u2;
+    basePts.push([r * Math.cos(th), r * Math.sin(th)]);
+  }
+
+  window.updateMathLab = function() {
+    const s1 = parseFloat(document.getElementById('sl-math-s1').value);
+    const s2 = parseFloat(document.getElementById('sl-math-s2').value);
+    const angDeg = parseFloat(document.getElementById('sl-math-ang').value);
+    const outVal = parseFloat(document.getElementById('sl-math-out').value);
+    document.getElementById('val-math-s1').textContent = s1.toFixed(2);
+    document.getElementById('val-math-s2').textContent = s2.toFixed(2);
+    document.getElementById('val-math-ang').textContent = angDeg + '°';
+    document.getElementById('val-math-out').textContent = outVal.toFixed(1);
+
+    const rad = angDeg * Math.PI / 180.0;
+    const c = Math.cos(rad), s = Math.sin(rad);
+    const l1 = s1 * s1, l2 = s2 * s2;
+    const sigXX = l1 * c * c + l2 * s * s;
+    const sigYY = l1 * s * s + l2 * c * c;
+    const sigXY = (l1 - l2) * c * s;
+
+    // Norms with outlier
+    const baseErrs = [0.2, -0.3, 0.4, -0.1, 0.25];
+    const errs = baseErrs.concat([outVal]);
+    const l1Norm = errs.reduce((a, b) => a + Math.abs(b), 0) / errs.length;
+    const l2Norm = Math.sqrt(errs.reduce((a, b) => a + b * b, 0) / errs.length);
+    const lInfNorm = Math.max(...errs.map(Math.abs));
+
+    document.getElementById('metrics-math').innerHTML =
+      `Ma trận Hiệp phương sai Σ = [[${sigXX.toFixed(2)}, ${sigXY.toFixed(2)}], [${sigXY.toFixed(2)}, ${sigYY.toFixed(2)}]]<br>` +
+      `Trị riêng: <strong>λ₁ = ${l1.toFixed(2)}</strong>, <strong>λ₂ = ${l2.toFixed(2)}</strong> | Số điều kiện κ = ${(Math.max(l1,l2)/Math.min(l1,l2)).toFixed(1)}<br>` +
+      `Chuẩn sai số khi Outlier=${outVal.toFixed(1)}: L₁=${l1Norm.toFixed(2)} | L₂=${l2Norm.toFixed(2)} | L∞=${lInfNorm.toFixed(2)}`;
+
+    const cv = document.getElementById('cv-math');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 210, cy = 180, scale = 48;
+    // Grid
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(20, cy); ctx.lineTo(400, cy);
+    ctx.moveTo(cx, 20); ctx.lineTo(cx, 340);
+    ctx.stroke();
+
+    // Cloud points
+    ctx.fillStyle = col.blue;
+    ctx.globalAlpha = 0.65;
+    basePts.forEach(([z1, z2]) => {
+      const x0 = z1 * s1, y0 = z2 * s2;
+      const x = x0 * c - y0 * s;
+      const y = x0 * s + y0 * c;
+      ctx.beginPath();
+      ctx.arc(cx + x * scale, cy - y * scale, 3, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1.0;
+
+    // Eigenvector 1 & 2 arrows
+    function drawArrow(x1, y1, x2, y2, color, label) {
+      ctx.strokeStyle = color;
+      ctx.fillStyle = color;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+      const ang = Math.atan2(y2 - y1, x2 - x1);
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 9 * Math.cos(ang - 0.4), y2 - 9 * Math.sin(ang - 0.4));
+      ctx.lineTo(x2 - 9 * Math.cos(ang + 0.4), y2 - 9 * Math.sin(ang + 0.4));
+      ctx.closePath();
+      ctx.fill();
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.fillText(label, x2 + 6, y2 - 4);
+    }
+    drawArrow(cx, cy, cx + c * s1 * 1.6 * scale, cy - s * s1 * 1.6 * scale, col.orange, `v₁ (√λ₁=${s1.toFixed(2)})`);
+    drawArrow(cx, cy, cx - s * s2 * 1.6 * scale, cy - c * s2 * 1.6 * scale, col.green, `v₂ (√λ₂=${s2.toFixed(2)})`);
+
+    // Right side: Norm comparison bar chart
+    const bx = 435, bw = 36, baseB = 315;
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Độ nhạy Chuẩn vs Outlier', 425, 38);
+    const norms = [
+      { name: 'L₁ (Bền)', val: l1Norm, color: col.green },
+      { name: 'L₂ (MSE)', val: l2Norm, color: col.blue },
+      { name: 'L∞ (Max)', val: lInfNorm, color: col.red }
+    ];
+    norms.forEach((n, idx) => {
+      const x = bx + idx * 52;
+      const h = Math.min(240, n.val * 16);
+      ctx.fillStyle = n.color;
+      ctx.fillRect(x, baseB - h, bw, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(n.val.toFixed(1), x + 4, baseB - h - 6);
+      ctx.fillText(n.name, x - 2, baseB + 16);
+    });
+  };
+
+  // ==================== 2. WEEK 1: BANDIT & UCB1 ====================
+  const trueMeans = [0.2, 0.55, 0.85, 0.40, 0.65];
+  let w1State = {
+    t: 5,
+    N: [1, 1, 1, 1, 1],
+    Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+    regretUCB: [0],
+    regretEps: [0],
+    cumUCB: 0,
+    cumEps: 0
+  };
+
+  window.resetW1Bandit = function() {
+    w1State = {
+      t: 5,
+      N: [1, 1, 1, 1, 1],
+      Q: [0.2, 0.5, 0.7, 0.3, 0.6],
+      regretUCB: [0],
+      regretEps: [0],
+      cumUCB: 0,
+      cumEps: 0
+    };
+    updateW1Lab();
+  };
+
+  window.stepW1Bandit = function(steps) {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    const bestMean = 0.85;
+
+    for (let s = 0; s < steps; s++) {
+      w1State.t += 1;
+      // UCB selection
+      let bestArm = 0, bestScore = -1e9;
+      for (let a = 0; a < 5; a++) {
+        const ucb = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+        if (ucb > bestScore) { bestScore = ucb; bestArm = a; }
+      }
+      const reward = trueMeans[bestArm] + (Math.random() - 0.5) * 0.4;
+      w1State.N[bestArm] += 1;
+      w1State.Q[bestArm] += alpha * (reward - w1State.Q[bestArm]);
+      w1State.cumUCB += (bestMean - trueMeans[bestArm]);
+      w1State.regretUCB.push(w1State.cumUCB);
+
+      // Eps-greedy regret simulation
+      let epsArm = 2;
+      if (Math.random() < eps) epsArm = Math.floor(Math.random() * 5);
+      w1State.cumEps += (bestMean - trueMeans[epsArm]);
+      w1State.regretEps.push(w1State.cumEps);
+    }
+    updateW1Lab();
+  };
+
+  window.updateW1Lab = function() {
+    const c = parseFloat(document.getElementById('sl-w1-c').value);
+    const eps = parseFloat(document.getElementById('sl-w1-eps').value);
+    const alpha = parseFloat(document.getElementById('sl-w1-alpha').value);
+    document.getElementById('val-w1-c').textContent = c.toFixed(2);
+    document.getElementById('val-w1-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w1-alpha').textContent = alpha.toFixed(2);
+
+    let nextArm = 0, maxU = -1e9;
+    for (let a = 0; a < 5; a++) {
+      const score = w1State.Q[a] + c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      if (score > maxU) { maxU = score; nextArm = a; }
+    }
+
+    document.getElementById('metrics-w1').innerHTML =
+      `Tổng số bước t = <strong>${w1State.t}</strong> | Cánh tay tối ưu thật: <strong>Arm #3 (q*=0.85)</strong><br>` +
+      `Hành động UCB chọn kế tiếp: <strong>Arm #${nextArm + 1}</strong> (Điểm UCB = ${maxU.toFixed(2)})<br>` +
+      `Hối tiếc tích lũy (Regret): UCB1 = <strong>${w1State.cumUCB.toFixed(2)}</strong> vs ε-Greedy = <strong>${w1State.cumEps.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w1');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: 5 Arms Q_t(a) + Bonus U_t(a)
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Ước lượng Q_t(a) (Xanh) + Bán kính UCB (Cam)', 20, 26);
+
+    const baseY = 310, scaleH = 110;
+    for (let a = 0; a < 5; a++) {
+      const x = 30 + a * 58;
+      const qH = Math.max(5, w1State.Q[a] * scaleH);
+      const bonus = c * Math.sqrt(Math.log(w1State.t) / w1State.N[a]);
+      const bH = Math.min(160, bonus * scaleH);
+
+      ctx.fillStyle = col.blue;
+      ctx.fillRect(x, baseY - qH, 38, qH);
+      ctx.fillStyle = col.orange;
+      ctx.fillRect(x, baseY - qH - bH, 38, bH);
+
+      // True mean marker
+      const trueY = baseY - trueMeans[a] * scaleH;
+      ctx.strokeStyle = col.green;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x - 4, trueY); ctx.lineTo(x + 42, trueY);
+      ctx.stroke();
+
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(`Arm ${a + 1}`, x + 3, baseY + 16);
+      ctx.fillStyle = col.muted;
+      ctx.fillText(`N=${w1State.N[a]}`, x + 4, baseY + 30);
+    }
+
+    // Right: Regret curves
+    const rx = 345, ry = 45, rw = 235, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Hối tiếc tích lũy L_T (Thấp = Tốt)', rx + 10, 26);
+
+    function drawCurve(arr, color) {
+      if (arr.length < 2) return;
+      const maxVal = Math.max(5, w1State.cumEps, w1State.cumUCB);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      arr.forEach((v, i) => {
+        const px = rx + (i / (arr.length - 1)) * rw;
+        const py = ry + rh - (v / maxVal) * (rh - 15);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+      ctx.stroke();
+    }
+    drawCurve(w1State.regretEps, col.red);
+    drawCurve(w1State.regretUCB, col.green);
+    ctx.fillStyle = col.green; ctx.fillText('▬ UCB1 O(ln T)', rx + 12, ry + 22);
+    ctx.fillStyle = col.red; ctx.fillText('▬ ε-Greedy O(T)', rx + 12, ry + 40);
+  };
+
+  // ==================== 3. WEEK 2: MDP BELLMAN GRID ====================
+  const holes = new Set([5, 7, 11, 12]);
+  const goalCell = 15;
+
+  window.updateW2Lab = function() {
+    const gamma = parseFloat(document.getElementById('sl-w2-gamma').value);
+    const slip = parseFloat(document.getElementById('sl-w2-slip').value);
+    const iters = parseInt(document.getElementById('sl-w2-iter').value, 10);
+    document.getElementById('val-w2-gamma').textContent = gamma.toFixed(2);
+    document.getElementById('val-w2-slip').textContent = slip.toFixed(2);
+    document.getElementById('val-w2-iter').textContent = iters;
+
+    let V = new Array(16).fill(0);
+    let policy = new Array(16).fill(0);
+    const dirs = [
+      [0, -1], // Left
+      [1, 0],  // Down
+      [0, 1],  // Right
+      [-1, 0]  // Up
+    ];
+    const arrows = ['←', '↓', '→', '↑'];
+
+    function stepState(s, a) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const nr = Math.min(3, Math.max(0, r + dirs[a][0]));
+      const nc = Math.min(3, Math.max(0, c + dirs[a][1]));
+      return nr * 4 + nc;
+    }
+
+    for (let k = 0; k < iters; k++) {
+      const nextV = V.slice();
+      for (let s = 0; s < 16; s++) {
+        if (s === goalCell) { nextV[s] = 1.0; continue; }
+        if (holes.has(s)) { nextV[s] = -1.0; continue; }
+        let bestQ = -1e9, bestA = 0;
+        for (let a = 0; a < 4; a++) {
+          const pMain = 1.0 - slip;
+          const pSide = slip / 2.0;
+          const aLeft = (a + 3) % 4;
+          const aRight = (a + 1) % 4;
+          const transitions = [
+            [pMain, stepState(s, a)],
+            [pSide, stepState(s, aLeft)],
+            [pSide, stepState(s, aRight)]
+          ];
+          let q = 0;
+          transitions.forEach(([prob, sNext]) => {
+            const rew = (sNext === goalCell) ? 1.0 : (holes.has(sNext) ? -0.5 : -0.01);
+            const vNext = (sNext === goalCell || holes.has(sNext)) ? 0.0 : V[sNext];
+            q += prob * (rew + gamma * vNext);
+          });
+          if (q > bestQ) { bestQ = q; bestA = a; }
+        }
+        nextV[s] = bestQ;
+        policy[s] = bestA;
+      }
+      V = nextV;
+    }
+
+    document.getElementById('metrics-w2').innerHTML =
+      `Giá trị tại Ô xuất phát V*(0) = <strong>${V[0].toFixed(3)}</strong> | Hệ số co Banach γ^k = <strong>${Math.pow(gamma, iters).toFixed(4)}</strong><br>` +
+      `Hướng đi tối ưu tại Ô 0: <strong>${arrows[policy[0]]}</strong> | Tại Ô 14 (sát đích): <strong>V*(14) = ${V[14].toFixed(3)} (${arrows[policy[14]]})</strong>`;
+
+    const cv = document.getElementById('cv-w2');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cellS = 76, ox = 145, oy = 28;
+    for (let s = 0; s < 16; s++) {
+      const r = Math.floor(s / 4), c = s % 4;
+      const x = ox + c * cellS, y = oy + r * cellS;
+      if (s === goalCell) {
+        ctx.fillStyle = 'rgba(63, 185, 80, 0.35)';
+      } else if (holes.has(s)) {
+        ctx.fillStyle = 'rgba(255, 123, 114, 0.32)';
+      } else {
+        const norm = Math.max(0, Math.min(1, (V[s] + 0.3) / 1.3));
+        ctx.fillStyle = `rgba(88, 166, 255, ${(0.08 + norm * 0.45).toFixed(2)})`;
+      }
+      ctx.fillRect(x, y, cellS - 4, cellS - 4);
+      ctx.strokeStyle = col.grid;
+      ctx.strokeRect(x, y, cellS - 4, cellS - 4);
+
+      ctx.fillStyle = col.text;
+      ctx.font = 'bold 12px Inter, sans-serif';
+      if (s === goalCell) {
+        ctx.fillText('🏆 GOAL', x + 10, y + 32);
+        ctx.fillText('+1.00', x + 18, y + 52);
+      } else if (holes.has(s)) {
+        ctx.fillText('🕳️ HOLE', x + 10, y + 32);
+        ctx.fillText('-0.50', x + 18, y + 52);
+      } else {
+        ctx.font = 'bold 20px Inter, sans-serif';
+        ctx.fillStyle = col.orange;
+        ctx.fillText(arrows[policy[s]], x + 28, y + 34);
+        ctx.font = '11px JetBrains Mono, monospace';
+        ctx.fillStyle = col.text;
+        ctx.fillText(V[s].toFixed(2), x + 18, y + 58);
+      }
+    }
+  };
+
+  // ==================== 4. WEEK 3: DOUBLE DQN BIAS ====================
+  window.updateW3Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w3-sigma').value);
+    const nAct = parseInt(document.getElementById('sl-w3-nact').value, 10);
+    const gamma = parseFloat(document.getElementById('sl-w3-gamma').value);
+    document.getElementById('val-w3-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w3-nact').textContent = nAct;
+    document.getElementById('val-w3-gamma').textContent = gamma.toFixed(2);
+
+    const trials = 400;
+    let sumDQN = 0, sumDDQN = 0;
+    const actionSampleQ1 = new Array(nAct).fill(0);
+    const actionSampleQ2 = new Array(nAct).fill(0);
+
+    function randn() {
+      const u1 = Math.max(1e-7, Math.random());
+      const u2 = Math.random();
+      return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+    }
+
+    for (let t = 0; t < trials; t++) {
+      let maxQ1 = -1e9, argMax1 = 0;
+      const q1 = [], q2 = [];
+      for (let a = 0; a < nAct; a++) {
+        const v1 = randn() * sigma;
+        const v2 = randn() * sigma;
+        q1.push(v1); q2.push(v2);
+        if (v1 > maxQ1) { maxQ1 = v1; argMax1 = a; }
+        if (t === 0) { actionSampleQ1[a] = v1; actionSampleQ2[a] = v2; }
+      }
+      sumDQN += maxQ1;
+      sumDDQN += q2[argMax1];
+    }
+
+    const avgDQN = sumDQN / trials;
+    const avgDDQN = sumDDQN / trials;
+    const asympDQN = avgDQN / (1.0 - gamma);
+
+    document.getElementById('metrics-w3').innerHTML =
+      `Giá trị thật Q*(s,a) = <strong>0.00</strong> | Kỳ vọng DQN thường E[max Q] = <strong style="color:#ff7b72">+${avgDQN.toFixed(3)}</strong> (Bị thổi phồng!)<br>` +
+      `Kỳ vọng Double DQN E[Q₂(argmax Q₁)] = <strong style="color:#3fb950">${avgDDQN.toFixed(3)}</strong> (Không chệch ≈ 0)<br>` +
+      `Sai số tích lũy qua chuỗi Bellman 1/(1-γ): DQN nổ lên tới <strong>+${asympDQN.toFixed(2)}</strong>`;
+
+    const cv = document.getElementById('cv-w3');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Draw comparison bars & single sample action noises
+    const midY = 195;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath();
+    ctx.moveTo(25, midY); ctx.lineTo(360, midY);
+    ctx.stroke();
+
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Mẫu nhiễu Q(s, a; θ) trên ${nAct} hành động (1 lượt)`, 25, 28);
+
+    const wBar = Math.max(6, Math.floor(310 / nAct) - 4);
+    let maxIdx = 0;
+    for (let a = 1; a < nAct; a++) if (actionSampleQ1[a] > actionSampleQ1[maxIdx]) maxIdx = a;
+
+    for (let a = 0; a < nAct; a++) {
+      const x = 30 + a * (wBar + 4);
+      const h = actionSampleQ1[a] * 38;
+      ctx.fillStyle = (a === maxIdx) ? col.red : col.blue;
+      if (h >= 0) ctx.fillRect(x, midY - h, wBar, h);
+      else ctx.fillRect(x, midY, wBar, -h);
+    }
+
+    // Right: Summary bias bars
+    ctx.fillStyle = col.text;
+    ctx.fillText('Độ chệch trung bình (400 mẫu)', 390, 28);
+    const b1H = Math.min(140, avgDQN * 55);
+    ctx.fillStyle = col.red;
+    ctx.fillRect(415, midY - b1H, 60, b1H);
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DQN: +${avgDQN.toFixed(2)}`, 405, midY - b1H - 8);
+
+    const b2H = avgDDQN * 55;
+    ctx.fillStyle = col.green;
+    ctx.fillRect(505, midY - Math.max(3, Math.abs(b2H)), 60, Math.max(4, Math.abs(b2H)));
+    ctx.fillStyle = col.text;
+    ctx.fillText(`DDQN: ${avgDDQN.toFixed(2)}`, 498, midY - 12);
+  };
+
+  // ==================== 5. WEEK 4: POLICY GRADIENT & ENTROPY ====================
+  window.updateW4Lab = function() {
+    const roff = parseFloat(document.getElementById('sl-w4-roff').value);
+    const baseFrac = parseFloat(document.getElementById('sl-w4-base').value);
+    const beta = parseFloat(document.getElementById('sl-w4-ent').value);
+    document.getElementById('val-w4-roff').textContent = roff.toFixed(0);
+    document.getElementById('val-w4-base').textContent = baseFrac.toFixed(2);
+    document.getElementById('val-w4-ent').textContent = beta.toFixed(2);
+
+    // Raw returns around roff + [-4, +2, -1, +5]
+    const advs = [-4.0, 2.0, -1.5, 5.0];
+    const baseline = baseFrac * roff;
+    const signals = advs.map(a => (roff + a) - baseline);
+    const meanSig = signals.reduce((a, b) => a + b, 0) / signals.length;
+    const variance = signals.reduce((a, b) => a + Math.pow(b, 2), 0) / signals.length;
+
+    // Softmax policy with temperature / entropy weight beta
+    const logits = [1.8, 0.9, 0.2, -0.4].map(l => l / Math.max(0.08, beta * 3.5));
+    const maxL = Math.max(...logits);
+    const exps = logits.map(l => Math.exp(l - maxL));
+    const sumE = exps.reduce((a, b) => a + b, 0);
+    const probs = exps.map(e => e / sumE);
+    const entropy = -probs.reduce((acc, p) => acc + (p > 1e-9 ? p * Math.log(p) : 0), 0);
+
+    document.getElementById('metrics-w4').innerHTML =
+      `Bình phương độ lớn Gradient E[(G_t - b)²]: <strong>${variance.toFixed(1)}</strong> (Khi b=V(s), giảm từ ${(roff*roff + 11.5).toFixed(0)} về 11.6!)<br>` +
+      `Shannon Entropy H(π) = <strong>${entropy.toFixed(3)} nats</strong> (Max = ln(4) ≈ 1.386)<br>` +
+      `Phân phối π(a|s): [${probs.map(p => (p*100).toFixed(1)+'%').join(', ')}]`;
+
+    const cv = document.getElementById('cv-w4');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Signals G_t - b(s) for 4 sampled actions
+    const midY = 190;
+    ctx.strokeStyle = col.grid;
+    ctx.beginPath(); ctx.moveTo(20, midY); ctx.lineTo(300, midY); ctx.stroke();
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Tín hiệu đẩy Gradient (G_t - b) trên 4 mẫu', 20, 28);
+
+    signals.forEach((sig, i) => {
+      const x = 35 + i * 64;
+      const h = Math.max(-135, Math.min(135, sig * 2.2));
+      ctx.fillStyle = sig >= 0 ? col.green : col.red;
+      if (h >= 0) ctx.fillRect(x, midY - h, 42, h);
+      else ctx.fillRect(x, midY, 42, -h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((sig >= 0 ? '+' : '') + sig.toFixed(1), x + 4, h >= 0 ? midY - h - 6 : midY - h + 14);
+      ctx.fillText(`Mẫu ${i+1}`, x + 4, 340);
+    });
+
+    // Right: Policy distribution pi(a|s) under Entropy Bonus
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText(`Phân phối π(a|s) (Entropy H = ${entropy.toFixed(2)})`, 335, 28);
+    const baseB = 315;
+    probs.forEach((p, i) => {
+      const x = 350 + i * 58;
+      const h = p * 230;
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(x, baseB - h, 40, h);
+      ctx.fillStyle = col.text;
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText((p * 100).toFixed(0) + '%', x + 6, baseB - h - 6);
+      ctx.fillText(`a_${i+1}`, x + 12, baseB + 18);
+    });
+  };
+
+  // ==================== 6. WEEK 5: PPO CLIP & GAE ====================
+  window.updateW5Lab = function() {
+    const eps = parseFloat(document.getElementById('sl-w5-eps').value);
+    const adv = parseFloat(document.getElementById('sl-w5-adv').value);
+    const lam = parseFloat(document.getElementById('sl-w5-lam').value);
+    const gam = parseFloat(document.getElementById('sl-w5-gam').value);
+
+    document.getElementById('val-w5-eps').textContent = eps.toFixed(2);
+    document.getElementById('val-w5-adv').textContent = (adv >= 0 ? '+' : '') + adv.toFixed(2);
+    document.getElementById('val-w5-lam').textContent = lam.toFixed(2);
+    document.getElementById('val-w5-gam').textContent = gam.toFixed(3);
+
+    const gaeFactor = gam * lam;
+    const effHorizon = 1.0 / Math.max(1e-4, 1.0 - gaeFactor);
+
+    document.getElementById('metrics-w5').innerHTML =
+      `Vùng tin cậy tỷ số r_t(θ): <strong>[${(1 - eps).toFixed(2)}, ${(1 + eps).toFixed(2)}]</strong> | Khi vượt ngưỡng: <strong>∇_θ L^CLIP = 0</strong><br>` +
+      `Hệ số suy giảm GAE (γλ) = <strong>${gaeFactor.toFixed(4)}</strong> | Tầm nhìn hiệu dụng H_adv ≈ <strong>${effHorizon.toFixed(1)} bước</strong>`;
+
+    const cv = document.getElementById('cv-w5');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left Plot: PPO Clip Objective vs r_t in [0.2, 2.0]
+    const lx = 35, ly = 42, lw = 250, lh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Đồ thị L^CLIP(r_t) theo tỷ số r_t', lx, 26);
+
+    const midY = ly + lh / 2;
+    ctx.beginPath(); ctx.moveTo(lx, midY); ctx.lineTo(lx + lw, midY); ctx.stroke();
+
+    // Vertical lines at 1-eps, 1, 1+eps
+    function rToX(r) { return lx + ((r - 0.2) / 1.8) * lw; }
+    function valToY(v) { return midY - v * 28; }
+
+    [1 - eps, 1.0, 1 + eps].forEach((rVal, idx) => {
+      const px = rToX(rVal);
+      ctx.strokeStyle = idx === 1 ? col.muted : col.orange;
+      ctx.setLineDash(idx === 1 ? [3, 3] : [4, 4]);
+      ctx.beginPath(); ctx.moveTo(px, ly); ctx.lineTo(px, ly + lh); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = col.muted;
+      ctx.font = '10px JetBrains Mono, monospace';
+      ctx.fillText(rVal.toFixed(2), px - 12, ly + lh + 14);
+    });
+
+    // Unclipped r*A (dashed blue)
+    ctx.strokeStyle = col.blue;
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.03) {
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(r * adv)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Clipped min(r*A, clip(r)*A) (solid green)
+    ctx.strokeStyle = col.green;
+    ctx.lineWidth = 3.5;
+    ctx.beginPath();
+    for (let r = 0.2; r <= 2.0; r += 0.02) {
+      const rClip = Math.max(1 - eps, Math.min(1 + eps, r));
+      const obj = Math.min(r * adv, rClip * adv);
+      const px = rToX(r), py = Math.max(ly, Math.min(ly + lh, valToY(obj)));
+      if (r === 0.2) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Right Plot: GAE weights (gamma*lambda)^l for l=0..24
+    const rx = 325, ry = 42, rw = 250, rh = 265;
+    ctx.strokeStyle = col.grid;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Trọng số (γλ)^l của sai số TD δ_{t+l}', rx, 26);
+
+    for (let l = 0; l < 20; l++) {
+      const w = Math.pow(gaeFactor, l);
+      const bx = rx + 8 + l * 12;
+      const bh = w * (rh - 25);
+      ctx.fillStyle = col.purple;
+      ctx.fillRect(bx, ry + rh - bh, 8, bh);
+    }
+    ctx.fillStyle = col.muted;
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Bước tương lai l = 0 → 20', rx + 55, ry + rh + 16);
+  };
+
+  // ==================== 7. WEEK 6: EVOLUTION STRATEGIES ====================
+  let esTheta = [-1.4, -1.1];
+  window.resetW6ES = function() {
+    esTheta = [-1.4, -1.1];
+    updateW6Lab();
+  };
+
+  window.stepW6ES = function() {
+    const gEst = window._lastESGrad || [0, 0];
+    esTheta[0] += 0.22 * gEst[0];
+    esTheta[1] += 0.22 * gEst[1];
+    updateW6Lab();
+  };
+
+  window.updateW6Lab = function() {
+    const sigma = parseFloat(document.getElementById('sl-w6-sigma').value);
+    const nPop = parseInt(document.getElementById('sl-w6-npop').value, 10);
+    const mirrored = parseInt(document.getElementById('sl-w6-mirror').value, 10) === 1;
+    document.getElementById('val-w6-sigma').textContent = sigma.toFixed(2);
+    document.getElementById('val-w6-npop').textContent = nPop;
+    document.getElementById('val-w6-mirror').textContent = mirrored ? 'Đối xứng ±ε' : '1 phía +ε';
+
+    // Objective F(x,y) = - (x^2 + 2*y^2) - 0.3*(x^3 + y^2*x) (has curvature so 1-sided has bias/noise)
+    function F(x, y) {
+      return -(x * x + 1.8 * y * y) + 0.25 * (x * x * x + x * y * y);
+    }
+    const trueGrad = [
+      -2 * esTheta[0] + 0.75 * esTheta[0] * esTheta[0] + 0.25 * esTheta[1] * esTheta[1],
+      -3.6 * esTheta[1] + 0.5 * esTheta[0] * esTheta[1]
+    ];
+
+    let gx = 0, gy = 0;
+    const samples = [];
+    for (let i = 0; i < nPop; i++) {
+      const ang = (2 * Math.PI * i) / nPop + 0.3;
+      const ex = Math.cos(ang) * 1.15, ey = Math.sin(ang) * 0.9;
+      const fPos = F(esTheta[0] + sigma * ex, esTheta[1] + sigma * ey);
+      samples.push([esTheta[0] + sigma * ex, esTheta[1] + sigma * ey, true]);
+      if (mirrored) {
+        const fNeg = F(esTheta[0] - sigma * ex, esTheta[1] - sigma * ey);
+        samples.push([esTheta[0] - sigma * ex, esTheta[1] - sigma * ey, false]);
+        gx += ((fPos - fNeg) / (2 * sigma)) * ex;
+        gy += ((fPos - fNeg) / (2 * sigma)) * ey;
+      } else {
+        // Without baseline, F(theta) term adds huge noise
+        gx += (fPos / sigma) * ex;
+        gy += (fPos / sigma) * ey;
+      }
+    }
+    gx /= nPop; gy /= nPop;
+    window._lastESGrad = [gx, gy];
+
+    const normTrue = Math.hypot(trueGrad[0], trueGrad[1]) + 1e-8;
+    const normEst = Math.hypot(gx, gy) + 1e-8;
+    const cosSim = (trueGrad[0] * gx + trueGrad[1] * gy) / (normTrue * normEst);
+
+    document.getElementById('metrics-w6').innerHTML =
+      `Tâm tham số hiện tại θ = [${esTheta[0].toFixed(2)}, ${esTheta[1].toFixed(2)}] | Đích tối ưu: [0.00, 0.00]<br>` +
+      `Độ tương đồng Cosine(∇F thật, ĝ ES) = <strong>${cosSim.toFixed(4)}</strong> (Mirrored ±ε khử sạch số hạng bậc chẵn F(θ) và Hessian!)`;
+
+    const cv = document.getElementById('cv-w6');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const cx = 300, cy = 180, scale = 95;
+    // Draw contour ellipses around (0,0)
+    for (let r = 0.35; r <= 2.2; r += 0.35) {
+      ctx.strokeStyle = col.grid;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, r * scale, (r / Math.sqrt(1.8)) * scale, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+    }
+    // Optimum star
+    ctx.fillStyle = col.green;
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.fillText('★ Đích θ*=(0,0)', cx + 6, cy - 6);
+
+    // Samples
+    samples.forEach(([sx, sy, isPos]) => {
+      ctx.fillStyle = isPos ? col.blue : col.purple;
+      ctx.beginPath();
+      ctx.arc(cx + sx * scale, cy - sy * scale, 3.5, 0, 2 * Math.PI);
+      ctx.fill();
+    });
+
+    // Current theta
+    const tx = cx + esTheta[0] * scale, ty = cy - esTheta[1] * scale;
+    ctx.fillStyle = col.orange;
+    ctx.beginPath(); ctx.arc(tx, ty, 6, 0, 2 * Math.PI); ctx.fill();
+
+    // True gradient vs ES gradient arrows
+    function drawVec(vx, vy, color, label) {
+      const len = Math.hypot(vx, vy);
+      if (len < 1e-4) return;
+      const ux = (vx / len) * 55, uy = (vy / len) * 55;
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + ux, ty - uy); ctx.stroke();
+      ctx.font = 'bold 11px Inter, sans-serif';
+      ctx.fillText(label, tx + ux + 5, ty - uy);
+    }
+    drawVec(trueGrad[0], trueGrad[1], col.green, '∇F thật');
+    drawVec(gx, gy, col.orange, 'ĝ ES');
+  };
+
+  // ==================== 8. WEEK 7: MODEL-BASED RL & MPC ====================
+  window.updateW7Lab = function() {
+    const H = parseInt(document.getElementById('sl-w7-h').value, 10);
+    const rawLip = parseFloat(document.getElementById('sl-w7-lip').value);
+    const tik = parseFloat(document.getElementById('sl-w7-tik').value);
+    document.getElementById('val-w7-h').textContent = H;
+    document.getElementById('val-w7-lip').textContent = rawLip.toFixed(2);
+    document.getElementById('val-w7-tik').textContent = tik.toFixed(2);
+
+    // Tikhonov input noise regularizes the effective Lipschitz constant
+    const effLip = Math.max(0.85, rawLip - tik * 0.9);
+    const eps1 = 0.04;
+    const trueTraj = [], predTraj = [], errBars = [];
+
+    let errAcc = 0;
+    for (let k = 0; k <= H; k++) {
+      const sTrue = Math.sin(k * 0.32);
+      trueTraj.push(sTrue);
+      if (k > 0) errAcc = errAcc * effLip + eps1;
+      predTraj.push(sTrue + errAcc * (k % 2 === 0 ? 1 : 0.85));
+      errBars.push(errAcc);
+    }
+
+    document.getElementById('metrics-w7').innerHTML =
+      `Độ dốc hiệu dụng sau làm trơn Tikhonov: <strong>L_eff = ${effLip.toFixed(3)}</strong><br>` +
+      `Sai số dự đoán ở bước cuối H=${H}: <strong>||ŝ_{t+H} - s_{t+H}|| = ${errAcc.toFixed(3)}</strong> (Gấp ${(errAcc / eps1).toFixed(1)} lần sai số 1 bước!)`;
+
+    const cv = document.getElementById('cv-w7');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 30, w = 525, h = 290, midY = oy + h / 2;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function stepToX(k) { return ox + (k / H) * w; }
+    function sToY(val) { return midY - val * 65; }
+
+    // Error fan shaded area
+    ctx.fillStyle = 'rgba(255, 123, 114, 0.16)';
+    ctx.beginPath();
+    for (let k = 0; k <= H; k++) {
+      const x = stepToX(k), y = sToY(trueTraj[k] + errBars[k]);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    for (let k = H; k >= 0; k--) {
+      const x = stepToX(k), y = sToY(trueTraj[k] - errBars[k]);
+      ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    // True trajectory (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    trueTraj.forEach((v, k) => {
+      const x = stepToX(k), y = sToY(v);
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    // Hallucinated rollout (red dashed)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5; ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    predTraj.forEach((v, k) => {
+      const x = stepToX(k), y = Math.max(oy + 5, Math.min(oy + h - 5, sToY(v)));
+      if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Quỹ đạo thật s_{t+k}', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('--- Mô hình tưởng tượng ŝ_{t+k} (Vùng đỏ = Bùng nổ sai số O(L^H ε))', ox + 175, oy + 22);
+  };
+
+  // ==================== 9. WEEK 8: SAC & DPO ====================
+  window.updateW8Lab = function() {
+    const alpha = parseFloat(document.getElementById('sl-w8-alpha').value);
+    const dq = parseFloat(document.getElementById('sl-w8-dq').value);
+    const beta = parseFloat(document.getElementById('sl-w8-beta').value);
+    document.getElementById('val-w8-alpha').textContent = alpha.toFixed(2);
+    document.getElementById('val-w8-dq').textContent = dq.toFixed(2);
+    document.getElementById('val-w8-beta').textContent = beta.toFixed(2);
+
+    const N = 80;
+    const actions = [], qVals = [], probs = [];
+    let maxScaled = -1e9;
+    for (let i = 0; i < N; i++) {
+      const a = -1.0 + (2.0 * i) / (N - 1);
+      actions.push(a);
+      // Bimodal Q landscape: peak 1 at a=-0.45 (height 1.0), peak 2 at a=+0.50 (height dq)
+      const q = Math.exp(-Math.pow((a + 0.45) / 0.25, 2)) + dq * Math.exp(-Math.pow((a - 0.50) / 0.25, 2));
+      qVals.push(q);
+      if (q / alpha > maxScaled) maxScaled = q / alpha;
+    }
+    let sumExp = 0;
+    const rawExps = qVals.map(q => {
+      const e = Math.exp(q / alpha - maxScaled);
+      sumExp += e;
+      return e;
+    });
+    rawExps.forEach(e => probs.push(e / sumExp));
+
+    document.getElementById('metrics-w8').innerHTML =
+      `Khi α = ${alpha.toFixed(2)}: Policy SAC ${alpha < 0.08 ? 'co cụm thành Greedy (chỉ chọn đỉnh 1)' : (alpha > 0.8 ? 'phẳng dần về Uniform' : 'khám phá Đa Mốt (giữ cả 2 đỉnh!)')}<br>` +
+      `Trong DPO (β_KL = ${beta.toFixed(2)}): Độ dốc Sigmoid σ(β·Δlog(π/π_ref)) tỉ lệ thuận với β_KL.`;
+
+    const cv = document.getElementById('cv-w8');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    // Left: Bimodal Q(s,a) and Boltzmann pi*(a|s)
+    const lx = 30, ly = 40, lw = 255, lh = 270;
+    ctx.strokeStyle = col.grid; ctx.strokeRect(lx, ly, lw, lh);
+    ctx.fillStyle = col.text; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('Q(s,a) 2 đỉnh (Xanh) & π*(a|s) (Cam)', lx, 26);
+
+    // Q curve
+    ctx.strokeStyle = col.blue; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    qVals.forEach((q, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (q / 1.3) * (lh - 20);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Policy density curve
+    const maxP = Math.max(...probs) + 1e-6;
+    ctx.strokeStyle = col.orange; ctx.lineWidth = 3;
+    ctx.beginPath();
+    probs.forEach((p, i) => {
+      const px = lx + (i / (N - 1)) * lw;
+      const py = ly + lh - (p / maxP) * (lh - 30);
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Right: DPO Sigmoid Loss & Preference Probability
+    const rx = 320, ry = 40, rw = 255, rh = 270;
+    ctx.strokeStyle = col.grid; ctx.lineWidth = 1; ctx.strokeRect(rx, ry, rw, rh);
+    ctx.fillStyle = col.text;
+    ctx.fillText('DPO: Xác suất P(y_w ≻ y_l) = σ(β·Δ)', rx, 26);
+
+    ctx.strokeStyle = col.purple; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let i = 0; i <= 80; i++) {
+      const delta = -4.0 + (8.0 * i) / 80;
+      const prob = 1.0 / (1.0 + Math.exp(-beta * delta));
+      const px = rx + (i / 80) * rw;
+      const py = ry + lh - prob * (lh - 20) - 10;
+      if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  };
+
+  // ==================== 10. SIM-TO-REAL PHYSICS LAB ====================
+  window.updateSim2RealLab = function() {
+    const dt = parseFloat(document.getElementById('sl-sim-dt').value);
+    const kp = parseFloat(document.getElementById('sl-sim-kp').value);
+    const kd = parseFloat(document.getElementById('sl-sim-kd').value);
+    const mu = parseFloat(document.getElementById('sl-sim-mu').value);
+    document.getElementById('val-sim-dt').textContent = dt.toFixed(3) + ' s';
+    document.getElementById('val-sim-kp').textContent = kp.toFixed(0);
+    document.getElementById('val-sim-kd').textContent = kd.toFixed(1);
+    document.getElementById('val-sim-mu').textContent = mu.toFixed(2);
+
+    const mass = 1.0, g = 9.81, targetX = 1.0;
+    const maxForce = mu * mass * g; // Friction traction limit
+
+    function accel(x, v) {
+      const rawF = kp * (targetX - x) - kd * v;
+      const clampedF = Math.max(-maxForce, Math.min(maxForce, rawF));
+      return clampedF / mass;
+    }
+
+    const totalTime = 1.6;
+    const steps = Math.max(8, Math.floor(totalTime / dt));
+    const eulerTraj = [[0, 0]], rk4Traj = [[0, 0]];
+    let xe = 0, ve = 0, xr = 0, vr = 0;
+    let eulerExploded = false;
+
+    for (let i = 1; i <= steps; i++) {
+      const t = i * dt;
+      // Explicit Euler
+      const ae = accel(xe, ve);
+      xe = xe + dt * ve;
+      ve = ve + dt * ae;
+      if (Math.abs(xe) > 3.5) eulerExploded = true;
+      eulerTraj.push([t, Math.max(-2.5, Math.min(2.8, xe))]);
+
+      // RK4
+      const k1x = vr, k1v = accel(xr, vr);
+      const k2x = vr + 0.5 * dt * k1v, k2v = accel(xr + 0.5 * dt * k1x, vr + 0.5 * dt * k1v);
+      const k3x = vr + 0.5 * dt * k2v, k3v = accel(xr + 0.5 * dt * k2x, vr + 0.5 * dt * k2v);
+      const k4x = vr + dt * k3v, k4v = accel(xr + dt * k3x, vr + dt * k3v);
+      xr += (dt / 6.0) * (k1x + 2 * k2x + 2 * k3x + k4x);
+      vr += (dt / 6.0) * (k1v + 2 * k2v + 2 * k3v + k4v);
+      rk4Traj.push([t, Math.max(-2.5, Math.min(2.8, xr))]);
+    }
+
+    document.getElementById('metrics-sim2real').innerHTML =
+      `Giới hạn lực bám ma sát F_max = μ·m·g = <strong>${maxForce.toFixed(2)} N</strong> | Tích số ổn định Δt·K_p = <strong>${(dt * kp).toFixed(2)}</strong><br>` +
+      `Trạng thái Explicit Euler: <strong style="color:${eulerExploded ? '#ff7b72' : '#3fb950'}">${eulerExploded ? '💥 MẤT ỔN ĐỊNH SỐ (NỔ QUỸ ĐẠO!)' : '✅ Hội tụ ổn định'}</strong> | RK4: <strong style="color:#3fb950">✅ Luôn ổn định vật lý</strong>`;
+
+    const cv = document.getElementById('cv-sim2real');
+    const ctx = cv.getContext('2d');
+    const col = getColors();
+    ctx.fillStyle = col.bg;
+    ctx.fillRect(0, 0, cv.width, cv.height);
+
+    const ox = 45, oy = 32, w = 525, h = 290;
+    ctx.strokeStyle = col.grid;
+    ctx.strokeRect(ox, oy, w, h);
+
+    function tToX(t) { return ox + (t / totalTime) * w; }
+    function xToY(xVal) { return oy + h * 0.68 - xVal * 85; }
+
+    // Target line x = 1.0
+    const ty = xToY(1.0);
+    ctx.strokeStyle = col.muted; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(ox, ty); ctx.lineTo(ox + w, ty); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = col.muted; ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Đích x_target = 1.0 m', ox + w - 125, ty - 6);
+
+    // Draw Euler (red)
+    ctx.strokeStyle = col.red; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    eulerTraj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    // Draw RK4 (green)
+    ctx.strokeStyle = col.green; ctx.lineWidth = 3;
+    ctx.beginPath();
+    rk4Traj.forEach(([t, xVal], idx) => {
+      const px = tToX(t), py = Math.max(oy + 4, Math.min(oy + h - 4, xToY(xVal)));
+      if (idx === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+
+    ctx.fillStyle = col.green; ctx.font = 'bold 12px Inter, sans-serif';
+    ctx.fillText('▬ Runge-Kutta bậc 4 (RK4 - Chuẩn xác)', ox + 12, oy + 22);
+    ctx.fillStyle = col.red;
+    ctx.fillText('▬ Explicit Euler (Dễ nổ khi Δt hoặc K_p lớn)', ox + 265, oy + 22);
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    switchSimTab('mdp_bellman');
+    const themeBtn = document.getElementById('theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', () => {
+        setTimeout(() => {
+          const activeBtn = document.querySelector('.sim-tab.active');
+          if (activeBtn) renderActiveTab(activeBtn.getAttribute('data-tab'));
+        }, 20);
+      });
+    }
+  });
+})();
+</script>
+
+      <article class="markdown-body">
+        <h1 id="week-2-nen-tang-rl-mdp-quy-hoach-ong-model-free-q-learning">Week 2 – Nền tảng RL: MDP, Quy hoạch động, Model-free, Q-learning<a class="headerlink" href="#week-2-nen-tang-rl-mdp-quy-hoach-ong-model-free-q-learning" title="Liên kết tới mục này">&para;</a></h1>
+<blockquote class="callout">
+<p>Mục tiêu: sau khi đọc xong bạn phải <strong>tự suy ra và chứng minh được</strong> phương trình Bellman, hiểu bản chất giải tích tính co Banach giải thích vì sao Q-learning hội tụ, và đọc hiểu từng dòng của <a href="frozenlake_Qlearning.ipynb"><code>frozenlake_Qlearning.ipynb</code></a>.<br />
+📖 <strong>Quy ước ký hiệu toàn khoá</strong>: Đối chiếu toàn bộ ký hiệu giải tích, không gian và toán tử tại <a href="../BANG_KY_HIEU_TOAN_HOC.html">BẢNG KÝ HIỆU TOÁN HỌC CHUẨN TẮC</a>.</p>
+</blockquote>
+<p><strong>Lộ trình đọc</strong>: §1 Bài toán MDP → §2 Hàm giá trị và Chứng minh phương trình Bellman → §3 Tính tối ưu &amp; Chứng minh tính co Banach → §4 Quy hoạch động &amp; Chứng minh cải thiện Policy → §5 Monte Carlo &amp; TD → §6 Điều khiển (SARSA, Q-learning) → §7 Đọc code → §8 Ví dụ tính tay → §9 Bài tập.</p>
+<hr />
+<h2 id="1-bai-toan-markov-decision-process-mdp">1. Bài toán: Markov Decision Process (MDP)<a class="headerlink" href="#1-bai-toan-markov-decision-process-mdp" title="Liên kết tới mục này">&para;</a></h2>
+<h3 id="11-inh-nghia">1.1 Định nghĩa<a class="headerlink" href="#11-inh-nghia" title="Liên kết tới mục này">&para;</a></h3>
+<p>MDP là bộ năm <span class="math-inline">$(\mathcal S,\mathcal A,P,R,\gamma)$</span>:</p>
+<table>
+<thead>
+<tr>
+<th>Thành phần</th>
+<th>Ý nghĩa</th>
+<th>FrozenLake 4×4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="math-inline">$\mathcal S$</span></td>
+<td>tập trạng thái</td>
+<td>16 ô (0..15)</td>
+</tr>
+<tr>
+<td><span class="math-inline">$\mathcal A$</span></td>
+<td>tập hành động</td>
+<td>4: trái, xuống, phải, lên</td>
+</tr>
+<tr>
+<td><span class="math-inline">$P(s&#x27;\mid s,a)$</span></td>
+<td>xác suất chuyển trạng thái</td>
+<td>trơn trượt: đi đúng hướng 1/3, lệch trái/phải mỗi bên 1/3</td>
+</tr>
+<tr>
+<td><span class="math-inline">$R(s,a,s&#x27;)$</span></td>
+<td>phần thưởng</td>
+<td>1 khi tới đích (ô 15), còn lại 0</td>
+</tr>
+<tr>
+<td><span class="math-inline">$\gamma\in[0,1)$</span></td>
+<td>hệ số chiết khấu</td>
+<td>0.95 trong notebook</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tính chất Markov</strong>: <span class="math-inline">$P(s_{t+1}\mid s_t,a_t,s_{t-1},\dots)=P(s_{t+1}\mid s_t,a_t)$</span>. "Hiện tại đủ để dự đoán tương lai". Nếu quan sát không đủ (ví dụ một khung hình Pong không cho biết vận tốc bóng) ta phải <strong>gộp thêm thông tin</strong> (xếp 4 frame – Week 3) để khôi phục tính Markov.</p>
+<h3 id="12-policy">1.2 Policy<a class="headerlink" href="#12-policy" title="Liên kết tới mục này">&para;</a></h3>
+<p>Policy <span class="math-inline">$\pi(a\mid s)$</span> là phân phối xác suất trên hành động cho mỗi trạng thái. Policy tất định: <span class="math-inline">$a=\pi(s)$</span>.</p>
+<h3 id="13-return-va-he-so-chiet-khau">1.3 Return và hệ số chiết khấu<a class="headerlink" href="#13-return-va-he-so-chiet-khau" title="Liên kết tới mục này">&para;</a></h3>
+<p><div class="math-block">$$G_t=r_{t+1}+\gamma r_{t+2}+\gamma^2 r_{t+3}+\dots=\sum_{k=0}^{\infty}\gamma^k r_{t+k+1}$$</div></p>
+<ul>
+<li><strong>Giải thích ký hiệu ngay sau phương trình</strong>:</li>
+<li><span class="math-inline">$G_t$</span>: Lợi nhuận chiết khấu tích lũy từ bước <span class="math-inline">$t$</span>.</li>
+<li><span class="math-inline">$r_{t+k+1}$</span>: Phần thưởng nhận được tại bước <span class="math-inline">$t+k+1$</span>.</li>
+<li><span class="math-inline">$\gamma \in [0, 1)$</span>: Hệ số chiết khấu tương lai.</li>
+</ul>
+<p>Vì sao chiết khấu?</p>
+<ol>
+<li><strong>Hội tụ toán học</strong>: nếu <span class="math-inline">$|r|\le R_{max}$</span> thì <span class="math-inline">$|G_t|\le R_{max}\sum\gamma^k=\dfrac{R_{max}}{1-\gamma}&lt;\infty$</span>.</li>
+<li>Tương lai không chắc chắn nên đáng giá ít hơn.</li>
+<li>Ưu tiên đạt mục tiêu <strong>sớm</strong>: với <span class="math-inline">$\gamma&lt;1$</span>, đường ngắn cho <span class="math-inline">$G$</span> lớn hơn.</li>
+</ol>
+<p>Quan hệ đệ quy (rất quan trọng, mọi thứ sau đây xuất phát từ đây):
+<div class="math-block">$$\boxed{G_t=r_{t+1}+\gamma G_{t+1}}$$</div></p>
+<hr />
+<h2 id="2-ham-gia-tri-va-phuong-trinh-bellman">2. Hàm giá trị và phương trình Bellman<a class="headerlink" href="#2-ham-gia-tri-va-phuong-trinh-bellman" title="Liên kết tới mục này">&para;</a></h2>
+<h3 id="21-inh-nghia">2.1 Định nghĩa<a class="headerlink" href="#21-inh-nghia" title="Liên kết tới mục này">&para;</a></h3>
+<p><div class="math-block">$$V^\pi(s)=\mathbb E_\pi[G_t\mid S_t=s],\qquad Q^\pi(s,a)=\mathbb E_\pi[G_t\mid S_t=s,A_t=a]$$</div></p>
+<ul>
+<li><strong>Giải thích ký hiệu</strong>:</li>
+<li><span class="math-inline">$V^\pi(s)$</span>: State-value function, giá trị kỳ vọng khi ở trạng thái <span class="math-inline">$s$</span> và tuân theo chính sách <span class="math-inline">$\pi$</span>.</li>
+<li><span class="math-inline">$Q^\pi(s, a)$</span>: Action-value function, giá trị kỳ vọng khi thực hiện hành động <span class="math-inline">$a$</span> tại <span class="math-inline">$s$</span> rồi tuân theo <span class="math-inline">$\pi$</span>.</li>
+</ul>
+<p>Mối quan hệ qua lại giữa hai hàm:
+<div class="math-block">$$V^\pi(s)=\sum_{a \in \mathcal A}\pi(a\mid s)\,Q^\pi(s,a)$$</div>
+<div class="math-block">$$Q^\pi(s,a)=\sum_{s&#x27; \in \mathcal S}P(s&#x27;\mid s,a)\big[R(s,a,s&#x27;)+\gamma V^\pi(s&#x27;)\big]$$</div></p>
+<hr />
+<h3 id="22-chung-minh-chi-tiet-phuong-trinh-bellman-ky-vong-derivation-of-bellman-expectation-equation">2.2 Chứng minh chi tiết Phương trình Bellman kỳ vọng (Derivation of Bellman Expectation Equation)<a class="headerlink" href="#22-chung-minh-chi-tiet-phuong-trinh-bellman-ky-vong-derivation-of-bellman-expectation-equation" title="Liên kết tới mục này">&para;</a></h3>
+<p>Ta muốn biểu diễn <span class="math-inline">$V^\pi(s)$</span> dưới dạng đệ quy theo các trạng thái kế tiếp <span class="math-inline">$s&#x27;$</span>.</p>
+<ul>
+<li><strong>Chứng minh toán học từng bước</strong>:</li>
+<li>
+<p><strong>Bước 1</strong>: Áp dụng định nghĩa của hàm giá trị trạng thái và quan hệ đệ quy <span class="math-inline">$G_t = R_{t+1} + \gamma G_{t+1}$</span>:
+    <div class="math-block">$$V^\pi(s) = \mathbb E_\pi \big[ G_t \mid S_t = s \big] = \mathbb E_\pi \big[ R_{t+1} + \gamma G_{t+1} \mid S_t = s \big]$$</div></p>
+</li>
+<li>
+<p><strong>Bước 2</strong>: Áp dụng <strong>Định lý kỳ vọng toàn phần (Law of Total Expectation)</strong> bằng cách điều kiện hoá theo hành động <span class="math-inline">$A_t = a$</span>:
+    <div class="math-block">$$V^\pi(s) = \sum_{a \in \mathcal A} \pi(a \mid s) \, \mathbb E_\pi \big[ R_{t+1} + \gamma G_{t+1} \mid S_t = s, A_t = a \big]$$</div></p>
+</li>
+<li>
+<p><strong>Bước 3</strong>: Tiếp tục điều kiện hoá theo trạng thái kế tiếp <span class="math-inline">$S_{t+1} = s&#x27;$</span> thông qua động học chuyển tiếp <span class="math-inline">$P(s&#x27; \mid s, a)$</span>:
+    <div class="math-block">$$V^\pi(s) = \sum_{a \in \mathcal A} \pi(a \mid s) \sum_{s&#x27; \in \mathcal S} P(s&#x27; \mid s, a) \, \mathbb E_\pi \big[ R_{t+1} + \gamma G_{t+1} \mid S_t = s, A_t = a, S_{t+1} = s&#x27; \big]$$</div></p>
+</li>
+<li>
+<p><strong>Bước 4</strong>: Tách kỳ vọng tuyến tính:
+    <div class="math-block">$$\mathbb E_\pi \big[ R_{t+1} + \gamma G_{t+1} \mid S_t = s, A_t = a, S_{t+1} = s&#x27; \big] = R(s, a, s&#x27;) + \gamma \, \mathbb E_\pi \big[ G_{t+1} \mid S_{t+1} = s&#x27; \big]$$</div>
+    Theo tính chất Markov, phần thưởng tương lai từ bước <span class="math-inline">$t+1$</span> trở đi chỉ phụ thuộc vào trạng thái hiện tại lúc đó là <span class="math-inline">$S_{t+1} = s&#x27;$</span>, tức <span class="math-inline">$\mathbb E_\pi \big[ G_{t+1} \mid S_{t+1} = s&#x27; \big] = V^\pi(s&#x27;)$</span>.</p>
+</li>
+<li>
+<p><strong>Bước 5</strong>: Ghép lại ta thu được <strong>Phương trình Bellman kỳ vọng</strong>:
+    <div class="math-block">$$\boxed{V^\pi(s) = \sum_{a \in \mathcal A} \pi(a \mid s) \sum_{s&#x27; \in \mathcal S} P(s&#x27; \mid s, a) \Big[ R(s, a, s&#x27;) + \gamma V^\pi(s&#x27;) \Big]}$$</div>
+    và phương trình Bellman kỳ vọng cho <span class="math-inline">$Q^\pi(s, a)$</span>:
+    <div class="math-block">$$\boxed{Q^\pi(s, a) = \sum_{s&#x27; \in \mathcal S} P(s&#x27; \mid s, a) \Big[ R(s, a, s&#x27;) + \gamma \sum_{a&#x27; \in \mathcal A} \pi(a&#x27; \mid s&#x27;) Q^\pi(s&#x27;, a&#x27;) \Big]}$$</div>
+  Chứng minh hoàn tất. <span class="math-inline">$\square$</span></p>
+</li>
+</ul>
+<blockquote class="callout callout-substitution">
+<p>🔄 <strong>Giải phẫu các bước thế hàm (Step-by-Step Function Substitution) — Chuỗi 3 phép thế sinh ra Phương trình Bellman:</strong></p>
+<ul>
+<li><strong>Phép thế 1 (Thế đệ quy của Return <span class="math-inline">$G_t$</span> vào trong kỳ vọng <span class="math-inline">$V^\pi(s)$</span>):</strong></li>
+<li><em>Hàm gốc:</em> <span class="math-inline">$V^\pi(s) = \mathbb{E}_\pi\big[G_t \mid S_t = s\big]$</span>, trong đó <span class="math-inline">$G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots$</span></li>
+<li>
+<p><em>Hàm đem thế:</em> Nhóm nhân tử chung <span class="math-inline">$\gamma$</span> từ số hạng thứ 2 trở đi:
+    <div class="math-block">$$G_t = R_{t+1} + \gamma\underbrace{\big(R_{t+2} + \gamma R_{t+3} + \dots\big)}_{= G_{t+1}} = R_{t+1} + \gamma G_{t+1}$$</div></p>
+</li>
+<li>
+<p><em>Thế vào <span class="math-inline">$V^\pi(s)$</span>:</em> <span class="math-inline">$V^\pi(s) = \mathbb{E}_\pi\big[R_{t+1} + \gamma G_{t+1} \mid S_t = s\big]$</span>.</p>
+</li>
+<li>
+<p><strong>Phép thế 2 (Thế kỳ vọng của bước kế tiếp bằng hàm giá trị <span class="math-inline">$V^\pi(s&#x27;)$</span>):</strong>
+  Sau khi mở rộng kỳ vọng theo xác suất chọn hành động <span class="math-inline">$\pi(a\mid s)$</span> và xác suất chuyển trạng thái <span class="math-inline">$P(s&#x27;\mid s,a)$</span>, bên trong dấu tổng xuất hiện cụm <span class="math-inline">$\mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s&#x27;]$</span>.
+  Theo đúng định nghĩa của hàm <span class="math-inline">$V^\pi(\cdot)$</span> ở mục 2.1 (chỉ đổi chỉ số thời gian từ <span class="math-inline">$t \to t+1$</span> và tên biến từ <span class="math-inline">$s \to s&#x27;$</span>):
+  <div class="math-block">$$\underbrace{\mathbb{E}_\pi\big[G_{t+1} \mid S_{t+1} = s&#x27;\big]}_{\text{Kỳ vọng của toàn bộ tương lai từ } t+1} = V^\pi(s&#x27;)$$</div>
+  Thế <span class="math-inline">$V^\pi(s&#x27;)$</span> vào chỗ của <span class="math-inline">$\mathbb{E}_\pi[G_{t+1} \mid S_{t+1}=s&#x27;]$</span>, ta lập tức khép kín được vòng lặp đệ quy của <span class="math-inline">$V^\pi(s)$</span> theo <span class="math-inline">$V^\pi(s&#x27;)$</span>!</p>
+</li>
+<li>
+<p><strong>Phép thế 3 (Thế chéo qua lại giữa 2 hàm <span class="math-inline">$V^\pi(s)$</span> và <span class="math-inline">$Q^\pi(s,a)$</span>):</strong>
+  Ta có 2 mảnh ghép cơ bản ở mục 2.1:
+  <div class="math-block">$$(1)\;\; V^\pi(s) = \sum_{a \in \mathcal{A}} \pi(a\mid s)\, Q^\pi(s,a) \qquad \text{và} \qquad (2)\;\; Q^\pi(s,a) = \sum_{s&#x27; \in \mathcal{S}} P(s&#x27;\mid s,a)\big[R(s,a,s&#x27;) + \gamma V^\pi(s&#x27;)\big]$$</div></p>
+</li>
+<li>
+<p><strong>Nếu đem (2) thế vào chữ <span class="math-inline">$Q^\pi(s,a)$</span> trong (1):</strong> Ta thu được phương trình tự đệ quy của riêng <span class="math-inline">$V^\pi$</span>:
+    <div class="math-block">$$V^\pi(s) = \sum_{a \in \mathcal{A}} \pi(a\mid s) \underbrace{\left(\sum_{s&#x27; \in \mathcal{S}} P(s&#x27;\mid s,a)\big[R(s,a,s&#x27;) + \gamma V^\pi(s&#x27;)\big]\right)}_{\text{Thế từ (2) vào } Q^\pi(s,a)}$$</div></p>
+</li>
+<li>
+<p><strong>Ngược lại, nếu viết (1) tại trạng thái <span class="math-inline">$s&#x27;$</span> là <span class="math-inline">$V^\pi(s&#x27;) = \sum_{a&#x27;} \pi(a&#x27;\mid s&#x27;)Q^\pi(s&#x27;,a&#x27;)$</span> rồi đem thế vào chữ <span class="math-inline">$V^\pi(s&#x27;)$</span> trong (2):</strong> Ta thu được phương trình tự đệ quy của riêng <span class="math-inline">$Q^\pi$</span> (nền tảng của SARSA):
+    <div class="math-block">$$Q^\pi(s,a) = \sum_{s&#x27; \in \mathcal{S}} P(s&#x27;\mid s,a)\left[R(s,a,s&#x27;) + \gamma \underbrace{\sum_{a&#x27; \in \mathcal{A}} \pi(a&#x27;\mid s&#x27;)Q^\pi(s&#x27;,a&#x27;)}_{\text{Thế từ (1) vào } V^\pi(s&#x27;)}\right]$$</div></p>
+</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="3-tinh-toi-uu-chung-minh-tinh-co-banach-banach-contraction-theorem">3. Tính tối ưu &amp; Chứng minh tính co Banach (Banach Contraction Theorem)<a class="headerlink" href="#3-tinh-toi-uu-chung-minh-tinh-co-banach-banach-contraction-theorem" title="Liên kết tới mục này">&para;</a></h2>
+<h3 id="31-policy-toi-uu">3.1 Policy tối ưu<a class="headerlink" href="#31-policy-toi-uu" title="Liên kết tới mục này">&para;</a></h3>
+<p><span class="math-inline">$V^*(s)=\max_\pi V^\pi(s)$</span>, <span class="math-inline">$Q^*(s,a)=\max_\pi Q^\pi(s,a)$</span>. Luôn tồn tại một policy tất định tối ưu <span class="math-inline">$\pi^*(s)=\arg\max_a Q^*(s,a)$</span>. Do đó <strong>biết <span class="math-inline">$Q^*$</span> là biết cách chơi tối ưu</strong> (không cần mô hình môi trường).</p>
+<h3 id="32-phuong-trinh-bellman-toi-uu">3.2 Phương trình Bellman tối ưu<a class="headerlink" href="#32-phuong-trinh-bellman-toi-uu" title="Liên kết tới mục này">&para;</a></h3>
+<p>Thay vì lấy trung bình có trọng số theo <span class="math-inline">$\pi(a \mid s)$</span>, policy tối ưu luôn chọn hành động cực đại hoá giá trị:
+<div class="math-block">$$V^*(s)=\max_{a \in \mathcal A} \sum_{s&#x27; \in \mathcal S} P(s&#x27;\mid s,a) \big[ R(s, a, s&#x27;) + \gamma V^*(s&#x27;) \big]$$</div>
+<div class="math-block">$$\boxed{Q^*(s,a)=\sum_{s&#x27; \in \mathcal S} P(s&#x27;\mid s,a)\Big[ R(s, a, s&#x27;) + \gamma \max_{a&#x27; \in \mathcal A} Q^*(s&#x27;,a&#x27;) \Big]}$$</div></p>
+<p>Khác với phương trình kỳ vọng, có toán tử <span class="math-inline">$\max$</span> nên phương trình Bellman tối ưu là <strong>hệ phương trình phi tuyến</strong>, không thể giải bằng nghịch đảo ma trận mà bắt buộc phải giải bằng phương pháp lặp.</p>
+<hr />
+<h3 id="33-chung-minh-toan-hoc-tinh-co-cua-toan-tu-bellman-va-inh-ly-banach">3.3 Chứng minh toán học: Tính co của Toán tử Bellman và Định lý Banach<a class="headerlink" href="#33-chung-minh-toan-hoc-tinh-co-cua-toan-tu-bellman-va-inh-ly-banach" title="Liên kết tới mục này">&para;</a></h3>
+<p>Định nghĩa toán tử Bellman tối ưu <span class="math-inline">$T^*$</span> ánh xạ từ không gian hàm giá trị vào chính nó:
+<div class="math-block">$$(T^* V)(s) = \max_{a \in \mathcal A} \left\{ R(s, a) + \gamma \sum_{s&#x27; \in \mathcal S} P(s&#x27; \mid s, a) V(s&#x27;) \right\}$$</div>
+với chuẩn cực đại (Infinity/Supremum Norm) trên không gian metric Banach <span class="math-inline">$(\mathbb R^{|\mathcal S|}, \|\cdot\|_\infty)$</span>:
+<div class="math-block">$$\|u - v\|_\infty = \max_{s \in \mathcal S} |u(s) - v(s)|$$</div></p>
+<ul>
+<li>
+<p><strong>Bổ đề (Tính bán cộng tính của toán tử Max - Sub-additivity of Supremum)</strong>:
+  Với hai hàm thực bị chặn bất kỳ <span class="math-inline">$f, g: \mathcal A \to \mathbb R$</span>, ta luôn có:
+  <div class="math-block">$$|\max_{a \in \mathcal A} f(a) - \max_{a \in \mathcal A} g(a)| \le \max_{a \in \mathcal A} |f(a) - g(a)|$$</div></p>
+</li>
+<li>
+<p><em>Chứng minh bổ đề</em>: Gọi <span class="math-inline">$a^* = \arg\max_a f(a)$</span>. Khi đó:
+    <div class="math-block">$$\max_a f(a) - \max_a g(a) = f(a^*) - \max_a g(a) \le f(a^*) - g(a^*) \le \max_a |f(a) - g(a)|$$</div>
+    Hoán vị vai trò của <span class="math-inline">$f$</span> và <span class="math-inline">$g$</span>, ta cũng có: <span class="math-inline">$\max_a g(a) - \max_a f(a) \le \max_a |g(a) - f(a)|$</span>.
+    Từ hai bất đẳng thức trên suy ra <span class="math-inline">$|\max_a f(a) - \max_a g(a)| \le \max_a |f(a) - g(a)|$</span>. <span class="math-inline">$\square$</span></p>
+</li>
+<li>
+<p><strong>Chứng minh toán học: <span class="math-inline">$T^*$</span> là một <span class="math-inline">$\gamma$</span>-Contraction Mapping</strong>:
+  Xét hai hàm giá trị bất kỳ <span class="math-inline">$u, v \in \mathbb R^{|\mathcal S|}$</span>:
+  <div class="math-block">$$\begin{aligned}
+  |(T^* u)(s) - (T^* v)(s)| &amp;= \left| \max_a \Big( R(s, a) + \gamma \sum_{s&#x27;} P(s&#x27; \mid s, a) u(s&#x27;) \Big) - \max_a \Big( R(s, a) + \gamma \sum_{s&#x27;} P(s&#x27; \mid s, a) v(s&#x27;) \Big) \right| \\
+  &amp;\le \max_a \left| \Big( R(s, a) + \gamma \sum_{s&#x27;} P(s&#x27; \mid s, a) u(s&#x27;) \Big) - \Big( R(s, a) + \gamma \sum_{s&#x27;} P(s&#x27; \mid s, a) v(s&#x27;) \Big) \right| \quad (\text{áp dụng Bổ đề}) \\
+  &amp;= \max_a \left| \gamma \sum_{s&#x27;} P(s&#x27; \mid s, a) \big( u(s&#x27;) - v(s&#x27;) \big) \right| \\
+  &amp;\le \gamma \max_a \sum_{s&#x27;} P(s&#x27; \mid s, a) \big| u(s&#x27;) - v(s&#x27;) \big| \\
+  &amp;\le \gamma \max_a \sum_{s&#x27;} P(s&#x27; \mid s, a) \|u - v\|_\infty \quad (\text{vì } |u(s&#x27;) - v(s&#x27;)| \le \|u-v\|_\infty) \\
+  &amp;= \gamma \|u - v\|_\infty \cdot \max_a \underbrace{\sum_{s&#x27;} P(s&#x27; \mid s, a)}_{= 1} \\
+  &amp;= \gamma \|u - v\|_\infty
+  \end{aligned}$$</div>
+  Lấy cực đại trên mọi <span class="math-inline">$s \in \mathcal S$</span> ở vế trái:
+  <div class="math-block">$$\boxed{\|T^* u - T^* v\|_\infty \le \gamma \|u - v\|_\infty}$$</div>
+  Vì <span class="math-inline">$\gamma \in [0, 1)$</span>, <span class="math-inline">$T^*$</span> là một <strong>phép co chặt hệ số <span class="math-inline">$\gamma$</span></strong> (Strict Contraction Mapping).</p>
+</li>
+<li>
+<p><strong>Áp dụng Định lý Điểm bất động Banach (Banach Fixed-Point Theorem)</strong>:
+  1. Tồn tại <strong>duy nhất</strong> một điểm bất động <span class="math-inline">$V^* \in \mathbb R^{|\mathcal S|}$</span> thoả mãn <span class="math-inline">$T^* V^* = V^*$</span>.
+  2. Với bất kỳ khởi tạo ban đầu <span class="math-inline">$V_0$</span>, dãy lặp <span class="math-inline">$V_{k+1} = T^* V_k$</span> <strong>chắc chắn hội tụ</strong> về <span class="math-inline">$V^*$</span>:
+     <div class="math-block">$$\lim_{k \to \infty} V_k = V^*$$</div></p>
+</li>
+</ul>
+<ol start="3">
+<li>Tốc độ hội tụ suy giảm theo cấp số nhân với sai số bị chặn:
+     <div class="math-block">$$\|V_k - V^*\|_\infty \le \frac{\gamma^k}{1-\gamma} \|V_1 - V_0\|_\infty$$</div>
+  Đây là hòn đá tảng toán học bảo đảm thuật toán Value Iteration và Q-learning luôn tìm được nghiệm tối ưu toàn cục! <span class="math-inline">$\square$</span></li>
+</ol>
+<hr />
+<h2 id="4-quy-hoach-ong-dynamic-programming">4. Quy hoạch động (Dynamic Programming)<a class="headerlink" href="#4-quy-hoach-ong-dynamic-programming" title="Liên kết tới mục này">&para;</a></h2>
+<h3 id="41-policy-evaluation-du-oan">4.1 Policy Evaluation (dự đoán)<a class="headerlink" href="#41-policy-evaluation-du-oan" title="Liên kết tới mục này">&para;</a></h3>
+<p>Lặp phương trình Bellman kỳ vọng như một phép gán:
+<div class="math-block">$$V_{k+1}(s)\leftarrow\sum_a\pi(a|s)\sum_{s&#x27;}P(s&#x27;|s,a)[R(s, a, s&#x27;)+\gamma V_k(s&#x27;)]$$</div>
+Hội tụ về <span class="math-inline">$V^\pi$</span> vì toán tử Bellman kỳ vọng <span class="math-inline">$T^\pi$</span> cũng là một phép co hệ số <span class="math-inline">$\gamma$</span>.</p>
+<h3 id="42-policy-improvement-chung-minh-inh-ly-cai-thien-chinh-sach">4.2 Policy Improvement &amp; Chứng minh Định lý cải thiện chính sách<a class="headerlink" href="#42-policy-improvement-chung-minh-inh-ly-cai-thien-chinh-sach" title="Liên kết tới mục này">&para;</a></h3>
+<p>Với <span class="math-inline">$V^\pi$</span> đã biết, ta tạo ra policy tham lam mới:
+<div class="math-block">$$\pi&#x27;(s) = \arg\max_{a \in \mathcal A} Q^\pi(s, a) = \arg\max_{a \in \mathcal A} \sum_{s&#x27;} P(s&#x27; \mid s, a) \big[ R(s, a, s&#x27;) + \gamma V^\pi(s&#x27;) \big]$$</div></p>
+<ul>
+<li>
+<p><strong>Định lý cải thiện chính sách (Policy Improvement Theorem)</strong>:
+  Nếu với mọi trạng thái <span class="math-inline">$s \in \mathcal S$</span>, policy mới thoả mãn <span class="math-inline">$Q^\pi(s, \pi&#x27;(s)) \ge V^\pi(s)$</span>, thì giá trị của policy mới không bao giờ kém hơn policy cũ trên toàn bộ không gian:
+  <div class="math-block">$$\boxed{V^{\pi&#x27;}(s) \ge V^\pi(s) \quad \forall s \in \mathcal S}$$</div></p>
+</li>
+<li>
+<p><strong>Chứng minh toán học chi tiết</strong>:</p>
+</li>
+<li>Bắt đầu từ giả thiết: <span class="math-inline">$V^\pi(s) \le Q^\pi(s, \pi&#x27;(s))$</span>.</li>
+<li>
+<p>Khai triển <span class="math-inline">$Q^\pi$</span> theo định nghĩa Bellman:
+    <div class="math-block">$$V^\pi(s) \le \mathbb E_{\pi&#x27;} \big[ R_{t+1} + \gamma V^\pi(S_{t+1}) \mid S_t = s \big]$$</div></p>
+</li>
+<li>
+<p>Thay thế bất đẳng thức <span class="math-inline">$V^\pi(S_{t+1}) \le Q^\pi(S_{t+1}, \pi&#x27;(S_{t+1}))$</span> vào vế phải:
+    <div class="math-block">$$V^\pi(s) \le \mathbb E_{\pi&#x27;} \Big[ R_{t+1} + \gamma \, \mathbb E_{\pi&#x27;} \big[ R_{t+2} + \gamma V^\pi(S_{t+2}) \mid S_{t+1} \big] \mid S_t = s \Big]$$</div>
+    <div class="math-block">$$= \mathbb E_{\pi&#x27;} \big[ R_{t+1} + \gamma R_{t+2} + \gamma^2 V^\pi(S_{t+2}) \mid S_t = s \big]$$</div></p>
+</li>
+<li>
+<p>Tiếp tục mở rộng vô hạn lần đệ quy (Telescoping unroll):
+    <div class="math-block">$$V^\pi(s) \le \mathbb E_{\pi&#x27;} \Big[ R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots \mid S_t = s \Big] = V^{\pi&#x27;}(s)$$</div>
+  Định lý được chứng minh hoàn tất. <span class="math-inline">$\square$</span></p>
+</li>
+</ul>
+<blockquote class="callout callout-substitution">
+<p>🔄 <strong>Giải phẫu các bước thế hàm (Step-by-Step Function Substitution) — Thế cuốn chiếu (Telescoping Substitution) trong Định lý Cải thiện Chính sách:</strong></p>
+<ul>
+<li>
+<p><strong>Bất đẳng thức cơ sở (đúng tại mọi trạng thái <span class="math-inline">$x \in \mathcal{S}$</span>):</strong>
+  <div class="math-block">$$V^\pi(x) \le Q^\pi\big(x, \pi&#x27;(x)\big) = \mathbb{E}_{\pi&#x27;}\big[R_{t+1} + \gamma V^\pi(S_{t+1}) \mid S_t = x\big]$$</div></p>
+</li>
+<li>
+<p><strong>Thế bước 1 (Áp dụng tại <span class="math-inline">$x = S_t = s$</span>):</strong>
+  <div class="math-block">$$V^\pi(s) \le \mathbb{E}_{\pi&#x27;}\Big[R_{t+1} + \gamma \underbrace{V^\pi(S_{t+1})}_{\text{Cụm đem thế tiếp}} \,\Big|\, S_t = s\Big]$$</div></p>
+</li>
+<li>
+<p><strong>Thế bước 2 (Thay <span class="math-inline">$V^\pi(S_{t+1})$</span> bằng cận trên của chính nó tại trạng thái <span class="math-inline">$x = S_{t+1}$</span>):</strong>
+  Vì bất đẳng thức cơ sở đúng với mọi trạng thái, nên tại trạng thái <span class="math-inline">$S_{t+1}$</span> ta cũng có <span class="math-inline">$V^\pi(S_{t+1}) \le \mathbb{E}_{\pi&#x27;}[R_{t+2} + \gamma V^\pi(S_{t+2}) \mid S_{t+1}]$</span>. Đem thế vào Bước 1:
+  <div class="math-block">$$V^\pi(s) \le \mathbb{E}_{\pi&#x27;}\Big[R_{t+1} + \gamma \underbrace{\big(R_{t+2} + \gamma V^\pi(S_{t+2})\big)}_{\text{Đã thế cho } V^\pi(S_{t+1})} \,\Big|\, S_t = s\Big] = \mathbb{E}_{\pi&#x27;}\Big[R_{t+1} + \gamma R_{t+2} + \gamma^2 \underbrace{V^\pi(S_{t+2})}_{\text{Cụm đem thế tiếp}} \,\Big|\, S_t = s\Big]$$</div></p>
+</li>
+<li>
+<p><strong>Thế đến vô hạn (<span class="math-inline">$k \to \infty$</span>):</strong>
+  Sau <span class="math-inline">$k$</span> lần thế liên tiếp, số hạng chứa hàm cũ <span class="math-inline">$V^\pi$</span> bị đẩy lùi về <span class="math-inline">$\gamma^k V^\pi(S_{t+k})$</span>. Vì <span class="math-inline">$\gamma \in [0, 1)$</span> nên khi <span class="math-inline">$k \to \infty$</span>, <span class="math-inline">$\gamma^k V^\pi(S_{t+k}) \to 0$</span> biến mất hoàn toàn, còn toàn bộ các phần thưởng phía trước hợp lại thành <span class="math-inline">$\mathbb{E}_{\pi&#x27;}[\sum_{k=0}^\infty \gamma^k R_{t+k+1} \mid S_t = s] = V^{\pi&#x27;}(s)$</span>!</p>
+</li>
+</ul>
+</blockquote>
+<h3 id="43-policy-iteration-va-value-iteration">4.3 Policy Iteration và Value Iteration<a class="headerlink" href="#43-policy-iteration-va-value-iteration" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li><strong>Policy Iteration</strong>: lặp [đánh giá đến hội tụ → cải thiện]. Hội tụ sau hữu hạn bước vì số policy tất định hữu hạn và mỗi bước không tệ hơn.</li>
+<li><strong>Value Iteration</strong>: gộp hai bước: <span class="math-inline">$V_{k+1}(s)=\max_a\sum_{s&#x27;}P[R+\gamma V_k(s&#x27;)]$</span>, tức áp trực tiếp toán tử <span class="math-inline">$\mathcal T$</span>.</li>
+</ul>
+<p>Hạn chế: cần <strong>biết <span class="math-inline">$P$</span></strong> và quét toàn bộ trạng thái ("bootstrap + sweep"). RL thực tế thường không có <span class="math-inline">$P$</span> → học từ mẫu (§5).</p>
+<hr />
+<h2 id="5-hoc-tu-mau-khong-can-mo-hinh-model-free-prediction">5. Học từ mẫu không cần mô hình (model-free prediction)<a class="headerlink" href="#5-hoc-tu-mau-khong-can-mo-hinh-model-free-prediction" title="Liên kết tới mục này">&para;</a></h2>
+<p>Mục tiêu: ước lượng <span class="math-inline">$V^\pi$</span> từ các episode sinh ra bởi <span class="math-inline">$\pi$</span>.</p>
+<h3 id="51-trung-binh-tang-dan-nen-tang-cua-moi-cap-nhat">5.1 Trung bình tăng dần (nền tảng của mọi cập nhật)<a class="headerlink" href="#51-trung-binh-tang-dan-nen-tang-cua-moi-cap-nhat" title="Liên kết tới mục này">&para;</a></h3>
+<p>Trung bình mẫu <span class="math-inline">$\mu_n=\frac1n\sum_{i\le n}x_i$</span> viết lại được:
+<div class="math-block">$$\mu_n=\mu_{n-1}+\frac1n(x_n-\mu_{n-1})$$</div>
+Tổng quát: <span class="math-inline">$\boxed{\text{ước lượng mới}=\text{cũ}+\alpha\,(\text{mục tiêu}-\text{cũ})}$</span>. Số hạng trong ngoặc là <strong>sai số</strong>; <span class="math-inline">$\alpha$</span> là bước học. Với <span class="math-inline">$\alpha$</span> hằng, ước lượng là trung bình mũ, ưu tiên mẫu gần (phù hợp môi trường thay đổi/policy thay đổi).</p>
+<h3 id="52-monte-carlo-mc">5.2 Monte Carlo (MC)<a class="headerlink" href="#52-monte-carlo-mc" title="Liên kết tới mục này">&para;</a></h3>
+<p>Chờ hết episode, dùng return thực làm mục tiêu:
+<div class="math-block">$$V(s_t)\leftarrow V(s_t)+\alpha\,[\,G_t-V(s_t)\,]$$</div></p>
+<blockquote class="callout callout-logic">
+<p>💡 <strong>Bản chất Logic &amp; Mục đích ra đời (Thay thế/Sửa đổi cái gì?)</strong>:</p>
+<ul>
+<li><strong>Thay thế thành phần nào</strong>: Thay thế việc quét toàn bộ không gian và tính kỳ vọng giải tích của Quy hoạch động (Dynamic Programming - Bellman).</li>
+<li><strong>Khuyết điểm của phương pháp cũ</strong>: Dynamic Programming đòi hỏi biết tường minh ma trận chuyển trạng thái <span class="math-inline">$P(s&#x27; \mid s, a)$</span> và hàm thưởng <span class="math-inline">$R(s, a)$</span>. Trong thực tế, môi trường là "hộp đen" phức tạp không thể biết trước xác suất.</li>
+<li><strong>Logic thiết kế toán học</strong>: Dựa trên Luật số lớn (Law of Large Numbers). Thay vì tính kỳ vọng giải tích <span class="math-inline">$\sum_{s&#x27;} P(s&#x27; \mid s, a) [\dots]$</span>, agent trực tiếp lấy mẫu các quỹ đạo thực tế và tính trung bình mẫu của <span class="math-inline">$G_t$</span>.</li>
+<li><strong>Ưu/Nhược điểm</strong>: <strong>Không chệch (Unbiased)</strong>, nhưng <strong>phương sai cực lớn (High Variance)</strong> do tích lũy nhiều bước ngẫu nhiên, và bắt buộc phải chờ đến khi kết thúc episode mới cập nhật được.</li>
+</ul>
+</blockquote>
+<h3 id="53-temporal-difference-td0">5.3 Temporal-Difference TD(0)<a class="headerlink" href="#53-temporal-difference-td0" title="Liên kết tới mục này">&para;</a></h3>
+<p>Dùng ước lượng hiện có của bước kế để thay cho phần đuôi (<strong>bootstrapping</strong>):
+<div class="math-block">$$V(s_t)\leftarrow V(s_t)+\alpha\,[\,\underbrace{r_{t+1}+\gamma V(s_{t+1})}_{\text{TD target}}-V(s_t)\,],\qquad\delta_t=r_{t+1}+\gamma V(s_{t+1})-V(s_t)$$</div></p>
+<blockquote class="callout callout-substitution">
+<p>🔄 <strong>Giải phẫu các bước thế hàm (Step-by-Step Function Substitution) — Từ Monte Carlo sang TD(0) qua 2 bước thế:</strong></p>
+<ul>
+<li>
+<p><strong>Bước 1 (Xuất phát từ công thức cập nhật Monte Carlo ở mục 5.2):</strong>
+  <div class="math-block">$$V(s_t) \leftarrow V(s_t) + \alpha \big[\underbrace{G_t}_{\text{Mục tiêu MC}} - V(s_t)\big]$$</div></p>
+</li>
+<li>
+<p><strong>Bước 2 (Thế khai triển đệ quy <span class="math-inline">$G_t = r_{t+1} + \gamma G_{t+1}$</span> vào vị trí của <span class="math-inline">$G_t$</span>):</strong>
+  <div class="math-block">$$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma \underbrace{G_{t+1}}_{\text{Chưa biết nếu chưa hết ván}} - V(s_t)\big]$$</div></p>
+</li>
+<li>
+<p><strong>Bước 3 (Phép thế Bootstrapping — Thay biến ngẫu nhiên <span class="math-inline">$G_{t+1}$</span> bằng hàm ước lượng <span class="math-inline">$V(s_{t+1})$</span>):</strong>
+  Vì <span class="math-inline">$V(s_{t+1}) \approx \mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s_{t+1}]$</span> chính là ước lượng hiện tại của agent cho tổng phần thưởng từ bước <span class="math-inline">$t+1$</span> trở đi, ta <strong>thế trực tiếp <span class="math-inline">$V(s_{t+1})$</span> vào chỗ của <span class="math-inline">$G_{t+1}$</span></strong>:
+  <div class="math-block">$$V(s_t) \leftarrow V(s_t) + \alpha \big[r_{t+1} + \gamma \underbrace{V(s_{t+1})}_{\text{Thế cho } G_{t+1}} - V(s_t)\big]$$</div>
+  <em>Tác động lên mẫu:</em> Phép thế <span class="math-inline">$G_{t+1} \leftarrow V(s_{t+1})$</span> cắt bỏ hoàn toàn đuôi ngẫu nhiên <span class="math-inline">$(r_{t+2}, r_{t+3}, \dots, r_T)$</span>, giúp giảm phương sai mẫu xuống mức tối thiểu và cập nhật được ngay lập tức tại bước <span class="math-inline">$t+1$</span>!</p>
+</li>
+</ul>
+<p>💡 <strong>Bản chất Logic &amp; Mục đích ra đời (Thay thế/Sửa đổi cái gì?)</strong>:</p>
+<ul>
+<li><strong>Thay thế thành phần nào</strong>: Thay thế mục tiêu toàn phần <span class="math-inline">$G_t = \sum_{k=0}^T \gamma^k R_{t+k+1}$</span> của Monte Carlo bằng mục tiêu bootstrap 1 bước <span class="math-inline">$R_{t+1} + \gamma V(S_{t+1})$</span>.</li>
+<li><strong>Khuyết điểm của phương pháp cũ</strong>: Monte Carlo có phương sai quá lớn khiến việc hội tụ rất chậm, và hoàn toàn bất lực trước các bài toán tương tác liên tục không có hồi kết (Continuous / Non-episodic tasks).</li>
+<li><strong>Logic thiết kế toán học</strong>: Áp dụng nguyên lý <strong>Bootstrapping</strong> (tự nâng đỡ bằng ước lượng sẵn có). Dựa trên quan hệ đệ quy Bellman <span class="math-inline">$G_t = R_{t+1} + \gamma G_{t+1}$</span>, TD(0) lấy phần thưởng thực nhận <span class="math-inline">$R_{t+1}$</span> làm mỏ neo vào thực tế, còn phần đuôi tương lai <span class="math-inline">$G_{t+1}$</span> được xấp xỉ bằng giá trị kỳ vọng dự đoán hiện tại <span class="math-inline">$V(S_{t+1})$</span>.</li>
+<li><strong>Cơ chế giải quyết</strong>: Chỉ chứa đúng 1 bước ngẫu nhiên <span class="math-inline">$\implies$</span> <strong>Phương sai cực thấp</strong>, cho phép học trực tuyến từng bước thời gian (Online Step-by-Step Learning) ngay cả trong môi trường tương tác vô hạn. Đổi lại, TD(0) có <strong>độ chệch (bias)</strong> ban đầu do <span class="math-inline">$V(S_{t+1})$</span> chưa chính xác, nhưng bias này sẽ triệt tiêu dần khi hàm giá trị co về điểm bất động Bellman.</li>
+</ul>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Monte Carlo</th>
+<th>TD(0)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mục tiêu</td>
+<td><span class="math-inline">$G_t$</span></td>
+<td><span class="math-inline">$r+\gamma V(s&#x27;)$</span></td>
+</tr>
+<tr>
+<td>Bias</td>
+<td>không</td>
+<td>có (giảm dần)</td>
+</tr>
+<tr>
+<td>Variance</td>
+<td>cao</td>
+<td>thấp</td>
+</tr>
+<tr>
+<td>Cập nhật</td>
+<td>cuối episode</td>
+<td>mỗi bước</td>
+</tr>
+<tr>
+<td>Dùng tính Markov</td>
+<td>không</td>
+<td>có</td>
+</tr>
+</tbody>
+</table>
+<h3 id="54-n-step-va-tdinlinemathplaceholder203end">5.4 n-step và TD(<span class="math-inline">$\lambda$</span>)<a class="headerlink" href="#54-n-step-va-tdinlinemathplaceholder203end" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li><strong>n-step return</strong>: <span class="math-inline">$G_t^{(n)}=\sum_{k=0}^{n-1}\gamma^kr_{t+k+1}+\gamma^nV(s_{t+n})$</span>. <span class="math-inline">$n=1$</span>: TD(0); <span class="math-inline">$n=\infty$</span>: MC. Cân bằng bias/variance.</li>
+<li>
+<p><strong><span class="math-inline">$\lambda$</span>-return</strong>: trung bình mũ của mọi n-step:
+<div class="math-block">$$G_t^\lambda=(1-\lambda)\sum_{n=1}^{\infty}\lambda^{n-1}G_t^{(n)}$$</div></p>
+</li>
+<li>
+<p><strong>Eligibility trace</strong> (cách cài đặt "nhìn lùi", cập nhật được online): <span class="math-inline">$e_t(s)=\gamma\lambda e_{t-1}(s)+\mathbb 1[s_t=s]$</span>, rồi <span class="math-inline">$V(s)\leftarrow V(s)+\alpha\,\delta_t\,e_t(s)$</span> cho mọi <span class="math-inline">$s$</span>. Trạng thái nào vừa được thăm gần đây nhận phần "công/lỗi" lớn hơn.</p>
+</li>
+</ul>
+<p>Ý tưởng <span class="math-inline">$\lambda$</span>/GAE sẽ quay lại ở Week 5.</p>
+<hr />
+<h2 id="6-ieu-khien-model-free-tim-policy-toi-uu">6. Điều khiển model-free (tìm policy tối ưu)<a class="headerlink" href="#6-ieu-khien-model-free-tim-policy-toi-uu" title="Liên kết tới mục này">&para;</a></h2>
+<p>Vì không có mô hình, ta ước lượng <strong>Q</strong> (không phải V) để chọn hành động mà không cần <span class="math-inline">$P$</span>.</p>
+<h3 id="61-kham-pha-inlinemathplaceholder213end-greedy">6.1 Khám phá: <span class="math-inline">$\epsilon$</span>-greedy<a class="headerlink" href="#61-kham-pha-inlinemathplaceholder213end-greedy" title="Liên kết tới mục này">&para;</a></h3>
+<p><div class="math-block">$$\pi(a|s)=\begin{cases}1-\epsilon+\epsilon/|\mathcal A|&amp;a=\arg\max_{a&#x27;}Q(s,a&#x27;)\\ \epsilon/|\mathcal A|&amp;\text{còn lại}\end{cases}$$</div></p>
+<p><strong>Mệnh đề</strong>: cải thiện tham lam theo <span class="math-inline">$Q^\pi$</span> của policy <span class="math-inline">$\epsilon$</span>-soft <span class="math-inline">$\pi$</span> cho policy <span class="math-inline">$\epsilon$</span>-greedy <span class="math-inline">$\pi&#x27;$</span> không tệ hơn <span class="math-inline">$\pi$</span>.
+<em>Chứng minh</em>:
+<div class="math-block">$$Q^\pi(s,\pi&#x27;(s))=\tfrac{\epsilon}{|\mathcal A|}\sum_aQ^\pi(s,a)+(1-\epsilon)\max_aQ^\pi(s,a)$$</div>
+Vì <span class="math-inline">$\max_a Q\ge\sum_a\frac{\pi(a|s)-\epsilon/|\mathcal A|}{1-\epsilon}Q$</span> (trung bình có trọng số không vượt max; các trọng số cộng lại bằng 1):
+<div class="math-block">$$Q^\pi(s,\pi&#x27;(s))\ge\tfrac{\epsilon}{|\mathcal A|}\sum_aQ^\pi(s,a)+\sum_a\big(\pi(a|s)-\tfrac{\epsilon}{|\mathcal A|}\big)Q^\pi(s,a)=\sum_a\pi(a|s)Q^\pi(s,a)=V^\pi(s)\ \blacksquare$$</div></p>
+<p><strong>GLIE</strong> (Greedy in the Limit with Infinite Exploration): mọi cặp (s,a) được thăm vô hạn lần và <span class="math-inline">$\epsilon_k\to0$</span> (ví dụ <span class="math-inline">$\epsilon_k=1/k$</span>). Khi đó MC/SARSA hội tụ về <span class="math-inline">$Q^*$</span>. Notebook dùng <span class="math-inline">$\epsilon\leftarrow0.9993\,\epsilon$</span> mỗi episode: sau <span class="math-inline">$k$</span> episode <span class="math-inline">$\epsilon=0.9993^k$</span> (xuống ~0.37 sau 1400 episode, ~<span class="math-inline">$3\times10^{-5}$</span> sau 15000).</p>
+<h3 id="62-sarsa-on-policy-td-control">6.2 SARSA (on-policy TD control)<a class="headerlink" href="#62-sarsa-on-policy-td-control" title="Liên kết tới mục này">&para;</a></h3>
+<p>Tên đến từ chuỗi <span class="math-inline">$(s,a,r,s&#x27;,a&#x27;)$</span>:
+<div class="math-block">$$Q(s,a)\leftarrow Q(s,a)+\alpha\,[\,r+\gamma\,Q(s&#x27;,a&#x27;)-Q(s,a)\,]$$</div>
+Mục tiêu dùng <span class="math-inline">$a&#x27;$</span> do <strong>chính policy ε-greedy đang chạy</strong> chọn → học giá trị của policy <em>có khám phá</em>; kết quả thận trọng hơn (tránh vách đá nguy hiểm gần đường tối ưu).</p>
+<h3 id="63-q-learning-off-policy-td-control">6.3 Q-learning (off-policy TD control)<a class="headerlink" href="#63-q-learning-off-policy-td-control" title="Liên kết tới mục này">&para;</a></h3>
+<p><div class="math-block">$$\boxed{Q(s,a)\leftarrow Q(s,a)+\alpha\,[\,r+\gamma\max_{a&#x27;}Q(s&#x27;,a&#x27;)-Q(s,a)\,]}$$</div></p>
+<blockquote class="callout callout-logic">
+<p>💡 <strong>Bản chất Logic &amp; Mục đích ra đời (Thay thế/Sửa đổi cái gì?)</strong>:</p>
+<ul>
+<li><strong>Thay thế thành phần nào</strong>: Thay thế mục tiêu cập nhật On-policy <span class="math-inline">$r + \gamma Q(s&#x27;, a&#x27;)$</span> của SARSA.</li>
+<li><strong>Khuyết điểm của phương pháp cũ</strong>: SARSA bắt buộc ước lượng giá trị của chính sách đang chạy (có yếu tố thăm dò <span class="math-inline">$\epsilon$</span>-greedy). Khi agent đi gần các vùng hiểm trở (như mép vực trong bài toán Cliff Walking), các cú nhảy ngẫu nhiên <span class="math-inline">$\epsilon$</span> thường xuyên đẩy nó xuống vực, khiến SARSA gán nhãn đường đi tối ưu là nguy hiểm và học ra một chính sách đi đường vòng quá xa xôi, thận trọng thái quá.</li>
+<li><strong>Logic thiết kế toán học</strong>: Tách rời hoàn toàn <strong>Chính sách hành vi (Behavior Policy)</strong> dùng để sinh dữ liệu (vẫn giữ <span class="math-inline">$\epsilon$</span>-greedy để khám phá) và <strong>Chính sách mục tiêu (Target Policy)</strong> dùng để ước lượng giá trị (dùng toán tử <span class="math-inline">$\max_{a&#x27;}$</span>, tức chính sách tất định thuần tham lam).</li>
+<li><strong>Cơ chế giải quyết</strong>: Trực tiếp giải bài toán xấp xỉ phương trình Bellman tối ưu <span class="math-inline">$T^* Q^* = Q^*$</span>, tìm ra quỹ đạo tối ưu toàn cục thực sự bất chấp dữ liệu được thu thập bởi hành vi thăm dò ngẫu nhiên nào.</li>
+</ul>
+</blockquote>
+<p><strong>Off-policy vs on-policy</strong>
+| | SARSA | Q-learning |
+|---|---|---|
+| Policy hành vi (sinh dữ liệu) | ε-greedy | ε-greedy |
+| Policy đích (được ước lượng) | ε-greedy (chính nó) | greedy |
+| Cần importance sampling? | không | không (vì chỉ dùng <span class="math-inline">$\max$</span> trên <span class="math-inline">$Q$</span>, không cần tỉ lệ xác suất) |</p>
+<p><strong>Expected SARSA</strong>: thay <span class="math-inline">$Q(s&#x27;,a&#x27;)$</span> bằng <span class="math-inline">$\sum_{a&#x27;}\pi(a&#x27;|s&#x27;)Q(s&#x27;,a&#x27;)$</span>: giảm phương sai, có thể on hoặc off-policy.</p>
+<h3 id="64-ieu-kien-hoi-tu-watkins-dayan">6.4 Điều kiện hội tụ (Watkins &amp; Dayan)<a class="headerlink" href="#64-ieu-kien-hoi-tu-watkins-dayan" title="Liên kết tới mục này">&para;</a></h3>
+<p>Q-learning tabular hội tụ về <span class="math-inline">$Q^*$</span> (xác suất 1) nếu: (i) mọi (s,a) được cập nhật vô hạn lần; (ii) bước học thoả điều kiện Robbins–Monro:
+<div class="math-block">$$\sum_t\alpha_t=\infty,\qquad\sum_t\alpha_t^2&lt;\infty$$</div>
+(ví dụ <span class="math-inline">$\alpha_t=1/t$</span>: tổng phân kỳ, tổng bình phương hội tụ.) Điều kiện đầu đảm bảo "đủ sức đến được đích", điều kiện sau triệt tiêu nhiễu. Notebook dùng <span class="math-inline">$\alpha=0.8$</span> hằng (vi phạm (ii)): vẫn cho kết quả tốt trong thực nghiệm nhưng Q dao động quanh nghiệm thay vì hội tụ chính xác.</p>
+<h3 id="65-importance-sampling-khi-can-off-policy-that-su">6.5 Importance sampling (khi cần off-policy thật sự)<a class="headerlink" href="#65-importance-sampling-khi-can-off-policy-that-su" title="Liên kết tới mục này">&para;</a></h3>
+<p>Để ước lượng kỳ vọng dưới <span class="math-inline">$\pi$</span> từ mẫu theo <span class="math-inline">$\mu$</span>: <span class="math-inline">$\mathbb E_{\pi}[f]=\mathbb E_\mu\big[\frac{\pi(a|s)}{\mu(a|s)}f\big]$</span>. Với quỹ đạo dài, tích tỉ lệ <span class="math-inline">$\prod_t\frac{\pi}{\mu}$</span> gây phương sai nổ → vì thế Q-learning (không cần tỉ lệ) rất tiện. Kỹ thuật này tái xuất hiện ở PPO (Week 5).</p>
+<hr />
+<h2 id="7-oc-code-frozenlake_qlearningipynb">7. Đọc code: <code>frozenlake_Qlearning.ipynb</code><a class="headerlink" href="#7-oc-code-frozenlake_qlearningipynb" title="Liên kết tới mục này">&para;</a></h2>
+<h3 id="71-luong-chay">7.1 Luồng chạy<a class="headerlink" href="#71-luong-chay" title="Liên kết tới mục này">&para;</a></h3>
+<pre><code>env.reset() → obs
+lặp:
+  a ← ε-greedy(Q, obs)                 # select_eps_greedy_action
+  obs', r, done ← env.step(a)
+  Q[obs,a] += α (r + γ max_a' Q[obs',a'] - Q[obs,a])   # Q_learning
+  nếu done: ε ← ε·0.9993; (mỗi 1000 ván) test_game; reset
+</code></pre>
+<h3 id="72-anh-xa-cong-thuc-code">7.2 Ánh xạ công thức ↔ code<a class="headerlink" href="#72-anh-xa-cong-thuc-code" title="Liên kết tới mục này">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Công thức</th>
+<th>Code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="math-inline">$\max_{a&#x27;}Q(s&#x27;,a&#x27;)$</span></td>
+<td><code>best_value, _ = best_action_value(table, obs1)</code></td>
+</tr>
+<tr>
+<td>Mục tiêu <span class="math-inline">$y=r+\gamma\max Q$</span></td>
+<td><code>Q_target = reward + GAMMA * best_value</code></td>
+</tr>
+<tr>
+<td>Sai số TD</td>
+<td><code>Q_error = Q_target - table[(obs0, action)]</code></td>
+</tr>
+<tr>
+<td>Cập nhật</td>
+<td><code>table[(obs0, action)] += LEARNING_RATE * Q_error</code></td>
+</tr>
+<tr>
+<td>ε-greedy</td>
+<td><code>random.random() &lt; epsilon</code> → hành động ngẫu nhiên</td>
+</tr>
+<tr>
+<td>Bảng Q</td>
+<td><code>defaultdict(float)</code> (khởi tạo 0)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="73-phan-tich-chuyen-sau-cac-tham-so-va-co-che-tac-ong-len-phuong-trinh">7.3 Phân tích chuyên sâu các tham số và cơ chế tác động lên phương trình<a class="headerlink" href="#73-phan-tich-chuyen-sau-cac-tham-so-va-co-che-tac-ong-len-phuong-trinh" title="Liên kết tới mục này">&para;</a></h3>
+<p>Trong thuật toán Q-learning tabular giải FrozenLake, 4 tham số sau chi phối toàn bộ động học hội tụ:</p>
+<h4 id="1-he-so-chiet-khau-inlinemathplaceholder249end-discount-factor">(1) Hệ số chiết khấu <span class="math-inline">$\gamma$</span> (Discount Factor)<a class="headerlink" href="#1-he-so-chiet-khau-inlinemathplaceholder249end-discount-factor" title="Liên kết tới mục này">&para;</a></h4>
+<ul>
+<li>
+<p><strong>Xuất hiện tại</strong>:
+  <div class="math-block">$$Q(s, a) \leftarrow Q(s, a) + \alpha \Big[r + \gamma \max_{a&#x27;} Q(s&#x27;, a&#x27;) - Q(s, a)\Big]$$</div>
+  và phương trình toán tử Bellman <span class="math-inline">$\mathcal T Q = R + \gamma P \max Q$</span>.</p>
+</li>
+<li>
+<p><strong>Cơ chế tác động toán học</strong>:</p>
+</li>
+<li>
+<p><strong>Hệ số co Banach</strong>: Toán tử Bellman là phép co hệ số <span class="math-inline">$\gamma$</span> trên chuẩn <span class="math-inline">$\|\cdot\|_\infty$</span>:
+    <div class="math-block">$$\|\mathcal T u - \mathcal T v\|_\infty \le \gamma \|u - v\|_\infty \implies \|Q_k - Q^*\|_\infty \le \gamma^k \|Q_0 - Q^*\|_\infty$$</div>
+    Tốc độ hội tụ tỷ lệ nghịch với <span class="math-inline">$\gamma$</span>: <span class="math-inline">$\gamma$</span> càng nhỏ, tốc độ co hình học <span class="math-inline">$\gamma^k$</span> càng nhanh.</p>
+</li>
+<li>
+<p><strong>Áp lực tìm đường ngắn nhất (Shortest Path Pressure)</strong>:
+    Trong FrozenLake, phần thưởng chỉ xuất hiện ở đích (<span class="math-inline">$r_{goal} = 1$</span>), mọi bước đi trên băng đều có <span class="math-inline">$r = 0$</span>.</p>
+<ul>
+<li>Nếu <span class="math-inline">$\gamma = 1$</span>: Một đường đi đến đích sau 6 bước hay đi vòng vèo 100 bước đều có return <span class="math-inline">$G = 1$</span>. Agent <strong>không có áp lực tìm đường ngắn nhất</strong>!</li>
+<li>Nếu <span class="math-inline">$\gamma = 0.95$</span>: Đường 6 bước có return <span class="math-inline">$0.95^6 \approx 0.735$</span>; đường 20 bước có return <span class="math-inline">$0.95^{20} \approx 0.358$</span>. Hàm <span class="math-inline">$\max$</span> sẽ ưu tiên đường đi ngắn nhất để tối đa hoá return.</li>
+<li><strong>Khi <span class="math-inline">$\gamma \to 0$</span></strong>: Mục tiêu <span class="math-inline">$y = r$</span>. Agent chỉ học được giá trị tại các ô liền kề đích, các ô khác mãi mãi bằng 0.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h4 id="2-toc-o-hoc-inlinemathplaceholder266end-learning-rate">(2) Tốc độ học <span class="math-inline">$\alpha$</span> (Learning Rate)<a class="headerlink" href="#2-toc-o-hoc-inlinemathplaceholder266end-learning-rate" title="Liên kết tới mục này">&para;</a></h4>
+<ul>
+<li><strong>Xuất hiện tại</strong>: <span class="math-inline">$Q(s, a) \leftarrow (1-\alpha) Q(s, a) + \alpha \big[r + \gamma \max_{a&#x27;} Q(s&#x27;, a&#x27;)\big]$</span>.</li>
+<li><strong>Cơ chế tác động toán học</strong>:</li>
+<li>Trong môi trường trơn trượt (<code>is_slippery=True</code>), khi chọn hành động "đi sang phải", xác suất đi đúng chỉ là <span class="math-inline">$1/3$</span>, xác suất trượt lên trên là <span class="math-inline">$1/3$</span>, trượt xuống dưới là <span class="math-inline">$1/3$</span>. Do đó mục tiêu TD <span class="math-inline">$y = r + \gamma \max Q(s&#x27;, \cdot)$</span> là một <strong>biến ngẫu nhiên có phương sai cực lớn</strong>.</li>
+<li><strong>Khi <span class="math-inline">$\alpha = 0.8$</span> (như trong notebook)</strong>: Mẫu vừa quan sát chiếm tới <span class="math-inline">$80\%$</span> trọng số ước lượng. Nếu agent tình cờ trượt chân vào hố, giá trị <span class="math-inline">$Q$</span> ngay lập tức sụt giảm nghiêm trọng (bị trừ mất <span class="math-inline">$80\%$</span> giá trị tích lũy). Điều này khiến bảng <span class="math-inline">$Q$</span> dao động dữ dội quanh điểm tối ưu, không thể hội tụ phẳng.</li>
+<li><strong>Khi <span class="math-inline">$\alpha \in [0.05, 0.2]$</span></strong>: Agent thực hiện trung bình có trọng số qua nhiều lần chuyển trạng thái, triệt tiêu nhiễu của môi trường ngẫu nhiên, ước lượng kỳ vọng <span class="math-inline">$\mathbb E_{s&#x27;\sim P}[r + \gamma \max Q]$</span> mượt mà và chính xác hơn.</li>
+<li><strong>Điều kiện hội tụ Robbins-Monro</strong>: <span class="math-inline">$\sum \alpha_t = \infty$</span> và <span class="math-inline">$\sum \alpha_t^2 &lt; \infty$</span>. Nếu dùng <span class="math-inline">$\alpha$</span> cố định, <span class="math-inline">$Q$</span> chỉ hội tụ về một lân cận của <span class="math-inline">$Q^*$</span>. Muốn hội tụ chính xác tuyệt đối, cần giảm <span class="math-inline">$\alpha_t = \frac{\alpha_0}{1 + c \cdot t}$</span>.</li>
+</ul>
+<hr />
+<h4 id="3-ti-le-kham-pha-inlinemathplaceholder285end-va-toc-o-suy-giam-eps_decay_rate">(3) Tỉ lệ khám phá <span class="math-inline">$\epsilon$</span> và Tốc độ suy giảm <code>EPS_DECAY_RATE</code><a class="headerlink" href="#3-ti-le-kham-pha-inlinemathplaceholder285end-va-toc-o-suy-giam-eps_decay_rate" title="Liên kết tới mục này">&para;</a></h4>
+<ul>
+<li><strong>Xuất hiện tại</strong>: <span class="math-inline">$\epsilon_{k+1} = \epsilon_k \cdot d$</span> với <span class="math-inline">$d = 0.9993$</span>.</li>
+<li><strong>Cơ chế tác động toán học</strong>:</li>
+<li>Giá trị <span class="math-inline">$\epsilon$</span> sau <span class="math-inline">$k$</span> episode: <span class="math-inline">$\epsilon_k = \epsilon_0 \cdot d^k = 1.0 \times (0.9993)^k$</span>.<ul>
+<li>Tại <span class="math-inline">$k = 1000$</span>: <span class="math-inline">$\epsilon \approx (0.9993)^{1000} \approx 0.496$</span> (khám phá <span class="math-inline">$50\%$</span>).</li>
+<li>Tại <span class="math-inline">$k = 3000$</span>: <span class="math-inline">$\epsilon \approx 0.122$</span> (khám phá <span class="math-inline">$12\%$</span>).</li>
+<li>Tại <span class="math-inline">$k = 7000$</span>: <span class="math-inline">$\epsilon \approx 0.007$</span> (chuyển sang khai thác thuần túy).</li>
+</ul>
+</li>
+<li>
+<p><strong>Nguy cơ khi decay quá nhanh (ví dụ <span class="math-inline">$d = 0.99$</span>)</strong>:
+    Sau 500 episode <span class="math-inline">$\epsilon \approx 0.006$</span>. Nhưng trong 500 episode đầu, do reward cực thưa, có thể agent chưa bao giờ tình cờ đặt chân được vào ô đích. Khi <span class="math-inline">$\epsilon \approx 0$</span>, policy trở thành tham lam trên một bảng <span class="math-inline">$Q$</span> toàn số 0 <span class="math-inline">$\implies$</span> agent đứng yên hoặc lặp vô tận, vĩnh viễn không bao giờ giải được game!</p>
+</li>
+<li>
+<p><strong>Nguy cơ khi decay quá chậm (<span class="math-inline">$d = 0.9999$</span>)</strong>: Agent dành quá nhiều thời gian đi ngẫu nhiên ngay cả khi đã học được đường đi tối ưu, làm giảm tỉ lệ thắng khi chạy thực tế.</p>
+</li>
+</ul>
+<hr />
+<h4 id="4-tham-so-inlinemathplaceholder305end-trong-tdinlinemathplaceholder306end-va-vet-tich-luy-eligibility-traces">(4) Tham số <span class="math-inline">$\lambda$</span> trong TD(<span class="math-inline">$\lambda$</span>) và Vết tích lũy (Eligibility Traces)<a class="headerlink" href="#4-tham-so-inlinemathplaceholder305end-trong-tdinlinemathplaceholder306end-va-vet-tich-luy-eligibility-traces" title="Liên kết tới mục này">&para;</a></h4>
+<ul>
+<li><strong>Xuất hiện tại</strong>: <span class="math-inline">$e_t(s, a) = \gamma \lambda e_{t-1}(s, a) + \mathbb 1[s_t=s, a_t=a]$</span> và <span class="math-inline">$\Delta Q(s, a) = \alpha \delta_t e_t(s, a)$</span>.</li>
+<li><strong>Cơ chế tác động toán học</strong>:</li>
+<li><span class="math-inline">$\lambda$</span> nội suy giữa TD(0) và Monte Carlo:<ul>
+<li>Khi <span class="math-inline">$\lambda = 0$</span>: <span class="math-inline">$e_t(s, a) = \mathbb 1$</span>, chỉ cập nhật đúng cặp <span class="math-inline">$(s_t, a_t)$</span> vừa đi qua. Bias cao, variance thấp, thông tin lan ngược mỗi bước chỉ 1 ô.</li>
+<li>Khi <span class="math-inline">$\lambda = 1$</span>: <span class="math-inline">$e_t(s, a) = \gamma^{t - \tau}$</span>, tương đương Monte Carlo. Mọi trạng thái dẫn đến bàn thắng đều được chia thưởng ngay trong episode đó. Không bias nhưng variance cao.</li>
+<li>Khi <span class="math-inline">$\lambda \in [0.8, 0.95]$</span>: Tốc độ lan truyền giá trị từ đích về điểm xuất phát nhanh gấp nhiều lần so với TD(0), rút ngắn thời gian huấn luyện.</li>
+</ul>
+</li>
+</ul>
+<hr />
+<h3 id="74-iem-tinh-te-trong-cai-at-ma-nguon">7.4 Điểm tinh tế trong cài đặt mã nguồn<a class="headerlink" href="#74-iem-tinh-te-trong-cai-at-ma-nguon" title="Liên kết tới mục này">&para;</a></h3>
+<ul>
+<li><strong>Phần thưởng thưa (Sparse Reward)</strong>: Chỉ ô 15 có <span class="math-inline">$r=1$</span>. Mọi cập nhật trước khi agent vô tình rơi vào ô 15 đều có target <span class="math-inline">$y = 0$</span>, nghĩa là bảng <span class="math-inline">$Q$</span> không hề thay đổi. Do đó, pha khám phá ban đầu (khi <span class="math-inline">$\epsilon$</span> lớn) quyết định sự sống còn của quá trình học.</li>
+<li>
+<p><strong>Lỗi ngầm trong <code>best_action_value</code></strong>: Khởi tạo <code>max_value = 0</code> và điều kiện <code>if table[(s, a)] &gt; max_value</code>. Nếu tất cả giá trị trong bảng đều âm (ví dụ môi trường phạt mỗi bước đi <span class="math-inline">$r = -1$</span> để thúc giục đi nhanh), hàm này sẽ luôn trả về hành động mặc định 0 và bỏ qua hoàn toàn các giá trị <span class="math-inline">$Q$</span> âm tốt hơn! Cách chuẩn mực là:
+  <code>python
+  best_action = max(range(n_actions), key=lambda a: table[(state, a)])
+  max_value = table[(state, best_action)]</code></p>
+</li>
+<li>
+<p><strong>Xử lý trạng thái kết thúc (Terminal State)</strong>: Trạng thái hố và đích phải có target <span class="math-inline">$y = r$</span> (không được cộng <span class="math-inline">$\gamma \max Q(s&#x27;, \cdot)$</span>). Trong notebook, do các trạng thái kết thúc không bao giờ được dùng làm <code>obs0</code> để cập nhật tiếp, giá trị <span class="math-inline">$Q(terminal, \cdot)$</span> luôn bằng 0, vô tình giữ cho công thức vẫn đúng.</p>
+</li>
+</ul>
+<hr />
+<h2 id="8-vi-du-tinh-tay-kiem-tra-ban-a-hieu-cap-nhat">8. Ví dụ tính tay (kiểm tra bạn đã hiểu cập nhật)<a class="headerlink" href="#8-vi-du-tinh-tay-kiem-tra-ban-a-hieu-cap-nhat" title="Liên kết tới mục này">&para;</a></h2>
+<p>Đặt <span class="math-inline">$\alpha=0.8,\ \gamma=0.95$</span>, Q khởi tạo 0.</p>
+<p><strong>Bước 1</strong>: ở <span class="math-inline">$s_{14}$</span>, chọn "phải", tới đích <span class="math-inline">$s_{15}$</span> với <span class="math-inline">$r=1$</span>; <span class="math-inline">$Q(s_{15},\cdot)=0$</span>.
+<div class="math-block">$$y=1+0.95\cdot0=1,\quad\text{sai số}=1-0=1,\quad Q(s_{14},\text{phải})=0+0.8\cdot1=\mathbf{0.8}$$</div></p>
+<p><strong>Bước 2</strong>: ở <span class="math-inline">$s_{13}$</span>, chọn "phải" sang <span class="math-inline">$s_{14}$</span>, <span class="math-inline">$r=0$</span>; <span class="math-inline">$\max_{a&#x27;}Q(s_{14},a&#x27;)=0.8$</span>.
+<div class="math-block">$$y=0+0.95\cdot0.8=0.76,\quad\text{sai số}=0.76-0=0.76,\quad Q(s_{13},\text{phải})=0.8\cdot0.76=\mathbf{0.608}$$</div></p>
+<p><strong>Bước 3</strong>: lại thăm <span class="math-inline">$(s_{14},\text{phải})$</span> nhưng lần này bị trượt sang hố, <span class="math-inline">$r=0$</span>, trạng thái kết thúc, <span class="math-inline">$y=0$</span>:
+<div class="math-block">$$\text{sai số}=0-0.8=-0.8,\quad Q=0.8+0.8\cdot(-0.8)=\mathbf{0.16}$$</div>
+→ Với <span class="math-inline">$\alpha=0.8$</span> một lần trượt xoá gần hết giá trị (đây là lý do <span class="math-inline">$\alpha$</span> lớn gây nhiễu trong môi trường ngẫu nhiên; <span class="math-inline">$\alpha$</span> nhỏ sẽ trung bình tốt hơn nhưng học chậm).</p>
+<p>Phép tính này cho thấy <strong>giá trị lan ngược từ đích</strong>: giá trị ô liền kề đích ≈ <span class="math-inline">$\gamma^0$</span>, cách 2 bước ≈ <span class="math-inline">$\gamma^1$</span>, … (trước khi nhiễu và xác suất trượt làm giảm).</p>
+<hr />
+<h2 id="9-bai-tap-va-cau-hoi-kiem-tra">9. Bài tập và câu hỏi kiểm tra<a class="headerlink" href="#9-bai-tap-va-cau-hoi-kiem-tra" title="Liên kết tới mục này">&para;</a></h2>
+<p><strong>Lý thuyết</strong></p>
+<ol>
+<li>Chứng minh <span class="math-inline">$V^\pi(s)=\sum_a\pi(a|s)Q^\pi(s,a)$</span> và suy ra phương trình Bellman cho <span class="math-inline">$Q^\pi$</span>.</li>
+<li>Chứng minh toán tử Bellman tối ưu là phép co <span class="math-inline">$\gamma$</span> trong chuẩn <span class="math-inline">$\|\cdot\|_\infty$</span> (làm lại §3.3 không nhìn).</li>
+<li>Vì sao TD có bias mà vẫn thường học nhanh hơn MC?</li>
+<li>Giải thích bằng lời: SARSA và Q-learning sẽ khác nhau thế nào trong bài toán "đi dọc vách đá" (cliff walking)?</li>
+</ol>
+<p><strong>Thực hành</strong></p>
+<ol>
+<li>Cài Value Iteration cho FrozenLake bằng <code>env.unwrapped.P</code> (mô hình thật) và so sánh <span class="math-inline">$V^*$</span> với bảng Q học được.</li>
+<li>Cài SARSA và Expected SARSA; so sánh đường học.</li>
+<li>Thử <span class="math-inline">$\alpha\in\{0.05,0.2,0.8\}$</span> và <span class="math-inline">$\alpha_t=1/\sqrt t$</span>; quan sát độ dao động.</li>
+<li>Vẽ heatmap <span class="math-inline">$\max_aQ(s,a)$</span> và mũi tên policy tham lam trên lưới 4×4.</li>
+<li>Sửa <code>best_action_value</code> theo §7.4 và kiểm tra kết quả không đổi.</li>
+</ol>
+<p><strong>Công thức cần thuộc</strong>: <span class="math-inline">$G_t=r+\gamma G_{t+1}$</span> · Bellman kỳ vọng · Bellman tối ưu · cập nhật TD · cập nhật Q-learning/SARSA · điều kiện Robbins–Monro.</p>
+      </article>
+      <nav class="doc-pager"><a class="pager-card pager-prev" href="../Week1/BAI_GIANG.html"><span class="pager-label">← Bài trước</span><span class="pager-title">Week 1: Giới Thiệu RL, Bandit (UCB1) &amp; Pong</span></a><a class="pager-card pager-next" href="../Week3/BAI_GIANG.html"><span class="pager-label">Bài tiếp theo →</span><span class="pager-title">Week 3: Deep Q-Networks (DQN, Double, Dueling)</span></a></nav>
+    </main>
+
+    <aside class="sidebar-right">
+      <div class="toc-header">📑 Mục lục trên trang này</div>
+      <nav class="toc-nav">
+        <a class="toc-link toc-l2" href="#1-bai-toan-markov-decision-process-mdp">1. Bài toán: Markov Decision Process (MDP)</a>
+<a class="toc-link toc-l3" href="#11-inh-nghia">1.1 Định nghĩa</a>
+<a class="toc-link toc-l3" href="#12-policy">1.2 Policy</a>
+<a class="toc-link toc-l3" href="#13-return-va-he-so-chiet-khau">1.3 Return và hệ số chiết khấu</a>
+<a class="toc-link toc-l2" href="#2-ham-gia-tri-va-phuong-trinh-bellman">2. Hàm giá trị và phương trình Bellman</a>
+<a class="toc-link toc-l3" href="#21-inh-nghia">2.1 Định nghĩa</a>
+<a class="toc-link toc-l3" href="#22-chung-minh-chi-tiet-phuong-trinh-bellman-ky-vong-derivation-of-bellman-expectation-equation">2.2 Chứng minh chi tiết Phương trình Bellman kỳ vọng (Derivation of Bellman Expectation Equation)</a>
+<a class="toc-link toc-l2" href="#3-tinh-toi-uu-chung-minh-tinh-co-banach-banach-contraction-theorem">3. Tính tối ưu &amp; Chứng minh tính co Banach (Banach Contraction Theorem)</a>
+<a class="toc-link toc-l3" href="#31-policy-toi-uu">3.1 Policy tối ưu</a>
+<a class="toc-link toc-l3" href="#32-phuong-trinh-bellman-toi-uu">3.2 Phương trình Bellman tối ưu</a>
+<a class="toc-link toc-l3" href="#33-chung-minh-toan-hoc-tinh-co-cua-toan-tu-bellman-va-inh-ly-banach">3.3 Chứng minh toán học: Tính co của Toán tử Bellman và Định lý Banach</a>
+<a class="toc-link toc-l2" href="#4-quy-hoach-ong-dynamic-programming">4. Quy hoạch động (Dynamic Programming)</a>
+<a class="toc-link toc-l3" href="#41-policy-evaluation-du-oan">4.1 Policy Evaluation (dự đoán)</a>
+<a class="toc-link toc-l3" href="#42-policy-improvement-chung-minh-inh-ly-cai-thien-chinh-sach">4.2 Policy Improvement &amp; Chứng minh Định lý cải thiện chính sách</a>
+<a class="toc-link toc-l3" href="#43-policy-iteration-va-value-iteration">4.3 Policy Iteration và Value Iteration</a>
+<a class="toc-link toc-l2" href="#5-hoc-tu-mau-khong-can-mo-hinh-model-free-prediction">5. Học từ mẫu không cần mô hình (model-free prediction)</a>
+<a class="toc-link toc-l3" href="#51-trung-binh-tang-dan-nen-tang-cua-moi-cap-nhat">5.1 Trung bình tăng dần (nền tảng của mọi cập nhật)</a>
+<a class="toc-link toc-l3" href="#52-monte-carlo-mc">5.2 Monte Carlo (MC)</a>
+<a class="toc-link toc-l3" href="#53-temporal-difference-td0">5.3 Temporal-Difference TD(0)</a>
+<a class="toc-link toc-l3" href="#54-n-step-va-tdinlinemathplaceholder203end">5.4 n-step và TD(<span class="math-inline">$\lambda$</span>)</a>
+<a class="toc-link toc-l2" href="#6-ieu-khien-model-free-tim-policy-toi-uu">6. Điều khiển model-free (tìm policy tối ưu)</a>
+<a class="toc-link toc-l3" href="#61-kham-pha-inlinemathplaceholder213end-greedy">6.1 Khám phá: <span class="math-inline">$\epsilon$</span>-greedy</a>
+<a class="toc-link toc-l3" href="#62-sarsa-on-policy-td-control">6.2 SARSA (on-policy TD control)</a>
+<a class="toc-link toc-l3" href="#63-q-learning-off-policy-td-control">6.3 Q-learning (off-policy TD control)</a>
+<a class="toc-link toc-l3" href="#64-ieu-kien-hoi-tu-watkins-dayan">6.4 Điều kiện hội tụ (Watkins &amp; Dayan)</a>
+<a class="toc-link toc-l3" href="#65-importance-sampling-khi-can-off-policy-that-su">6.5 Importance sampling (khi cần off-policy thật sự)</a>
+<a class="toc-link toc-l2" href="#7-oc-code-frozenlake_qlearningipynb">7. Đọc code: frozenlake_Qlearning.ipynb</a>
+<a class="toc-link toc-l3" href="#71-luong-chay">7.1 Luồng chạy</a>
+<a class="toc-link toc-l3" href="#72-anh-xa-cong-thuc-code">7.2 Ánh xạ công thức ↔ code</a>
+<a class="toc-link toc-l3" href="#73-phan-tich-chuyen-sau-cac-tham-so-va-co-che-tac-ong-len-phuong-trinh">7.3 Phân tích chuyên sâu các tham số và cơ chế tác động lên phương trình</a>
+<a class="toc-link toc-l3" href="#74-iem-tinh-te-trong-cai-at-ma-nguon">7.4 Điểm tinh tế trong cài đặt mã nguồn</a>
+<a class="toc-link toc-l2" href="#8-vi-du-tinh-tay-kiem-tra-ban-a-hieu-cap-nhat">8. Ví dụ tính tay (kiểm tra bạn đã hiểu cập nhật)</a>
+<a class="toc-link toc-l2" href="#9-bai-tap-va-cau-hoi-kiem-tra">9. Bài tập và câu hỏi kiểm tra</a>
+      </nav>
+    </aside>
+  </div>
+
+  <script>
+    // Khởi tạo giao diện Sáng/Tối từ localStorage
+    (function() {
+      const saved = localStorage.getItem('rl_docs_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('rl_docs_theme', next);
+    }
+
+    function filterSidebar(query) {
+      const q = query.trim().toLowerCase();
+      const items = document.querySelectorAll('#sidebar-nav .nav-item');
+      items.forEach(item => {
+        const title = item.getAttribute('data-title') || '';
+        item.style.display = (!q || title.includes(q)) ? 'flex' : 'none';
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.hljs) {
+        hljs.highlightAll();
+      }
+    });
+  </script>
+</body>
+</html>
